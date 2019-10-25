@@ -1,0 +1,462 @@
+index:    0
+sentNum: 58
+recvNum: 14
+trans ratio: 24%
+send Interval: 1s
+Throughput: 0.00353684 Mbps
+
+index:    0
+sentNum: 58
+recvNum: 17
+trans ratio: 29%
+send Interval: 1s
+Throughput: 0.00429474 Mbps
+
+index:    0
+sentNum: 58
+recvNum: 13
+trans ratio: 22%
+send Interval: 1s
+Throughput: 0.00328421 Mbps
+
+index:    0
+sentNum: 58
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 58
+recvNum: 57
+trans ratio: 98%
+send Interval: 1s
+Throughput: 0.0144 Mbps
+
+index:    0
+sentNum: 58
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 58
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 58
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 2
+trans ratio: 66%
+send Interval: 1s
+Throughput: 0.0144 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 1s
+Throughput: 0.0072 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 1s
+Throughput: 0.006 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 1s
+Throughput: 0.006 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 1s
+Throughput: 0.006 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 1s
+Throughput: 0.006 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 1s
+Throughput: 0.006 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 5
+trans ratio: 62%
+send Interval: 1s
+Throughput: 0.00857143 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 4
+trans ratio: 50%
+send Interval: 1s
+Throughput: 0.00685714 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 7
+trans ratio: 87%
+send Interval: 1s
+Throughput: 0.012 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 7
+trans ratio: 87%
+send Interval: 1s
+Throughput: 0.012 Mbps
+
+index:    26
+sentNum: 3
+recvNum: 2
+trans ratio: 66%
+send Interval: 1s
+Throughput: 0.0081 Mbps
+
+index:    26
+sentNum: 3
+recvNum: 3
+trans ratio: 100%
+send Interval: 1s
+Throughput: 0.01215 Mbps
+
+index:    26
+sentNum: 3
+recvNum: 2
+trans ratio: 66%
+send Interval: 1s
+Throughput: 0.0081 Mbps
+
+index:    26
+sentNum: 3
+recvNum: 3
+trans ratio: 100%
+send Interval: 1s
+Throughput: 0.01215 Mbps
+
+index:    26
+sentNum: 3
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    26
+sentNum: 3
+recvNum: 2
+trans ratio: 66%
+send Interval: 1s
+Throughput: 0.0081 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 0
+trans ratio: 0%
+send Interval: 1s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 4
+trans ratio: 50%
+send Interval: 1s
+Throughput: 0.00685714 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 4
+trans ratio: 50%
+send Interval: 1s
+Throughput: 0.00685714 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 5
+trans ratio: 62%
+send Interval: 1s
+Throughput: 0.00857143 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 7
+trans ratio: 87%
+send Interval: 1s
+Throughput: 0.012 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 5
+trans ratio: 62%
+send Interval: 1s
+Throughput: 0.00857143 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 5
+trans ratio: 62%
+send Interval: 1s
+Throughput: 0.00857143 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 5
+trans ratio: 62%
+send Interval: 1s
+Throughput: 0.00857143 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 5
+trans ratio: 62%
+send Interval: 1s
+Throughput: 0.00857143 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 5
+trans ratio: 62%
+send Interval: 1s
+Throughput: 0.00857143 Mbps
+
+index:    0
+sentNum: 8
+recvNum: 4
+trans ratio: 50%
+send Interval: 1s
+Throughput: 0.00685714 Mbps
+
+index:    0
+sentNum: 4
+recvNum: 2
+trans ratio: 50%
+send Interval: 2s
+Throughput: 0.00342857 Mbps
+
+index:    0
+sentNum: 4
+recvNum: 0
+trans ratio: 0%
+send Interval: 2s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 701
+recvNum: 87
+trans ratio: 12%
+send Interval: 0.01s
+Throughput: 0.149143 Mbps
+
+index:    0
+sentNum: 701
+recvNum: 119
+trans ratio: 16%
+send Interval: 0.01s
+Throughput: 0.204 Mbps
+
+index:    0
+sentNum: 7001
+recvNum: 0
+trans ratio: 0%
+send Interval: 0.001s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 141
+recvNum: 20
+trans ratio: 14%
+send Interval: 0.05s
+Throughput: 0.0342857 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 3s
+Throughput: 0.00171429 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 3s
+Throughput: 0.00171429 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 3s
+Throughput: 0.00171429 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 3s
+Throughput: 0.00171429 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 2
+trans ratio: 66%
+send Interval: 3s
+Throughput: 0.00342857 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 1
+trans ratio: 33%
+send Interval: 3s
+Throughput: 0.00171429 Mbps
+
+index:    0
+sentNum: 3
+recvNum: 2
+trans ratio: 66%
+send Interval: 2.4s
+Throughput: 0.00342857 Mbps
+
+index:    0
+sentNum: 857
+recvNum: 0
+trans ratio: 0%
+send Interval: 0.001s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 701
+recvNum: 153
+trans ratio: 21%
+send Interval: 0.01s
+Throughput: 0.262286 Mbps
+
+index:    0
+sentNum: 271
+recvNum: 66
+trans ratio: 24%
+send Interval: 0.1s
+Throughput: 0.0293333 Mbps
+
+index:    0
+sentNum: 115
+recvNum: 26
+trans ratio: 22%
+send Interval: 0.5s
+Throughput: 0.00547368 Mbps
+
+index:    0
+sentNum: 199
+recvNum: 0
+trans ratio: 0%
+send Interval: 0.005s
+Throughput: 0 Mbps
+
+index:    0
+sentNum: 7126
+recvNum: 805
+trans ratio: 11%
+send Interval: 0.008s
+Throughput: 0.169474 Mbps
+
+index:    0
+sentNum: 5701
+recvNum: 1292
+trans ratio: 22%
+send Interval: 0.01s
+Throughput: 0.272 Mbps
+
+index:    0
+sentNum: 5701
+recvNum: 5084
+trans ratio: 89%
+send Interval: 0.01s
+Throughput: 1.07032 Mbps
+
+index:    0
+sentNum: 57001
+recvNum: 31253
+trans ratio: 54%
+send Interval: 0.001s
+Throughput: 6.57958 Mbps
+
+index:    0
+sentNum: 57001
+recvNum: 19977
+trans ratio: 35%
+send Interval: 0.001s
+Throughput: 4.20568 Mbps
+
+index:    0
+sentNum: 57001
+recvNum: 19977
+trans ratio: 35%
+send Interval: 0.001s
+Throughput: 4.20568 Mbps
+
+index:    0
+sentNum: 57001
+recvNum: 17162
+trans ratio: 30%
+send Interval: 0.001s
+Throughput: 4.8174 Mbps
+

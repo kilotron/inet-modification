@@ -1,0 +1,42 @@
+index:    48
+sentNum: 145077
+recvNum: 11830
+trans ratio: 8%
+throuput: 2.44759 Mbps
+
+index:    48
+sentNum: 144913
+recvNum: 20699
+trans ratio: 14%
+throuput: 4.28255 Mbps
+
+index:    48
+sentNum: 145173
+recvNum: 31071
+trans ratio: 21%
+throuput: 6.42848 Mbps
+
+index:    48
+sentNum: 144765
+recvNum: 41273
+trans ratio: 28%
+throuput: 8.53924 Mbps
+
+index:    48
+sentNum: 144977
+recvNum: 41127
+trans ratio: 28%
+throuput: 8.50903 Mbps
+
+index:    48
+sentNum: 144670
+recvNum: 40751
+trans ratio: 28%
+throuput: 8.43124 Mbps
+
+index:    48
+sentNum: 144620
+recvNum: 61055
+trans ratio: 42%
+throuput: 12.6321 Mbps
+
