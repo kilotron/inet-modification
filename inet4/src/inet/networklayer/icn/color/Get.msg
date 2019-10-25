@@ -33,7 +33,7 @@ class Get extends FieldsChunk
     //AppControlInfo controlInfo;
     uint16_t version = 0;
     unsigned char type = 0;
-    int timeToLive = 8;
+    int timeToLive = 2;
     uint16_t totalLength = 0;
     //32bits
 

@@ -417,6 +417,7 @@ OBJS = \
     $O/inet/mobility/base/MovingMobilityBase.o \
     $O/inet/mobility/base/RotatingMobilityBase.o \
     $O/inet/mobility/contract/IMobility.o \
+    $O/inet/mobility/droneGroup/AttachedTriangle.o \
     $O/inet/mobility/droneGroup/TriangleLinearMobility.o \
     $O/inet/mobility/group/MoBanCoordinator.o \
     $O/inet/mobility/group/MoBanLocal.o \

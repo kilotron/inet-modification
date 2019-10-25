@@ -202,7 +202,7 @@ void color::handleMessageWhenUp(cMessage *msg)
         static int requestIndex = 0;
         if (msg == testGet)
         {
-            testSend(requestIndex++ % 20000);
+            testSend(requestIndex++ % 20);
             scheduleGet(sentInterval, SendMode::EqualInterval);
         }
         else if (msg == testData)
@@ -405,7 +405,7 @@ void color::handleGetPacket(Packet *packet)
     const auto &head = packet->removeAtFront<Get>();
 
     //检查ttl，ttl小于等于1丢弃
-    if(head->getTimeToLive()<=1)
+    if(head->getTimeToLive()<1)
     {
         delete packet;
         return;
@@ -522,7 +522,7 @@ const inet::Ptr<inet::Data> color::DataHead(SID_t sid)
 {
     const auto &data = makeShared<Data>();
     data->setVersion(0);
-    data->setTimeToLive(hopLimit);
+    data->setTimeToLive(5);
     data->setMTU(mtu);
     data->setSID(sid);
     data->setNID(nid);
