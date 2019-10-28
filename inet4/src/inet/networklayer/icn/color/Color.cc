@@ -375,7 +375,6 @@ void color::handleDataPacket(Packet *packet)
             {
                 //数据包发往5GHz端口
                 //                std::cout << "send back" << endl;
-
                 sendDatagramToOutput(newPacket->dup(), 5);
             }
         }
@@ -432,11 +431,9 @@ void color::handleGetPacket(Packet *packet)
             //    sendDatagramToOutput(newPacket->dup(), 5);
             }
 
-
             //添加新条目
             simtime_t ttl = 0.01;
             
-
             if (ie == ie24)
                 pit->createEntry(head->getSID(), head->getSource(), head->getMAC(), ttl, 24);
             else
@@ -776,13 +773,14 @@ void color::scheduleGet(simtime_t t, SendMode mode)
 
 void color::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
+
 }
 
 void color::record()
 {
     std::ofstream outfile;
     std::string filename = "Record.txt";
-
+    
     outfile.open(filename, std::ofstream::app);
     int index = getParentModule()->getParentModule()->getIndex();
     outfile << "index:    " << index << endl;
