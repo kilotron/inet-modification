@@ -26,6 +26,7 @@ simple SimpleCluster like ICluster
         double hello @unit(s) = default(0.5s);
         string recordFile = default("clusterRecord.txt");
         string iniFile = default("ini.txt");
+        string path = default("./result/");
         
         int retry;
         @display("i=block/layer");

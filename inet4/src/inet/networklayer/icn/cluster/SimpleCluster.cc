@@ -42,7 +42,7 @@ void SimpleCluster::initialize(int stage)
         std::array<uint64_t, 2> hashValue;
         MurmurHash3_x64_128(&ID, sizeof(int), 0, hashValue.data());
 
-        neighbors = new std::set<int>();
+        neighbors = new std::set<int>;
         nodeIndex = getContainingNode(this)->getIndex();
         nid = hashValue;
         wait = new cMessage("wait");
@@ -59,8 +59,10 @@ void SimpleCluster::initialize(int stage)
         retryTimes = par("retry").intValue();
         helloTime = par("hello").doubleValue();
 
-        filename = par("recordFile").stdstringValue();
-        inifile = par("iniFile").stdstringValue();
+        
+        path = par("path").stdstringValue();
+        filename = path+par("recordFile").stdstringValue();
+        inifile = path+par("iniFile").stdstringValue();
 
         state = INI;
 
@@ -107,9 +109,9 @@ void SimpleCluster::finish()
     cancelAndDelete(retry);
     cancelAndDelete(iniTimer);
 
-//    recorder(filename);
-//    topology(1, "/home/hiro/PycharmProjects/OMNET_cluster/rstFile/all_edge.txt");
-//    topology(0, "/home/hiro/PycharmProjects/OMNET_cluster/rstFile/edge.txt");
+    recorder(filename);
+    topology(1, path + "all_edge.txt");
+    topology(0, path + "edge.txt");
 
     if (getContainingNode(this)->getIndex() == 0)
         std::cout
@@ -195,7 +197,7 @@ void SimpleCluster::processClusterPacket(Packet *packet)
     {
         auto id = head->getNID();
         int temp = head->getNodeIndex();
-//        neighbors->insert(temp);
+        neighbors->insert(temp);
 
         cancelEvent(wait);
         maxNeighbor = maxNeighbor < id ? id : maxNeighbor;
@@ -396,14 +398,14 @@ void SimpleCluster::recorder(std::string filename)
     outfile << (state == HEAD);
     outfile.close();
 
-    outfile.open("/home/hiro/PycharmProjects/OMNET_cluster/rstFile/position.txt", std::ofstream::app);
+    outfile.open(path+"position.txt", std::ofstream::app);
     auto positon = getPosition();
     outfile << positon.getX() << ", " << positon.getY() << endl;
     outfile.close();
 }
     
 
-void SimpleCluster::topology(bool all, const char* filename)
+void SimpleCluster::topology(bool all, std::string filename)
 {
     std::ofstream outfile;
     

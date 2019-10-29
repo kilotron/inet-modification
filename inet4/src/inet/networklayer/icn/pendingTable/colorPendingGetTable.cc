@@ -107,6 +107,11 @@ void colorPendingGetTable::RemoveEntry(const SID_t &sid)
     sids.erase(sid);
 }
 
+void colorPendingGetTable::RemoveEntry(const std::multimap<SID_t, PITentry>::iterator iter)
+{
+    table.erase(iter);
+}
+
 colorPendingGetTable::EntrysRange colorPendingGetTable::findPITentry(const SID_t &sid)
 {
     return table.equal_range(sid);

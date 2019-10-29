@@ -19,6 +19,7 @@
 #include "inet/networklayer/icn/field/dataType.h"
 #include "inet/networklayer/icn/cluster/ICluster.h"
 #include <random>
+#include <string>
 
 
 #include<set>
@@ -80,6 +81,7 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         int nodeIndex;
 
         //记录文件名
+        std::string path;
         std::string filename;
         std::string inifile;
 
@@ -162,7 +164,7 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         void recorder(std::string filename);
 
         //拓扑信息
-        void topology(bool all, const char* filename);
+        void topology(bool all, std::string filename);
 
         friend std::ostream& operator<<(std::ostream& os,const SimpleCluster::ClusterEntry& entry);
 

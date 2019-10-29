@@ -38,6 +38,27 @@ namespace inet{
 
     class INET_API color : public OperationalBase, public INetworkProtocol, public IProtocolRegistrationListener, public cListener
     {
+        public:
+            struct SimRcorder
+            {
+                color *owner;
+
+                int index;
+                std::map<SID_t, simtime_t> Delays;
+
+                B throughput = B(0);
+                int GetSendNum = 0;
+                int GetRecvNum = 0;
+
+                int DataSendNum = 0;
+                int DataRecvNum =0;
+                simtime_t delay = 0;
+
+                void ConsumerPrint(std::ostream &os);
+
+                void ProviderPrint(std::ostream &os);
+            };
+
         private:
             //节点索引
             int nodeIndex;
@@ -93,10 +114,12 @@ namespace inet{
 
             std::map<SID_t, simtime_t> Delays;
             B throuput;
-            int sentNum;
+            int sendNum;
             int recvNum;
             double sentInterval;
             simtime_t delay;
+
+            SimRcorder testModule;
 
             enum class SendMode
             {

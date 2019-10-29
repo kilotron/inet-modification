@@ -25,14 +25,36 @@ namespace inet
 
 Define_Module(color);
 
+void color::SimRcorder::ConsumerPrint(std::ostream &os)
+{
+
+    os << "index:    " << index << endl;
+    os << "sendNum: " << GetSendNum << endl;
+    os << "recvNum: " << DataRecvNum << endl;
+    if(GetSendNum != 0)
+        os << "trans ratio: " << 100 * DataRecvNum / GetSendNum << "%" << endl;
+    os << "send Interval: " << owner->sentInterval << "s" << endl;
+    os << "Throughput: " << owner->throuput.get() * 8 / ((simTime().dbl() - owner->testget.dbl()) * 1000 * 1000) << " Mbps" << endl;
+    os << endl;
+    //    outfile << "throuput: " << throuput << endl;
+}
+
+void color::SimRcorder::ProviderPrint(std::ostream &os)
+{
+    os << "index:    " << index << endl;
+    os << "DataSendNum: " << DataSendNum << endl;
+    os << "GetRecvNum: " << GetRecvNum << endl;
+    os << endl;
+}
+
 color::~color()
 {
 }
 
 void color::finish()
 {
-    if (nodeIndex == Cindex )
-        record();
+
+    record();
     cancelAndDelete(testGet);
     cancelAndDelete(testData);
 }
@@ -50,11 +72,14 @@ void color::initialize(int stage)
         testGet = new cMessage("testGet");
         testData = new cMessage("testData");
 
-        testget = 2 + 1.0/(nodeIndex+1);
+        testget = 2 + 1.0 / (nodeIndex + 1);
         testdata = 1;
 
+        testModule.owner = this;
+        testModule.index = nodeIndex;
+
         throuput = B(0);
-        sentNum = 0;
+        sendNum = 0;
         recvNum = 0;
 
         Cindex = cSimulation::getActiveSimulation()->getSystemModule()->par("Cindex").intValue();
@@ -164,7 +189,7 @@ void color::handleStartOperation(LifecycleOperation *operation)
     //测试，一个节点作为内容源一个作为请求者发送get包
     if (nodeIndex == Cindex)
         scheduleAt(testget, testGet);
-    else if (nodeIndex == Pindex )
+    else if (nodeIndex == Pindex)
         scheduleAt(testdata, testData);
 }
 
@@ -202,7 +227,7 @@ void color::handleMessageWhenUp(cMessage *msg)
         static int requestIndex = 0;
         if (msg == testGet)
         {
-            testSend(requestIndex++ % 20);
+            testSend(requestIndex++ % 6000);
             scheduleGet(sentInterval, SendMode::EqualInterval);
         }
         else if (msg == testData)
@@ -246,26 +271,58 @@ void color::handleIncomingDatagram(Packet *packet)
 
 void color::handleDataPacket(Packet *packet)
 {
-
+    //取出头部
     const auto head = packet->peekAtFront<Data>(B(78), 0);
+    const SID_t &headSid = head->getSID();
 
     auto newPacket = packet->dup();
-    auto ll = packet->getDataLength().get() / 8;
+
     //测试信息
-    if(nodeIndex  == Cindex)
+    if (nodeIndex == Cindex)
     {
-
     }
-    //抽出报文头部
 
-    //    std::cout<<simTime()<<endl;
-    //    const_cast<Data*>(head.get())->getTraceForUpdate().push_back(nodeIndex);
-    const SID_t &headSid = head->getSID();
+    if (pit->isConsumer(headSid))
+    {
+        //调试信息
+
+        std::cout << "one packet received" << endl;
+        std::cout << "off set is " << head->getOffset() << endl;
+
+        std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+        std::cout << nodeIndex << endl;
+
+        //如果本节点正是发出get包的源节点在进行数据包重组验证完整性后，解包给上层协议
+        auto fullPacket = ResemBuffer->addFragment(packet->dup(), simTime());
+        if (fullPacket != nullptr)
+        {
+            decapsulate(fullPacket, headSid);
+        }
+
+        //首先移除PIT表中consumer的对应表项， PIT表项仅为consumer时不触发转发
+        auto range = findPITentry(headSid);
+        auto iter = range.first;
+        while (iter != range.second)
+        {
+            if (iter->second.isConsumer())
+            {
+                pit->RemoveEntry(iter++);
+            }
+            else
+                iter++;
+        }
+
+        if (!pit->hasThisSid(headSid))
+        {
+            pit->RemoveEntry(headSid);
+        }
+    }
 
     //查看PIT表是否有此SID记录
     if (pit->hasThisSid(headSid))
     {
         std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
+
         //转发原则与NDN相同，get包从哪个端口来，data包就往哪个端口回
         //指示data包应该发往那个端口，hz5==true发往5GHz端口，hz24==true发往2.4GHz端口
         bool hz5 = false;
@@ -275,27 +332,7 @@ void color::handleDataPacket(Packet *packet)
         auto range = findPITentry(headSid);
         for (auto iter = range.first; iter != range.second; iter++)
         {
-            auto test = iter->second;
 
-            if (pit->isConsumer(headSid))
-            {
-                //调试信息
-
-                std::cout << "one packet received" << endl;
-                std::cout << "off set is " << head->getOffset() << endl;
-
-                std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-                std::cout << nodeIndex << endl;
-
-                //如果本节点正是发出get包的源节点在进行数据包重组验证完整性后，解包给上层协议
-                auto fullPacket = ResemBuffer->addFragment(packet->dup(), simTime());
-                if (fullPacket != nullptr)
-                {
-                    decapsulate(fullPacket, headSid);
-                }
-                    
-                continue;
-            }
             if (iter->second.getType() == 24)
             {
                 //来自2.4GHz端口
@@ -311,9 +348,9 @@ void color::handleDataPacket(Packet *packet)
         if (clusterModule->isHead() && !ct->hasThisPacket(packet, headSid))
         {
             //测试信息
-//                        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
+            //                        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
 
-            if(head->getTimeToLive()<1)
+            if (head->getTimeToLive() < 1)
             {
                 delete packet;
                 std::cout << "ttl beyond limit" << endl;
@@ -352,7 +389,7 @@ void color::handleDataPacket(Packet *packet)
             newPacket->insertAtFront(newHead);
 
             //debug检查长度是否和复制前的packet一致
-//            auto ll2 = newPacket->getDataLength().get() / 8;
+            //            auto ll2 = newPacket->getDataLength().get() / 8;
 
             //            testpacket->insertAtFront(newHead);
             //将数据包存入缓存
@@ -367,9 +404,8 @@ void color::handleDataPacket(Packet *packet)
             if (hz24 == 1)
             {
                 //数据包发往2.4GHz端口
-//                if(nodeIndex!=43)
-//                    sendDatagramToOutput(newPacket->dup(), 24);
-
+                //                if(nodeIndex!=43)
+                sendDatagramToOutput(newPacket->dup(), 24);
             }
             if (hz5 == 1)
             {
@@ -377,9 +413,10 @@ void color::handleDataPacket(Packet *packet)
                 //                std::cout << "send back" << endl;
                 sendDatagramToOutput(newPacket->dup(), 5);
             }
+
+            //在一个get包就对应一个data包的情况中，缓存转发后移除PIT条目
+            pit->RemoveEntry(headSid);
         }
-        //在一个get包就对应一个data包的情况中，缓存转发后移除PIT条目
-        pit->RemoveEntry(headSid);
     }
     else
     {
@@ -387,24 +424,23 @@ void color::handleDataPacket(Packet *packet)
     }
 
     //删除两个数据包，避免内存泄露
-    if (packet != nullptr)
-        delete packet;
+    delete packet;
     delete newPacket;
 }
 
 void color::handleGetPacket(Packet *packet)
 {
 
-    if(clusterModule->isHead())
+    if (nodeIndex == Pindex)
     {
-        //测试
+        testModule.GetRecvNum++;
     }
     //根据GET包头部内容进行相应操作
     packet->trim();
     const auto &head = packet->removeAtFront<Get>();
 
     //检查ttl，ttl小于等于1丢弃
-    if(head->getTimeToLive()<1)
+    if (head->getTimeToLive() < 1)
     {
         delete packet;
         return;
@@ -427,13 +463,13 @@ void color::handleGetPacket(Packet *packet)
         {
             if (!pit->hasThisSid(headSID))
             {
-               sendDatagramToOutput(newPacket->dup(), 24);
-            //    sendDatagramToOutput(newPacket->dup(), 5);
+                sendDatagramToOutput(newPacket->dup(), 24);
+                //    sendDatagramToOutput(newPacket->dup(), 5);
             }
 
             //添加新条目
             simtime_t ttl = 0.01;
-            
+
             if (ie == ie24)
                 pit->createEntry(head->getSID(), head->getSource(), head->getMAC(), ttl, 24);
             else
@@ -453,13 +489,15 @@ void color::handleGetPacket(Packet *packet)
 
         auto lists = findContentInCache(headSID)->GetList();
         int nic = (ie == ie24) ? 24 : 5;
-        
+
+        testModule.DataSendNum++;
+
         for (const auto &P : lists)
         {
             if (P != nullptr)
             {
                 auto newP = P->dup();
-                std::cout<<"sent data packet"<<endl;
+                std::cout << "sent data packet" << endl;
                 if (!clusterModule->isHead())
                     sendDatagramToOutput(newP, 5);
                 else
@@ -467,7 +505,7 @@ void color::handleGetPacket(Packet *packet)
             }
         }
     }
-//    ;
+    //    ;
     delete packet;
 }
 
@@ -562,6 +600,7 @@ void color::encapsulate(Packet *packet, int type, int portSelf, int portDest)
 void color::decapsulate(Packet *packet, SID_t sid)
 {
     //解封装数据包record
+    testModule.DataRecvNum++;
     recvNum++;
     std::cout << "receive the packet successfully!" << endl;
     std::cout << "delay is " << (simTime() - Delays[sid]).format(SIMTIME_MS) << " ms" << endl;
@@ -702,14 +741,16 @@ void color::FragmentAndSend(Packet *packet)
 
 void color::testSend(SID_t sid)
 {
-    Packet *packet = new Packet();
+    Packet *packet = new Packet("getPacket");
 
     if (clusterModule->isHead())
     {
         encapsulate(packet, 0, sid);
         auto mac = ie24->getMacAddress();
-        auto entry = pit->createEntry(sid, nid, mac, simtime_t(5), 24, true);
+        pit->createEntry(sid, nid, mac, simtime_t(5), 24, true);
         sendDatagramToOutput(packet->dup(), 24);
+        pit->createEntry(sid, nid, mac, simtime_t(5), 5, true);
+        sendDatagramToOutput(packet->dup(), 5);
     }
     else
     {
@@ -722,9 +763,10 @@ void color::testSend(SID_t sid)
     Delays[sid] = simTime();
     // delay = SimTime();
 
-    sentNum++;
-    std::cout<<endl;
-    std::cout<<"send get packet"<<endl;
+    testModule.GetSendNum++;
+    sendNum++;
+    std::cout << endl;
+    std::cout << "send get packet" << endl;
     delete packet;
 }
 
@@ -741,7 +783,7 @@ void color::testProvide(SID_t sid, B dataSize)
 }
 
 void color::scheduleGet(simtime_t t, SendMode mode)
-{   
+{
     //不同的发包模式
     cancelEvent(testGet);
     switch (mode)
@@ -758,40 +800,41 @@ void color::scheduleGet(simtime_t t, SendMode mode)
     case SendMode::UniformDisInterval:
     {
         scheduleAt(simTime() + uniform(0, t), testGet);
-    } break;
+    }
+    break;
 
     //发送间隔服从均值为t的指数分布
     case SendMode::ExpDisInterval:
     {
         scheduleAt(simTime() + exponential(t), testGet);
-    } break;
+    }
+    break;
 
     default:
-    break;
+        break;
     }
 }
 
 void color::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
-
 }
 
 void color::record()
 {
     std::ofstream outfile;
-    std::string filename = "Record.txt";
-    
-    outfile.open(filename, std::ofstream::app);
-    int index = getParentModule()->getParentModule()->getIndex();
-    outfile << "index:    " << index << endl;
-    outfile << "sentNum: " << sentNum << endl;
-    outfile << "recvNum: " << recvNum << endl;
-    outfile << "trans ratio: " << 100 * recvNum / sentNum << "%" << endl;
-    outfile << "send Interval: " << sentInterval << "s" << endl;
-    outfile << "Throughput: " << throuput.get() * 8 / ((simTime().dbl() - testget.dbl()) * 1000 * 1000) << " Mbps" << endl;
-    outfile<<endl;
-//    outfile << "throuput: " << throuput << endl;
-    outfile.close();
+
+    if (nodeIndex == Cindex)
+    {
+        outfile.open("Consumer.txt", std::ofstream::app);
+        testModule.ConsumerPrint(outfile);
+        outfile.close();
+    }
+    else if (nodeIndex == Pindex)
+    {
+        outfile.open("Provider.txt", std::ofstream::app);
+        testModule.ProviderPrint(outfile);
+        outfile.close();
+    }
 }
 
 } // namespace inet

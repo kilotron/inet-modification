@@ -68,8 +68,11 @@ class INET_API colorPendingGetTable: public cSimpleModule
         //根据SID移除表项
         void RemoveEntry(const SID_t& sid);
 
+        //根据迭代器移除表项
+        void RemoveEntry(const std::multimap<SID_t, PITentry>::iterator);
+
         //返回SID对应的表项
-        EntrysRange findPITentry(const SID_t& sid);
+        EntrysRange findPITentry(const SID_t &sid);
 
         //判断是否是GET包的请求者
         bool isConsumer(const SID_t& sid);

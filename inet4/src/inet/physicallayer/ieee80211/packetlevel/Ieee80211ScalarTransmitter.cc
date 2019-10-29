@@ -48,9 +48,8 @@ const ITransmission *Ieee80211ScalarTransmitter::createTransmission(const IRadio
     Hz transmissionBandwidth = transmissionMode->getDataMode()->getBandwidth();
     bps transmissionBitrate = transmissionMode->getDataMode()->getNetBitrate();
 
-    auto should = transmissionMode->getDataMode()->getNumberOfSpatialStreams();
-
-    auto real = transmitter->getAntenna()->getNumAntennas();
+    auto streamNum = transmissionMode->getDataMode()->getNumberOfSpatialStreams();
+    auto antennaNum = transmitter->getAntenna()->getNumAntennas();
 
     if (transmissionMode->getDataMode()->getNumberOfSpatialStreams() > transmitter->getAntenna()->getNumAntennas())
         throw cRuntimeError("Number of spatial streams is higher than the number of antennas");
