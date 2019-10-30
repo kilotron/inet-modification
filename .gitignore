@@ -87,5 +87,5 @@ core
 *.txt
 
 #ignore ini config
-./inet4/examples/icnAdhoc/*.ini
+./inet4/examples/icnAdhoc/omnetpp.ini
 
