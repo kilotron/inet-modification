@@ -52,6 +52,8 @@ void SimpleCluster::initialize(int stage)
         retry = new cMessage("retry");
         iniTimer = new cMessage("init over");
 
+        neighborsClear = new cMessage("neighbors clear");
+
         waitingTime = par("waitingTime").doubleValue();
         startTime = par("startTime").doubleValue();
         collectingTime = par("collectTime").doubleValue();
@@ -108,6 +110,7 @@ void SimpleCluster::finish()
     cancelAndDelete(collect);
     cancelAndDelete(retry);
     cancelAndDelete(iniTimer);
+    cancelAndDelete(neighborsClear);
 
     recorder(filename);
     topology(1, path + "all_edge.txt");
@@ -206,6 +209,8 @@ void SimpleCluster::processClusterPacket(Packet *packet)
 
     case CALL:
     {
+        clusterHeads.insert(head->getNodeIndex());
+
         if (state == INI)
         {
             state = MEMBER;
@@ -275,6 +280,11 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
     else if(msg == iniTimer)
     {
         becomeHead();
+    }
+    else if (msg == neighborsClear)
+    {
+        clusterHeads.clear();
+        scheduleAt(simTime() + nbClearInterval, neighborsClear);
     }
 }
 
@@ -365,6 +375,8 @@ void SimpleCluster::scheduleRetry()
 
 void SimpleCluster::becomeMember()
 {
+    cancelEvent(neighborsClear);
+    scheduleAt(simTime() + nbClearInterval, neighborsClear);
     cancelEvent(hello);
     change++;
     getContainingNode(this)->bubble("member!");

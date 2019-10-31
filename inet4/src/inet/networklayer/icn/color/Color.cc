@@ -31,7 +31,7 @@ void color::SimRcorder::ConsumerPrint(std::ostream &os)
     os << "index:    " << index << endl;
     os << "sendNum: " << GetSendNum << endl;
     os << "recvNum: " << DataRecvNum << endl;
-    if(GetSendNum != 0)
+    if (GetSendNum != 0)
         os << "trans ratio: " << 100 * DataRecvNum / GetSendNum << "%" << endl;
     os << "send Interval: " << owner->sentInterval << "s" << endl;
     os << "Throughput: " << owner->throuput.get() * 8 / ((simTime().dbl() - owner->testget.dbl()) * 1000 * 1000) << " Mbps" << endl;
@@ -311,6 +311,7 @@ void color::handleDataPacket(Packet *packet)
             else
                 iter++;
         }
+        
 
         if (!pit->hasThisSid(headSid))
         {
@@ -446,6 +447,9 @@ void color::handleGetPacket(Packet *packet)
         return;
     }
 
+    if (clusterModule->isHead())
+        std::cout << nodeIndex <<"  "<< head->getNexthop() << endl;
+
     auto headSID = head->getSID();
     //缓存中存在，根据数据包的入网卡不同进行不同的操作
     auto ie = getSourceInterface(packet);
@@ -453,20 +457,25 @@ void color::handleGetPacket(Packet *packet)
     if (findContentInCache(headSID) == nullptr)
     {
 
-        head->setTimeToLive(head->getTimeToLive() - 1);
-        head.get()->getTraceForUpdate().push_back(nodeIndex);
-        Packet *newPacket = packet->dup();
-        newPacket->clearTags();
-        newPacket->insertAtFront(head);
+       
         //如果是簇头才添加PIT表项，再进行转发
-        if (clusterModule->isHead())
+        if (clusterModule->isHead() && (head->getNexthop() == -1 || head->getNexthop() == nodeIndex))
         {
+            head->setTimeToLive(head->getTimeToLive() - 1);
+            head.get()->getTraceForUpdate().push_back(nodeIndex);
+            head->setNexthop(-1);
+            Packet *newPacket = packet->dup();
+            newPacket->clearTags();
+            newPacket->insertAtFront(head);
+
+            std::cout<<nodeIndex<<endl;
             if (!pit->hasThisSid(headSID))
             {
                 sendDatagramToOutput(newPacket->dup(), 24);
-                //    sendDatagramToOutput(newPacket->dup(), 5);
+                sendDatagramToOutput(newPacket->dup(), 5);
             }
 
+            delete newPacket;
             //添加新条目
             simtime_t ttl = 0.01;
 
@@ -475,7 +484,7 @@ void color::handleGetPacket(Packet *packet)
             else
                 pit->createEntry(head->getSID(), head->getSource(), head->getMAC(), ttl, 5);
         }
-        delete newPacket;
+
     }
     else
     {
@@ -571,10 +580,15 @@ void color::encapsulate(Packet *packet, int type, SID_t sid)
     //封装数据包，加上color的头部, 0是get包，1是data包
     if (type == 0)
     {
-        auto get = GetHead(sid);
 
-        //测试
-        get->getTraceForUpdate().push_back(nodeIndex);
+        auto get = GetHead(sid);
+        auto headsSet = clusterModule->getHeads();
+        if (headsSet.size() > 1)
+        {
+            get->setNexthop(*headsSet.begin());
+        } //测试
+        get->getTraceForUpdate()
+            .push_back(nodeIndex);
 
         //添加报文头
         packet->insertAtFront(get);
@@ -766,6 +780,7 @@ void color::testSend(SID_t sid)
     testModule.GetSendNum++;
     sendNum++;
     std::cout << endl;
+    std::for_each(clusterModule->getHeads().begin(), clusterModule->getHeads().end(), [](const int &n) { std::cout << n << " "; });
     std::cout << "send get packet" << endl;
     delete packet;
 }

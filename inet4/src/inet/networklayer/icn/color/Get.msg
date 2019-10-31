@@ -25,10 +25,11 @@ namespace inet;
 
 
 
-
 class Get extends FieldsChunk
 {
     chunkLength = B(78);
+
+    int nexthop = -1;
     
     //AppControlInfo controlInfo;
     uint16_t version = 0;

@@ -56,6 +56,8 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         //邻居集合
         std::set<int>* neighbors;
 
+        std::set<int> clusterHeads;
+
         //检查自己是否是NID最大的节点
         bool isMax();
 
@@ -67,6 +69,8 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         cMessage *retry = nullptr;
         cMessage *iniTimer = nullptr;
 
+        cMessage *neighborsClear = nullptr;
+
         //计时器触发间隔
         simtime_t startTime;
         simtime_t interval;
@@ -74,6 +78,7 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         simtime_t waitingTime;
         simtime_t collectingTime;
         simtime_t iniTime = 1;
+        simtime_t nbClearInterval = 0.5;
         unsigned retryTimes;
 
         //测试
@@ -89,7 +94,6 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         static int change;
 
         
-
     protected:
         //data members
         
@@ -121,6 +125,9 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         virtual bool isModuleStopStage(int stage) override { return stage == ModuleStopOperation::STAGE_NETWORK_LAYER; }
 
     public:
+        //返回簇头
+        std::set<int> &getHeads() override { return clusterHeads; }
+
         //返回节点所有的簇头
         const ClusterTable getClusterHead()override;
 

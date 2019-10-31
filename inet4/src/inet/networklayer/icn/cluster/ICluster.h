@@ -51,6 +51,7 @@ class INET_API ICluster
 
 
     public:
+        virtual std::set<int> &getHeads()=0;
         virtual const ClusterTable getClusterHead() = 0;
         virtual bool isHead() = 0;
 };
