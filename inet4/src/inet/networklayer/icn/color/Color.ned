@@ -28,6 +28,7 @@ simple color like icn
         double procDelay @unit(s) = default(0s);
         int mtu=2304;
         
+        bool multi;
         
     gates:
         input transportIn ;

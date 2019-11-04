@@ -77,6 +77,7 @@ void color::initialize(int stage)
 
         testModule.owner = this;
         testModule.index = nodeIndex;
+        testModule.multiConsumer = par("multi").boolValue();
 
         throuput = B(0);
         sendNum = 0;
@@ -85,7 +86,7 @@ void color::initialize(int stage)
         Cindex = cSimulation::getActiveSimulation()->getSystemModule()->par("Cindex").intValue();
         Pindex = cSimulation::getActiveSimulation()->getSystemModule()->par("Pindex").intValue();
         sentInterval = cSimulation::getActiveSimulation()->getSystemModule()->par("sentInterval").doubleValue();
-
+        std::cout << cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() << endl;
         //        ResemBuffer.flush();
 
         ResemBuffer = new ColorFragBuf();
@@ -187,10 +188,22 @@ void color::handleStartOperation(LifecycleOperation *operation)
     ie5 = chooseInterface("wlan1");
 
     //测试，一个节点作为内容源一个作为请求者发送get包
-    if (nodeIndex == Cindex)
-        scheduleAt(testget, testGet);
-    else if (nodeIndex == Pindex)
-        scheduleAt(testdata, testData);
+    if(testModule.multiConsumer)
+    {
+        if (nodeIndex % Cindex == 0)
+            scheduleAt(testget, testGet);
+        else if (nodeIndex == Pindex)
+            scheduleAt(testdata, testData);
+    }
+    else
+    {
+        if (nodeIndex == Cindex)
+            scheduleAt(testget, testGet);
+        else if (nodeIndex == Pindex)
+            scheduleAt(testdata, testData);
+    }
+    
+    
 }
 
 void color::handleStopOperation(LifecycleOperation *operation)
@@ -227,12 +240,12 @@ void color::handleMessageWhenUp(cMessage *msg)
         static int requestIndex = 0;
         if (msg == testGet)
         {
-            testSend(requestIndex++ % 6000);
+            testSend(requestIndex++ % 100000);
             scheduleGet(sentInterval, SendMode::EqualInterval);
         }
         else if (msg == testData)
         {
-            for (int i = 0; i < 60000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 testProvide(i, B(2000));
             }
@@ -838,18 +851,38 @@ void color::record()
 {
     std::ofstream outfile;
 
-    if (nodeIndex == Cindex)
+    if(testModule.multiConsumer)
     {
-        outfile.open("Consumer.txt", std::ofstream::app);
-        testModule.ConsumerPrint(outfile);
-        outfile.close();
+        if (nodeIndex % Cindex == 0)
+        {
+            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::to_string(sentInterval) + std::string("_Consumer.txt"), std::ofstream::app);
+            testModule.ConsumerPrint(outfile);
+            outfile.close();
+        }
+        else if (nodeIndex == Pindex)
+        {
+            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::to_string(sentInterval) + std::string("_Provider.txt"), std::ofstream::app);
+            testModule.ProviderPrint(outfile);
+            outfile.close();
+        }
     }
-    else if (nodeIndex == Pindex)
+    else
     {
-        outfile.open("Provider.txt", std::ofstream::app);
-        testModule.ProviderPrint(outfile);
-        outfile.close();
+        if (nodeIndex == Cindex)
+        {
+            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_Consumer.txt"), std::ofstream::app);
+            testModule.ConsumerPrint(outfile);
+            outfile.close();
+        }
+        else if (nodeIndex == Pindex)
+        {
+            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_Provider.txt"), std::ofstream::app);
+            testModule.ProviderPrint(outfile);
+            outfile.close();
+        }
     }
+    
+    
 }
 
 } // namespace inet

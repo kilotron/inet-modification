@@ -82,7 +82,10 @@
         "__tuple": "cpp",
         "ios": "cpp",
         "queue": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "object": "cpp",
+        "operationthread": "cpp",
+        "stats": "cpp"
     },
     "C_Cpp.updateChannel": "Insiders",
     "C_Cpp.intelliSenseEngineFallback": "Enabled",

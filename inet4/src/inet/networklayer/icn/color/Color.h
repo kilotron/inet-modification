@@ -43,6 +43,8 @@ namespace inet{
             {
                 color *owner;
 
+                bool multiConsumer;
+
                 int index;
                 std::map<SID_t, simtime_t> Delays;
 
