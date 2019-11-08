@@ -232,6 +232,9 @@ namespace inet{
 
             //产生Data包头
             const inet::Ptr<inet::Data> DataHead(SID_t sid);
+
+            //判断是否是簇头
+            bool isHead();
     };
 }
 

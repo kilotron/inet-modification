@@ -51,10 +51,12 @@ void SimpleCluster::initialize(int stage)
         collect = new cMessage("collect");
         retry = new cMessage("retry");
         iniTimer = new cMessage("init over");
+        prehead = new cMessage("become head");
 
         neighborsClear = new cMessage("neighbors clear");
 
         waitingTime = par("waitingTime").doubleValue();
+        PreHeadChange = waitingTime;
         startTime = par("startTime").doubleValue();
         collectingTime = par("collectTime").doubleValue();
         interval = par("interval").doubleValue();
@@ -111,6 +113,7 @@ void SimpleCluster::finish()
     cancelAndDelete(retry);
     cancelAndDelete(iniTimer);
     cancelAndDelete(neighborsClear);
+    cancelAndDelete(prehead);
 
     recorder(filename);
     topology(1, path + "all_edge.txt");
@@ -194,6 +197,7 @@ void SimpleCluster::processClusterPacket(Packet *packet)
     const auto &head = packet->popAtFront<SimpleClusterPacket>();
     const auto &type = head->getType();
     //    std::cout<<"index is:"<<getParentModule()->getParentModule()->getIndex()<<endl;
+    cancelEvent(iniTimer);
     switch (type)
     {
     case INIT:
@@ -202,28 +206,39 @@ void SimpleCluster::processClusterPacket(Packet *packet)
         int temp = head->getNodeIndex();
         neighbors->insert(temp);
 
-        cancelEvent(wait);
+        // cancelEvent(wait);
         maxNeighbor = maxNeighbor < id ? id : maxNeighbor;
         break;
     }
 
     case CALL:
     {
+    
         clusterHeads.insert(head->getNodeIndex());
 
         if (state == INI)
         {
-            state = MEMBER;
+            becomeMember();
             cancelEvent(retry);
             cancelEvent(collect);
+            // std::cout << nodeIndex << "become member" << endl;
         }
 
         else if (state == MEMBER)
+        {
+
             scheduleWait();
+        }
+            
         else if(state == PREHEAD)
         {
-            if (nid < head->getNID())
+            
+            if (nodeIndex < head->getNodeIndex())
+            {
+
                 becomeMember();
+            }
+                
         }
         else
         {
@@ -257,10 +272,15 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
         cancelEvent(retry);
         if (isMax())
         {
-            becomePrehead();
+            becomeHead();
+
         }
         else
+        {
             scheduleWait();
+            
+        }
+            
         recorder(inifile);
     }
     else if (msg == retry)
@@ -271,7 +291,18 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
     }
     else if (msg == wait)
     {
-        becomePrehead();
+        if(state == INI || simTime()<1)
+        {
+            becomePrehead();
+
+        }
+            
+        else
+        {
+
+            becomeHead();
+        }
+            
     }
     else if (msg == hello)
     {
@@ -279,12 +310,17 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
     }
     else if(msg == iniTimer)
     {
-        becomeHead();
+        
+        // becomeHead();
     }
     else if (msg == neighborsClear)
     {
         clusterHeads.clear();
         scheduleAt(simTime() + nbClearInterval, neighborsClear);
+    }
+    else if(msg == prehead)
+    {
+        becomeHead();
     }
 }
 
@@ -358,6 +394,7 @@ void SimpleCluster::scheduleHello()
 void SimpleCluster::scheduleWait()
 {
     cancelEvent(wait);
+
     scheduleAt(simTime() + waitingTime, wait);
 }
 
@@ -375,23 +412,30 @@ void SimpleCluster::scheduleRetry()
 
 void SimpleCluster::becomeMember()
 {
+    cancelEvent(prehead);
     cancelEvent(neighborsClear);
     scheduleAt(simTime() + nbClearInterval, neighborsClear);
     cancelEvent(hello);
-    change++;
+    scheduleWait();
+
     getContainingNode(this)->bubble("member!");
-//    std::cout << simTime() << " member" << endl;
+
+    //    std::cout << simTime() << " member" << endl;
     state = MEMBER;
 }
 
 void SimpleCluster::becomePrehead()
 {
+    cancelEvent(wait);
+    scheduleAt(simTime() + PreHeadChange, prehead);
     state = PREHEAD;
     scheduleHello();
 }
 
 void SimpleCluster::becomeHead()
 {
+    cancelEvent(wait);
+
     getParentModule()->getParentModule()->bubble("I'm cluster head!");
     state = HEAD;
 
@@ -448,6 +492,11 @@ SimpleCluster::getClusterHead()
 bool SimpleCluster::isHead()
 {
     return state == HEAD;
+}
+
+bool SimpleCluster::isPreHead()
+{
+    return state == PREHEAD;
 }
 
 } // namespace inet

@@ -86,7 +86,7 @@ void color::initialize(int stage)
         Cindex = cSimulation::getActiveSimulation()->getSystemModule()->par("Cindex").intValue();
         Pindex = cSimulation::getActiveSimulation()->getSystemModule()->par("Pindex").intValue();
         sentInterval = cSimulation::getActiveSimulation()->getSystemModule()->par("sentInterval").doubleValue();
-        std::cout << cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() << endl;
+//        std::cout << cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() << endl;
         //        ResemBuffer.flush();
 
         ResemBuffer = new ColorFragBuf();
@@ -240,7 +240,7 @@ void color::handleMessageWhenUp(cMessage *msg)
         static int requestIndex = 0;
         if (msg == testGet)
         {
-            testSend(requestIndex++ % 100000);
+            testSend(requestIndex++ % 2000);
             scheduleGet(sentInterval, SendMode::EqualInterval);
         }
         else if (msg == testData)
@@ -335,7 +335,7 @@ void color::handleDataPacket(Packet *packet)
     //查看PIT表是否有此SID记录
     if (pit->hasThisSid(headSid))
     {
-        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
+//        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
 
         //转发原则与NDN相同，get包从哪个端口来，data包就往哪个端口回
         //指示data包应该发往那个端口，hz5==true发往5GHz端口，hz24==true发往2.4GHz端口
@@ -359,7 +359,7 @@ void color::handleDataPacket(Packet *packet)
                 hz5 = true;
             }
         }
-        if (clusterModule->isHead() && !ct->hasThisPacket(packet, headSid))
+        if (isHead() && !ct->hasThisPacket(packet, headSid))
         {
             //测试信息
             //                        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
@@ -394,8 +394,8 @@ void color::handleDataPacket(Packet *packet)
             auto trace = newHead->getTrace();
             newHead.get()->getTraceForUpdate().push_back(nodeIndex);
 
-            std::for_each(newHead->getTrace().begin(), newHead->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-            std::cout << endl;
+//            std::for_each(newHead->getTrace().begin(), newHead->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+//            std::cout << endl;
             //重新插入头部
             auto CachePacket = newPacket->dup();
             CachePacket->insertAtFront(CacheHead);
@@ -460,8 +460,8 @@ void color::handleGetPacket(Packet *packet)
         return;
     }
 
-    if (clusterModule->isHead())
-        std::cout << nodeIndex <<"  "<< head->getNexthop() << endl;
+//    if (isHead())
+        // std::cout << nodeIndex <<"  "<< head->getNexthop() << endl;
 
     auto headSID = head->getSID();
     //缓存中存在，根据数据包的入网卡不同进行不同的操作
@@ -472,7 +472,7 @@ void color::handleGetPacket(Packet *packet)
 
        
         //如果是簇头才添加PIT表项，再进行转发
-        if (clusterModule->isHead() && (head->getNexthop() == -1 || head->getNexthop() == nodeIndex))
+        if (isHead() && (head->getNexthop() == -1 || head->getNexthop() == nodeIndex))
         {
             head->setTimeToLive(head->getTimeToLive() - 1);
             head.get()->getTraceForUpdate().push_back(nodeIndex);
@@ -481,7 +481,7 @@ void color::handleGetPacket(Packet *packet)
             newPacket->clearTags();
             newPacket->insertAtFront(head);
 
-            std::cout<<nodeIndex<<endl;
+            // std::cout<<nodeIndex<<endl;
             if (!pit->hasThisSid(headSID))
             {
                 sendDatagramToOutput(newPacket->dup(), 24);
@@ -503,11 +503,11 @@ void color::handleGetPacket(Packet *packet)
     {
         //仅为了测试使用，处理逻辑是如果缓存中有就回传SID对应的所有数据包
 
-        std::cout << "content found!" << endl;
+//        std::cout << "content found!" << endl;
 
-        std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-        std::cout << nodeIndex;
-        std::cout << endl;
+//        std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+        // std::cout << nodeIndex;
+        // std::cout << endl;
 
         auto lists = findContentInCache(headSID)->GetList();
         int nic = (ie == ie24) ? 24 : 5;
@@ -519,8 +519,8 @@ void color::handleGetPacket(Packet *packet)
             if (P != nullptr)
             {
                 auto newP = P->dup();
-                std::cout << "sent data packet" << endl;
-                if (!clusterModule->isHead())
+//                std::cout << "sent data packet" << endl;
+                if (!isHead())
                     sendDatagramToOutput(newP, 5);
                 else
                     sendDatagramToOutput(newP, nic);
@@ -770,7 +770,7 @@ void color::testSend(SID_t sid)
 {
     Packet *packet = new Packet("getPacket");
 
-    if (clusterModule->isHead())
+    if (isHead())
     {
         encapsulate(packet, 0, sid);
         auto mac = ie24->getMacAddress();
@@ -792,9 +792,9 @@ void color::testSend(SID_t sid)
 
     testModule.GetSendNum++;
     sendNum++;
-    std::cout << endl;
-    std::for_each(clusterModule->getHeads().begin(), clusterModule->getHeads().end(), [](const int &n) { std::cout << n << " "; });
-    std::cout << "send get packet" << endl;
+//    std::cout << endl;
+//    std::for_each(clusterModule->getHeads().begin(), clusterModule->getHeads().end(), [](const int &n) { std::cout << n << " "; });
+//    std::cout << "send get packet" << endl;
     delete packet;
 }
 
@@ -855,13 +855,13 @@ void color::record()
     {
         if (nodeIndex % Cindex == 0)
         {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::to_string(sentInterval) + std::string("_Consumer.txt"), std::ofstream::app);
+            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_") + std::to_string(sentInterval) + std::string("_Consumer.txt"), std::ofstream::app);
             testModule.ConsumerPrint(outfile);
             outfile.close();
         }
         else if (nodeIndex == Pindex)
         {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::to_string(sentInterval) + std::string("_Provider.txt"), std::ofstream::app);
+            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_") +  std::to_string(sentInterval) + std::string("_Provider.txt"), std::ofstream::app);
             testModule.ProviderPrint(outfile);
             outfile.close();
         }
@@ -880,9 +880,12 @@ void color::record()
             testModule.ProviderPrint(outfile);
             outfile.close();
         }
-    }
-    
-    
+    }   
+}
+
+bool color::isHead()
+{
+    return clusterModule->isHead() || clusterModule->isPreHead();
 }
 
 } // namespace inet

@@ -70,15 +70,17 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         cMessage *iniTimer = nullptr;
 
         cMessage *neighborsClear = nullptr;
+        cMessage *prehead = nullptr;
 
         //计时器触发间隔
-        simtime_t startTime;
-        simtime_t interval;
-        simtime_t helloTime = 0.5;
-        simtime_t waitingTime;
-        simtime_t collectingTime;
-        simtime_t iniTime = 1;
-        simtime_t nbClearInterval = 0.5;
+        double startTime;
+        double interval;
+        double helloTime = 0.5;
+        double waitingTime;
+        double collectingTime;
+        double iniTime = 1;
+        double nbClearInterval = 0.5;
+        double PreHeadChange;
         unsigned retryTimes;
 
         //测试
@@ -133,6 +135,8 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
 
         //判断自己是否是簇头
         bool isHead()override;
+
+        bool isPreHead();
 
         //选择接口
         InterfaceEntry *chooseInterface(const char* interfaceName);
