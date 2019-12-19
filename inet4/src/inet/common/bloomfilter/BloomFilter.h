@@ -13,10 +13,12 @@
 #include"./hash/MurmurHash3.h"
 
 namespace inet{
-typedef size_t Position;
+
 
 template<class T>
 class BloomFilter{
+
+    using  Position = size_t;
     private:
         
         unsigned m;

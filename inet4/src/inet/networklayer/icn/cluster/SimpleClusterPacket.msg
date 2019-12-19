@@ -18,15 +18,17 @@ import inet.common.INETDefs;
 import inet.common.packet.chunk.Chunk;
 import inet.linklayer.common.MacAddress;
 
-namespace inet;
+
 
 cplusplus  {{
-    #include <omnetpp.h>
-    #include <stdint.h>
-//  	#include "inet/mobility/contract/IMobility.h"
-    #include "../field/dataType.h"
+    #include "../field/NID.h"
+    #include <openssl/rsa.h>
+	#include <openssl/pem.h>
+	using RSAkey = RSA*;
+	using Uchar = unsigned char*;
 }}
 
+namespace inet;
 enum PacketType
 {
     INIT = 0;
@@ -34,9 +36,21 @@ enum PacketType
     ACK = 2;
 }
 
-class NID_t
+class NID
 {
     @existingClass;
+    @opaque;
+}
+
+class RSAkey
+{
+    @existingClass;
+    @opaque;
+}
+
+class Uchar
+{
+   @existingClass;
     @opaque;
 }
 
@@ -55,9 +69,21 @@ class SimpleClusterPacket extends FieldsChunk
     chunkLength = B(18);
     PacketType type;
     MacAddress MAC; 
-    NID_t NID;
+    NID nid;
     Position position;
-    unsigned long signature;
+    string signature;
+    RSAkey publicKey;
+}
+
+class AuthPacket extends FieldsChunk
+{
+    chunkLength = B(512);
+    int type;
+    NID nid;
+    RSAkey publicKey;
+    Uchar signature;
+    double time;
+       
 }
 
 cplusplus(SimpleClusterPacket) {{

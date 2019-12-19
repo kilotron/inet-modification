@@ -15,14 +15,14 @@
 #include <iostream>
 #include "inet/common/bloomfilter/hash/MurmurHash3.h"
 
-namespace inet
-{
-using Name = std::array<Byte, 4>;
+
+using Name = std::array<Word, 5>;
 class SID
 {
     private:
         NID nidHeader;
         Name sidTail;
+        int test;
     public:
         //默认构造函数
         SID() : nidHeader() { sidTail.fill(0); }
@@ -34,10 +34,14 @@ class SID
         //转换为字符串
         std::string str() const;
 
-        //输出到给定输出流
-        void print(std::ostream &out) const;
+        // //输出到给定输出流
+        // void print(std::ostream &out) const;
 
-        bool operator<(const SID &sid);
+        friend bool operator<(const SID &lhs, const SID &rhs);
+
+        friend bool operator==(const SID &lhs, const SID &rhs);
+
+        friend bool operator!=(const SID &lhs, const SID &rhs);
 
         const NID &getNidHead() const { return nidHeader; }
 
@@ -52,16 +56,16 @@ class SID
 template <typename T, typename C>
 SID::SID(T const &param, const C &content):nidHeader(param)
 {
-    char out[128];
-    MurmurHash3_x64_128(&content, sizeof content, 0, out);
-    memcpy(sidTail.data(), out, 48);
+    char out1[16];
+   
+    MurmurHash3_x64_128(&content, sizeof content, 0, out1);
+    memcpy(sidTail.data(), out1, 16);
+    // MurmurHash3_x64_128(&content, sizeof content, 1, out2);
+
+    // memcpy(sidTail.data()+16, out2, 4);
 }
 
-bool operator<(const SID &lhs, const SID &rhs);
 
-bool operator==(const SID &lhs, const SID &rhs);
 
-bool operator!=(const SID &lhs, const SID &rhs);
-} // namespace inet
 
 #endif /* INET_NETWORKLAYER_ICN_FIELD_SID_H_ */

@@ -16,7 +16,7 @@
 #include "inet/common/packet/Packet.h"
 #include "inet/linklayer/common/MacAddress.h"
 #include "inet/networklayer/icn/cluster/SimpleClusterPacket_m.h"
-#include "inet/networklayer/icn/field/dataType.h"
+#include "inet/common/bloomfilter/BloomFilter.h"
 #include "inet/networklayer/icn/cluster/ICluster.h"
 #include <random>
 #include <string>
@@ -26,162 +26,168 @@
 
 namespace inet{
 
-enum ClusterState{
-            INI,
-            PREHEAD,
-            HEAD,
-            MEMBER
-        };
 
 //提供一个简单的分簇协议根据节点的NID大小选出簇头，保证每个节点要么是簇头，要么有一个簇头为它服务
 class INET_API SimpleCluster : public OperationalBase, public ICluster
 {
- 
-    private:
-        //节点NID
-        NID_t nid;
+    enum ClusterState
+    {
+        INI,
+        PREHEAD,
+        HEAD,
+        MEMBER
+    };
 
-        //随机数产生器
-        std::default_random_engine e;
+    static BloomFilter<std::array<Word, 4>> nidFilter;
 
-        //节点状态
-        ClusterState state;
+private:
+    //节点NID
+    NID nid;
 
-        //节点位置
-        inet::Coord position;
+    //随机数产生器
+    // std::default_random_engine e;
 
-        //NID最大的邻居节点
-        NID_t maxNeighbor;
+    //节点状态
+    ClusterState state = INI;
 
-        //邻居集合
-        std::set<int>* neighbors;
+    //节点位置
+    Coord position;
 
-        std::set<int> clusterHeads;
+    //NID最大的邻居节点
+    NID maxNeighbor;
 
-        //检查自己是否是NID最大的节点
-        bool isMax();
+    //邻居集合
+    std::set<int> *neighbors;
 
-        //各类计时器
-        cMessage *wait = nullptr;
-        cMessage *startTimer = nullptr;
-        cMessage *hello = nullptr;
-        cMessage *collect = nullptr;
-        cMessage *retry = nullptr;
-        cMessage *iniTimer = nullptr;
+    std::set<int> clusterHeads;
 
-        cMessage *neighborsClear = nullptr;
-        cMessage *prehead = nullptr;
+    //检查自己是否是NID最大的节点
+    bool isMax();
 
-        //计时器触发间隔
-        double startTime;
-        double interval;
-        double helloTime = 0.5;
-        double waitingTime;
-        double collectingTime;
-        double iniTime = 1;
-        double nbClearInterval = 0.5;
-        double PreHeadChange;
-        unsigned retryTimes;
+    //各类计时器
+    cMessage *wait = nullptr;
+    cMessage *startTimer = nullptr;
+    cMessage *hello = nullptr;
+    cMessage *collect = nullptr;
+    cMessage *retry = nullptr;
+    cMessage *iniTimer = nullptr;
 
-        //测试
-        //节点的索引
-        int nodeIndex;
+    cMessage *neighborsClear = nullptr;
+    cMessage *prehead = nullptr;
 
-        //记录文件名
-        std::string path;
-        std::string filename;
-        std::string inifile;
+    //计时器触发间隔
+    double startTime = 0;
+    double interval = 0;
+    double helloTime = 0.5;
+    double waitingTime = 0;
+    double collectingTime = 0;
+    double iniTime = 1;
+    double nbClearInterval = 0.5;
+    double PreHeadChange = 0;
+    unsigned retryTimes = 0;
 
-        //簇头的切换次数
-        static int change;
+    //测试
+    //节点的索引
+    int nodeIndex = 0;
 
-        
-    protected:
-        //data members
-        
+    //记录文件名
+    std::string path;
+    std::string filename;
+    std::string inifile;
 
-        InterfaceEntry *ie24 = nullptr;//2.4GHz interface
-        InterfaceEntry *ie5 = nullptr;//5GHz interface
+    //簇头的切换次数
+    static int change;
+    static double proTime;
 
-        IInterfaceTable *ift = nullptr;
-        ClusterTable clusterTable;
+protected:
+    //data members
 
-    protected:
-        //functions
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
-        virtual void refreshDisplay() const override;
-        virtual void finish() override;
-        
+    InterfaceEntry *ie24 = nullptr; //2.4GHz interface
+    InterfaceEntry *ie5 = nullptr;  //5GHz interface
 
-        
-        virtual void handleMessageWhenUp(cMessage *msg)override;
+    IInterfaceTable *ift = nullptr;
+    ClusterTable clusterTable;
 
-        //        virtual bool handleOperationStage(LifecycleOperation *operation, IDoneCallback *doneCallback) override;
-        virtual void handleStartOperation(LifecycleOperation *operation)override ;
-        virtual void handleStopOperation(LifecycleOperation *operation) override;
-        virtual void handleCrashOperation(LifecycleOperation *operation)override ;
+protected:
+    //functions
+    virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+    virtual void initialize(int stage) override;
+    virtual void refreshDisplay() const override;
+    virtual void finish() override;
 
-        virtual bool isInitializeStage(int stage) override { return stage == INITSTAGE_NETWORK_LAYER; }
-        virtual bool isModuleStartStage(int stage) override { return stage == ModuleStartOperation::STAGE_NETWORK_LAYER; }
-        virtual bool isModuleStopStage(int stage) override { return stage == ModuleStopOperation::STAGE_NETWORK_LAYER; }
+    virtual void handleMessageWhenUp(cMessage *msg) override;
 
-    public:
-        //返回簇头
-        std::set<int> &getHeads() override { return clusterHeads; }
+    //        virtual bool handleOperationStage(LifecycleOperation *operation, IDoneCallback *doneCallback) override;
+    virtual void handleStartOperation(LifecycleOperation *operation) override;
+    virtual void handleStopOperation(LifecycleOperation *operation) override;
+    virtual void handleCrashOperation(LifecycleOperation *operation) override;
 
-        //返回节点所有的簇头
-        const ClusterTable getClusterHead()override;
+    virtual bool isInitializeStage(int stage) override { return stage == INITSTAGE_NETWORK_LAYER; }
+    virtual bool isModuleStartStage(int stage) override { return stage == ModuleStartOperation::STAGE_NETWORK_LAYER; }
+    virtual bool isModuleStopStage(int stage) override { return stage == ModuleStopOperation::STAGE_NETWORK_LAYER; }
 
-        //判断自己是否是簇头
-        bool isHead()override;
+public:
+    //返回簇头
+    std::set<int> &getHeads() override { return clusterHeads; }
 
-        bool isPreHead();
+    //返回节点所有的簇头
+    const ClusterTable getClusterHead() override;
 
-        //选择接口
-        InterfaceEntry *chooseInterface(const char* interfaceName);
+    //判断自己是否是簇头
+    bool isHead() override;
 
-        //刷新显示
-        void flush();
+    bool isPreHead();
 
-        //处理分簇协议的数据包
-        void processClusterPacket(Packet *packet);
+    //选择接口
+    InterfaceEntry *chooseInterface(const char *interfaceName);
 
-        //处理各个计时器
-        void handleSelfMessage(cMessage *msg);
+    //刷新显示
+    void flush();
 
-        //exchange information between neighbors, for clustering
-        void sendCluster(PacketType type);
+    //处理分簇协议的数据包
+    void processClusterPacket(Packet *packet);
 
-        //通告自己成为簇头
-        void sendHeadAdvertise();//
+    //处理接入认证数据包
+    void processAuthPacket(Packet *packet);
 
-        void scheduleHello();
-        void scheduleRetry();
-        void scheduleWait();
+    //处理各个计时器
+    void handleSelfMessage(cMessage *msg);
 
-        inet::Coord getPosition();
+    //exchange information between neighbors, for clustering
+    void sendCluster(PacketType type);
 
-        //成为预簇头
-        void becomePrehead();
+    //发送认证消息,0是初始消息，1是回复消息,time用来记录传输时间
+    void sendAuth(int type, double time);
 
-        //成为簇头
-        void becomeHead();
+    //通告自己成为簇头
+    void sendHeadAdvertise(); //
 
-        //退化成簇成员
-        void becomeMember();
+    void scheduleHello();
+    void scheduleRetry();
+    void scheduleWait();
 
-        //记录输出分簇信息到文件
-        void recorder(std::string filename);
+    Coord getPosition();
 
-        //拓扑信息
-        void topology(bool all, std::string filename);
+    //成为预簇头
+    void becomePrehead();
 
-        friend std::ostream& operator<<(std::ostream& os,const SimpleCluster::ClusterEntry& entry);
+    //成为簇头
+    void becomeHead();
 
-    public:
-        SimpleCluster();
-        ~SimpleCluster();
+    //退化成簇成员
+    void becomeMember();
+
+    //记录输出分簇信息到文件
+    void recorder(std::string filename);
+
+    //拓扑信息
+    void topology(bool all, std::string filename);
+
+    friend std::ostream &operator<<(std::ostream &os, const SimpleCluster::ClusterEntry &entry);
+
+public:
+    SimpleCluster();
+    ~SimpleCluster();
 };
 
 std::ostream& operator<<(std::ostream& os, const SimpleCluster::ClusterEntry& entry)

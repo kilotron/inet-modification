@@ -24,7 +24,7 @@ namespace inet;
 
 class PITentry extends cObject
 {
-    NID_t nid;
+    NID nid;
     simtime_t TTL;
     MacAddress mac;
     
@@ -37,5 +37,5 @@ class PITentry extends cObject
 
 cplusplus(PITentry) {{
   public:
-    PITentry(NID_t nid, simtime_t t, MacAddress mac, int type=5,bool isconsumer=false): cObject(), nid(nid), TTL(t), mac(mac),type(type),isConsumer_(isconsumer){}    
+    PITentry(NID nid, simtime_t t, MacAddress mac, int type=5,bool isconsumer=false): cObject(), nid(nid), TTL(t), mac(mac),type(type),isConsumer_(isconsumer){}    
 }}

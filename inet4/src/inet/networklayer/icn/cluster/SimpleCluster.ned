@@ -28,6 +28,8 @@ simple SimpleCluster like ICluster
         string iniFile = default("ini.txt");
         string path = default("./result/");
         
+        int seed = 0;
+        
         int retry;
         @display("i=block/layer");
         

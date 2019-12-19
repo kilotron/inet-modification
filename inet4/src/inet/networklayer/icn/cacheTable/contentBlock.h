@@ -11,7 +11,7 @@
 #include "inet/common/INETDefs.h"
 #include "inet/networklayer/common/InterfaceEntry.h"
 #include "inet/common/packet/Packet.h"
-#include "inet/networklayer/icn/field/dataType.h"
+#include "inet/networklayer/icn/field/SID.h"
 
 #include<vector>
 #include<list>
@@ -29,7 +29,7 @@ namespace inet{
             ColorCacheTable* cct = nullptr;
             
             //block对应的SID
-            SID_t sid;
+            SID sid;
 
             //每个chunk的大小
             unsigned chunksize=7500;
@@ -55,7 +55,7 @@ namespace inet{
         public:
             std::list<Packet *> packets;
 
-            ContentBlock(SID_t S, unsigned mtu=1500):sid(S),mtu(mtu){};
+            ContentBlock(SID S, unsigned mtu=1500):sid(S),mtu(mtu){};
             ContentBlock():mtu(1500){};
             ~ContentBlock();
 

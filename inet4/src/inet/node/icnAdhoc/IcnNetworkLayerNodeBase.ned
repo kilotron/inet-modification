@@ -24,29 +24,29 @@ module IcnNetworkLayerNodeBase extends LinkLayerNodeBase
 {
     parameters:
 
-		numWlanInterfaces = default(1);
+        numWlanInterfaces = default(1);
         @figure[networkLayer](type=rectangle; pos=250,306; size=1000,130; fillColor=#00ff00; lineColor=#808080; cornerRadius=5; fillOpacity=0.1);
         @figure[networkLayer.title](type=text; pos=1245,311; anchor=ne; text="network layer");
 
     submodules:
         color: ColorNetworklayer {
             parameters:
-                @display("p=375,376;q=queue");
+                @display("p=518.175,319.72498;q=queue");
         }
-        
+
         nl: MessageDispatcher {
             parameters:
-                @display("p=750,446;b=1000,5,,,,1");
+                @display("p=685.125,417.375;b=1000,5,,,,1");
         }
 
     connections allowunconnected:
-        color.ifIn <-- nl.out++ ;
-        color.ifOut --> nl.in++ ;
+        color.ifIn <-- nl.out++;
+        color.ifOut --> nl.in++;
 
 
         for i=0..sizeof(radioIn)-1 {
             wlan[i].upperLayerOut --> nl.in++;
             wlan[i].upperLayerIn <-- nl.out++;
         }
-        
+
 }

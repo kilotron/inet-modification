@@ -85,13 +85,20 @@
         "stack": "cpp",
         "object": "cpp",
         "operationthread": "cpp",
-        "stats": "cpp"
+        "stats": "cpp",
+        "shader": "cpp",
+        "light": "cpp",
+        "primitiveset": "cpp",
+        "texture": "cpp",
+        "uniform": "cpp",
+        "units": "cpp"
     },
     "C_Cpp.updateChannel": "Insiders",
     "C_Cpp.intelliSenseEngineFallback": "Enabled",
     "C_Cpp.default.intelliSenseMode": "clang-x64",
     "workbench.colorCustomizations": {
         "activityBar.background": "#7295b1",
+        "activityBar.activeBorder": "#e8d6e0",
         "activityBar.foreground": "#15202b",
         "activityBar.inactiveForeground": "#15202b99",
         "activityBarBadge.background": "#e8d6e0",

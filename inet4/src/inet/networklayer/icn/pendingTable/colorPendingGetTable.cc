@@ -1,5 +1,5 @@
 /*
- * colorPendingGetTable.cc
+ * colorPendingGettable->cc
  *
  *  Created on: 2019年7月5日
  *      Author: hiro
@@ -13,11 +13,14 @@ Define_Module(colorPendingGetTable);
 
 void colorPendingGetTable::finish()
 {
-    for (auto &iter : timers)
+    for (auto &iter : *timers)
     {
         cancelAndDelete(iter.first);
-        sids.erase(iter.second);
+        sids->erase(iter.second);
     }
+    delete timers;
+    delete table;
+    delete sids;
 }
 
 colorPendingGetTable::~colorPendingGetTable()
@@ -28,12 +31,18 @@ colorPendingGetTable::~colorPendingGetTable()
 void colorPendingGetTable::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
+    if (stage == INITSTAGE_LOCAL)
+    {
+        table = new std::multimap<SID, PITentry>;
+        timers = new timerTable;
+        sids = new std::map<SID, cMessage *>;
+    }
 }
 
 void colorPendingGetTable::handleMessage(cMessage *msg)
 {
     //定时器触发，删除对应的pit 表项
-    auto sid = timers.find(msg)->second;
+    auto sid = timers->find(msg)->second;
     RemoveEntry(sid);
     //删除定时器消息本身a
     cancelEvent(msg);
@@ -41,10 +50,10 @@ void colorPendingGetTable::handleMessage(cMessage *msg)
 
 void colorPendingGetTable::PrintPIT(std::ostream &out)
 {
-    for (auto iter = table.begin(); iter != table.end();)
+    for (auto iter = table->begin(); iter != table->end();)
     {
-        auto range = table.equal_range(iter->first);
-        out << "SID is: " << iter->first.str() << endl;
+        auto range = table->equal_range(iter->first);
+//        out << "SID is: " << iter->first.str() << endl;
         out << "NIDs is: ";
         for (auto it = range.first; it != range.second; it++)
             out << it->second.getNid().str() << "  ";
@@ -54,7 +63,7 @@ void colorPendingGetTable::PrintPIT(std::ostream &out)
     }
 }
 
-const colorPendingGetTable::Entry& colorPendingGetTable::createEntry(const SID_t &sid, const NID_t &nid,
+const colorPendingGetTable::Entry& colorPendingGetTable::createEntry(const SID &sid, const NID &nid,
                                                               const MacAddress &mac, simtime_t t, int type, bool is_consumer)
 {
     Enter_Method("createEntry()");
@@ -62,7 +71,7 @@ const colorPendingGetTable::Entry& colorPendingGetTable::createEntry(const SID_t
     PITentry nt(nid, t, mac, type, is_consumer);
 
     //检查这条pit表项是否已经存在（收到重复的get包），如果已经存在直接返回已存在的表项
-    auto range = table.equal_range(sid);
+    auto range = table->equal_range(sid);
     for (auto iter = range.first; iter != range.second; iter++)
     {
         if (nt.getMac() == iter->second.getMac())
@@ -74,8 +83,8 @@ const colorPendingGetTable::Entry& colorPendingGetTable::createEntry(const SID_t
     AddPITentry(entry);
 
     //生成定时器，如果当前sid对应的定时器已经存在则刷新定时器的时间
-    auto timer = sids.find(sid);
-    if (timer != sids.end())
+    auto timer = sids->find(sid);
+    if (timer != sids->end())
     {
         cancelEvent(timer->second);
         scheduleAt(simTime() + t, timer->second);
@@ -84,8 +93,8 @@ const colorPendingGetTable::Entry& colorPendingGetTable::createEntry(const SID_t
     else
     {
         cMessage *newTimer = new cMessage("timer");
-        timers[newTimer] = sid;
-        sids[sid] = newTimer;
+        (*timers)[newTimer] = sid;
+        (*sids)[sid] = newTimer;
         scheduleAt(simTime() + t, newTimer);
     }
 
@@ -94,32 +103,32 @@ const colorPendingGetTable::Entry& colorPendingGetTable::createEntry(const SID_t
 
 void colorPendingGetTable::AddPITentry(const colorPendingGetTable::Entry &entry)
 {
-    table.insert(entry);
+    table->insert(entry);
 }
 
-void colorPendingGetTable::RemoveEntry(const SID_t &sid)
+void colorPendingGetTable::RemoveEntry(const SID &sid)
 {
-    auto pointer = sids.find(sid)->second;
-    timers.erase(pointer);
+    auto pointer = sids->find(sid)->second;
+    timers->erase(pointer);
     cancelAndDelete(pointer);
 
-    table.erase(sid);
-    sids.erase(sid);
+    table->erase(sid);
+    sids->erase(sid);
 }
 
-void colorPendingGetTable::RemoveEntry(const std::multimap<SID_t, PITentry>::iterator iter)
+void colorPendingGetTable::RemoveEntry(const std::multimap<SID, PITentry>::iterator iter)
 {
-    table.erase(iter);
+    table->erase(iter);
 }
 
-colorPendingGetTable::EntrysRange colorPendingGetTable::findPITentry(const SID_t &sid)
+colorPendingGetTable::EntrysRange colorPendingGetTable::findPITentry(const SID &sid)
 {
-    return table.equal_range(sid);
+    return table->equal_range(sid);
 }
 
-bool colorPendingGetTable::isConsumer(const SID_t &sid)
+bool colorPendingGetTable::isConsumer(const SID &sid)
 {
-    auto range = table.equal_range(sid);
+    auto range = table->equal_range(sid);
     for (auto iter = range.first; iter != range.second; iter++)
     {
         if (iter->second.isConsumer())

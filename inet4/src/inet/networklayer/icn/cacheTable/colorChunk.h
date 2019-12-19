@@ -11,7 +11,7 @@
 #include "inet/common/INETDefs.h"
 
 #include "inet/common/packet/Packet.h"
-#include "inet/networklayer/icn/field/dataType.h"
+
 #include <vector>
 #include <list>
 #include "colorCacheTable.h"
@@ -20,7 +20,7 @@ namespace inet{
     class INET_API colorChunk
     {
         private:
-            unsigned mtu = 1500;
+            unsigned mtu = 2304;
             unsigned index;
 
             //chunk的大小，每次插入数据包后更新

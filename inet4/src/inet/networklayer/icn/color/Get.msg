@@ -55,11 +55,11 @@ class Get extends FieldsChunk
     uint16_t checksum = 0;
     //32bits
 
-    SID_t SID;
+    SID sid;
     //160bits
 
-    NID_t source;
-    NID_t lastHop;
+    NID source;
+    NID lastHop;
     //256bits
 
     MacAddress MAC;

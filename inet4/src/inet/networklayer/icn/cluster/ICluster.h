@@ -11,7 +11,7 @@
 #include "inet/common/INETDefs.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/linklayer/common/MacAddress.h"
-#include "inet/networklayer/icn/field/dataType.h"
+#include "inet/networklayer/icn/field/NID.h"
 
 //Cluster protocol interface, for implement different cluster algorithm
 namespace inet{
@@ -31,10 +31,10 @@ class INET_API ICluster
         struct ClusterEntry
         {
 
-            NID_t clusterhead;
+            NID clusterhead;
             MacAddress headAddr;
             simtime_t lastUpdate;
-            ClusterEntry(NID_t n, MacAddress mac, simtime_t update):clusterhead(n),headAddr(mac),lastUpdate(update){}
+            ClusterEntry(NID n, MacAddress mac, simtime_t update):clusterhead(n),headAddr(mac),lastUpdate(update){}
 
             bool operator<(const struct ClusterEntry& entry) const
             {

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include"inet/networklayer/icn/color/ColorFragBuf.h"
-#include"inet/networklayer/icn/field/dataType.h"
+
 
 namespace inet{
 
@@ -33,7 +33,7 @@ Packet *ColorFragBuf::addFragment(Packet *packet, simtime_t now)
 {
     auto test = packet->getDataLength().get()/8;
     const auto& DataHead = packet->peekAtFront<Data>(B(78),0);
-    auto sid = DataHead->getSID().getInt();
+    auto sid = DataHead->getSid();
     auto i = bufs.find(sid);
 
     DatagramBuffer *curBuf = nullptr;

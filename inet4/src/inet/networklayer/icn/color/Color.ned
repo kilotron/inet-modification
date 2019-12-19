@@ -25,10 +25,11 @@ simple color like icn
 
         int hopLimit = default(5);
         // double interval;
-        double procDelay @unit(s) = default(0s);
+        double GetProcDelay @unit(s) = default(0s);
+        double DataProcDelay @unit(s) = default(0s);
         int mtu=2304;
         
-        bool multi;
+        int multi;
         
     gates:
         input transportIn ;

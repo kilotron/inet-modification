@@ -19,11 +19,13 @@
 #include "inet/networklayer/icn/cluster/SimpleClusterPacket_m.h"
 #include "inet/common/bloomfilter/hash/MurmurHash3.h"
 
+
 #include <fstream>
 #include <array>
 #include <ctime>
 #include <cstdlib>
 #include <cstring>
+#include <time.h>
 
 namespace inet
 {
@@ -31,6 +33,8 @@ namespace inet
 Define_Module(SimpleCluster);
 
 int SimpleCluster::change = 0;
+double SimpleCluster::proTime = 0;
+BloomFilter<std::array<Word, 4>> SimpleCluster::nidFilter{};
 
 void SimpleCluster::initialize(int stage)
 {
@@ -44,7 +48,11 @@ void SimpleCluster::initialize(int stage)
 
         neighbors = new std::set<int>;
         nodeIndex = getContainingNode(this)->getIndex();
-        nid = hashValue;
+        nid.setNID(hashValue);
+
+        nidFilter.Insert(nid.getNID());
+
+
         wait = new cMessage("wait");
         startTimer = new cMessage("start");
         hello = new cMessage("hello");
@@ -119,6 +127,16 @@ void SimpleCluster::finish()
     topology(1, path + "all_edge.txt");
     topology(0, path + "edge.txt");
 
+    if(nodeIndex==0)
+    {
+        std::ofstream outfile;
+        outfile.open("authTime", std::ofstream::app);
+        outfile<<proTime<<",";
+        outfile.close();
+    }
+
+
+
     if (getContainingNode(this)->getIndex() == 0)
         std::cout
             << "change number is: " << change << endl;
@@ -127,10 +145,12 @@ void SimpleCluster::finish()
 
 SimpleCluster::~SimpleCluster()
 {
+    
 }
 
-SimpleCluster::SimpleCluster()
+SimpleCluster::SimpleCluster() : nid(), maxNeighbor(), path(), filename(), position(), inifile()
 {
+
 }
 
 void SimpleCluster::handleMessageWhenUp(cMessage *msg)
@@ -142,7 +162,20 @@ void SimpleCluster::handleMessageWhenUp(cMessage *msg)
     else
     {
         Packet *packet = check_and_cast<Packet *>(msg);
-        processClusterPacket(packet);
+        auto head = packet->peekAtFront<Chunk>(B(18), -1);
+        auto pointer = head.get();
+
+        //转换为raw pointer
+        Chunk *chunk = const_cast<Chunk *>(pointer);
+        if (dynamic_cast<SimpleClusterPacket *>(chunk))
+        {
+            processClusterPacket(packet);
+        }
+        else
+        {
+                processAuthPacket(packet);
+        }
+
     }
 }
 
@@ -202,12 +235,19 @@ void SimpleCluster::processClusterPacket(Packet *packet)
     {
     case INIT:
     {
-        auto id = head->getNID();
+        auto id = head->getNid();
         int temp = head->getNodeIndex();
         neighbors->insert(temp);
 
         // cancelEvent(wait);
+
         maxNeighbor = maxNeighbor < id ? id : maxNeighbor;
+
+
+        if(nodeIndex == 1)
+        {
+
+        }
         break;
     }
 
@@ -245,7 +285,7 @@ void SimpleCluster::processClusterPacket(Packet *packet)
             
         }
         
-        ClusterEntry entry(head->getNID(), head->getMAC(), simTime());
+        ClusterEntry entry(head->getNid(), head->getMAC(), simTime());
         clusterTable.table.insert(entry);
 
         break;
@@ -255,17 +295,63 @@ void SimpleCluster::processClusterPacket(Packet *packet)
         break;
     }
     }
-    delete packet;
+//    delete packet;
+}
+
+void SimpleCluster::processAuthPacket(Packet *packet)
+{
+    ASSERT(isUp() && ie5 != nullptr);
+    const auto &head = packet->popAtFront<AuthPacket>();
+
+    auto sig = head->getSignature();
+    auto otherNid = head->getNid();
+    auto rsa = head->getPublicKey();
+    auto type = head->getType();
+    clock_t start, end;
+    start = clock();
+    if (nidFilter.Check(otherNid.getNID()))
+    {
+        unsigned char *encode = new unsigned char[RSA_size(rsa)];
+
+        memset(encode, 0, RSA_size(rsa));
+        memcpy(encode, sig, RSA_size(rsa));
+
+        unsigned char *decode = new unsigned char[RSA_size(rsa)];
+        memset(decode, 0, RSA_size(rsa));
+        RSA_public_decrypt(RSA_size(rsa), encode, decode, rsa, RSA_PKCS1_PADDING);
+
+        if(type==0)
+            sendAuth(1,head->getTime());
+        else
+        {
+            proTime += 1000*(simTime().dbl() -head->getTime());
+            std::cout<<proTime<<" ms"<<endl;
+        }
+        end = clock();
+        proTime += 1000 * static_cast<double>(end - start)/CLOCKS_PER_SEC;
+
+    }
+    else
+    {
+        std::cout << "deny!" << endl;
+    }
 }
 
 void SimpleCluster::handleSelfMessage(cMessage *msg)
 {
     if (msg == startTimer)
     {
-        sendCluster(INIT);
-        scheduleAt(iniTime, iniTimer);
-        scheduleAt(simTime() + collectingTime, collect);
-        scheduleRetry();
+        if(simTime()>0)
+        {
+            sendAuth(0,simTime().dbl());
+        }
+        else
+        {
+            sendCluster(INIT);
+            scheduleAt(iniTime, iniTimer);
+            scheduleAt(simTime() + collectingTime, collect);
+            scheduleRetry();
+        }     
     }
     else if (msg == collect)
     {
@@ -294,15 +380,11 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
         if(state == INI || simTime()<1)
         {
             becomePrehead();
-
-        }
-            
+        } 
         else
         {
-
             becomeHead();
-        }
-            
+        }        
     }
     else if (msg == hello)
     {
@@ -315,7 +397,7 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
     }
     else if (msg == neighborsClear)
     {
-        clusterHeads.clear();
+//        clusterHeads.clear();
         scheduleAt(simTime() + nbClearInterval, neighborsClear);
     }
     else if(msg == prehead)
@@ -331,6 +413,7 @@ bool SimpleCluster::isMax()
 
 void SimpleCluster::sendCluster(PacketType type)
 {
+    
     //发送端口的mac地址
     auto src = ie5->getMacAddress();
 
@@ -340,10 +423,11 @@ void SimpleCluster::sendCluster(PacketType type)
     //分簇协议报文头部
     const auto &clusterMsg = makeShared<SimpleClusterPacket>();
     clusterMsg->setType(type);
-    clusterMsg->setNID(nid);
-    clusterMsg->setSignature(e());
+    clusterMsg->setNid(nid);
+    // clusterMsg->setSignature(e());
     clusterMsg->setMAC(src);
     clusterMsg->setNodeIndex(nodeIndex);
+    
 
     //数据包添加头部
     packet->insertAtFront(clusterMsg);
@@ -368,10 +452,58 @@ void SimpleCluster::sendHeadAdvertise()
     Packet *packet = new Packet("hello");
     const auto &clusterMsg = makeShared<SimpleClusterPacket>();
     clusterMsg->setType(CALL);
-    clusterMsg->setNID(nid);
-    clusterMsg->setSignature(e());
+    clusterMsg->setNid(nid);
+
     clusterMsg->setMAC(src);
     packet->insertAtFront(clusterMsg);
+
+    auto macAddrReq = packet->addTag<MacAddressReq>();
+    macAddrReq->setSrcAddress(src);
+    macAddrReq->setDestAddress(MacAddress::BROADCAST_ADDRESS);
+
+    packet->addTag<PacketProtocolTag>()->setProtocol(&Protocol::simplecluster);
+    packet->addTag<InterfaceReq>()->setInterfaceId(ie5->getInterfaceId());
+
+    send(packet, "ifOut");
+}
+
+void SimpleCluster::sendAuth(int type, double time)
+{
+    RSA *rsa = RSA_new();
+    auto publicKey = fopen("/home/hiro/keys/rsa_public_key0.pem", "r");
+    PEM_read_RSA_PUBKEY(publicKey, &rsa, NULL, NULL);
+    fclose(publicKey);
+
+    auto privateKey = fopen("/home/hiro/keys/rsa_private_key0.pem", "r");
+    PEM_read_RSAPrivateKey(privateKey, &rsa, NULL, NULL);
+    char *source = "zeusNet";
+    unsigned char *encode = new unsigned char[RSA_size(rsa)];
+    memset(encode, 0, RSA_size(rsa));
+    if (RSA_private_encrypt(strlen(source), (unsigned char *)source, encode, rsa, RSA_PKCS1_PADDING) < 0)
+    std::cout << "error" << endl;
+
+
+
+    auto src = ie5->getMacAddress();
+    Packet *packet = new Packet("auth");
+    const auto &authMsg = makeShared<AuthPacket>();
+
+    
+
+    authMsg->setNid(nid);
+    authMsg->setPublicKey(rsa);
+
+    authMsg->setSignature(encode);
+    authMsg->setType(type);
+    authMsg->setTime(time);
+    packet->insertAtFront(authMsg);
+
+    auto test = authMsg->getSignature();
+    unsigned char *decode = new unsigned char[RSA_size(rsa)];
+    memset(decode, 0, RSA_size(rsa));
+    RSA_public_decrypt(RSA_size(rsa), test, decode, rsa, RSA_PKCS1_PADDING);
+
+
 
     auto macAddrReq = packet->addTag<MacAddressReq>();
     macAddrReq->setSrcAddress(src);
@@ -420,7 +552,7 @@ void SimpleCluster::becomeMember()
 
     getContainingNode(this)->bubble("member!");
 
-    //    std::cout << simTime() << " member" << endl;
+//    std::cout << simTime() << " member" << endl;
     state = MEMBER;
 }
 
@@ -429,6 +561,7 @@ void SimpleCluster::becomePrehead()
     cancelEvent(wait);
     scheduleAt(simTime() + PreHeadChange, prehead);
     state = PREHEAD;
+//    std::cout << simTime() << " prehead" << endl;
     scheduleHello();
 }
 
@@ -441,7 +574,7 @@ void SimpleCluster::becomeHead()
 
     if (simTime() > collectingTime + waitingTime)
         change++;
-    //    sendCluster(CALL);
+
     scheduleHello();
 }
 
@@ -476,15 +609,14 @@ void SimpleCluster::topology(bool all, std::string filename)
     }
 }
 
-inet::Coord SimpleCluster::getPosition()
+Coord SimpleCluster::getPosition()
 {
     cModule *host = getContainingNode(this);
     IMobility *mobility = check_and_cast<IMobility *>(host->getSubmodule("mobility"));
     return mobility->getCurrentPosition();
 }
 
-const ICluster::ClusterTable
-SimpleCluster::getClusterHead()
+const ICluster::ClusterTable SimpleCluster::getClusterHead()
 {
     return clusterTable;
 }

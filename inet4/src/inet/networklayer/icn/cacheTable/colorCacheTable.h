@@ -11,11 +11,12 @@
 #include "inet/common/INETDefs.h"
 #include "inet/common/lifecycle/ILifecycle.h"
 #include "inet/common/packet/Packet.h"
-#include "inet/networklayer/icn/field/dataType.h"
+#include "inet/networklayer/icn/field/SID.h"
 #include "inet/networklayer/icn/field/compare.h"
 #include  <iostream>
 
 #include<map>
+#include <unordered_map>
 #include<memory>
 #include "contentBlock.h"
 /*
@@ -31,15 +32,17 @@ class INET_API ColorCacheTable: public cSimpleModule,protected cListener, public
 {
     private:
         //缓存表的数据核心，一个SID对应一个block
-        typedef std::map<SID_t,shared_ptr<ContentBlock>> CacheTable;
-        CacheTable table;
+        using CacheTable = std::map<SID, shared_ptr<ContentBlock>>;
+        using timerTable = std::map<cMessage *, SID>;
+
+        CacheTable* table;
 
         //缓存表的父节点指针
         cModule* owner;
 
         //为每个缓存条目维护一个计时器，计时器记录生存时间，生存时间为0时删除缓存，也可以为之后的缓存替换策略提供支持
-        typedef std::map<cMessage*,SID_t> timerTable;
-        timerTable timers;
+        
+        timerTable* timers;
 
         //网络层的MTU
         unsigned mtu;
@@ -67,19 +70,19 @@ class INET_API ColorCacheTable: public cSimpleModule,protected cListener, public
         void printCacheTable(std::ostream & out);
 
         //根据SID返回对应的block
-        shared_ptr<ContentBlock> getBlock(SID_t sid);
+        shared_ptr<ContentBlock> getBlock(SID sid);
         
         //创建block，并相应的创建计时器
-        shared_ptr<ContentBlock> CreateBlock(SID_t sid);
+        shared_ptr<ContentBlock> CreateBlock(SID sid);
 
         //存入packet
-        void CachePacket(SID_t sid,Packet* packet);
+        void CachePacket(SID sid,Packet* packet);
 
         //移除缓存
         void RemoveBlock(shared_ptr<ContentBlock> block);
 
         //检查此数据包是否已经在缓存中 
-        bool hasThisPacket(Packet *packet,SID_t sid);
+        bool hasThisPacket(Packet *packet,SID sid);
 
     protected:
         void finish() override;

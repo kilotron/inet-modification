@@ -45,7 +45,7 @@ module WirelessLinkLayerNodeBase extends NodeBase
 
     gates:
         input radioIn[numWlanInterfaces] @directIn;
-        
+
 
     submodules:
         pcapRecorder[numPcapRecorders]: PcapRecorder {
@@ -60,7 +60,7 @@ module WirelessLinkLayerNodeBase extends NodeBase
         // TODO: move wlan interfaces after eth interfaces, but it changes IP address assignment and breaks examples/inet/configurator/complex.ini
         wlan[numWlanInterfaces]: <default("Ieee80211Interface")> like IWirelessInterface {
             parameters:
-                @display("p=400.05,546.52496,row,150;q=queue");
+                @display("p=439.425,527.625,row,150;q=queue");
         }
 
 

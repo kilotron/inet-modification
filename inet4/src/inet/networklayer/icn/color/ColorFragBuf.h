@@ -14,6 +14,7 @@
 #include "inet/common/packet/ReassemblyBuffer.h"
 #include "inet/networklayer/icn/color/Data_m.h"
 #include "inet/networklayer/icn/color/Get_m.h"
+#include "inet/networklayer/icn/field/SID.h"
 
 
 namespace inet{
@@ -31,7 +32,7 @@ class INET_API ColorFragBuf
         };
 
         //多个buffer通过SID唯一标识
-        typedef std::map<int,DatagramBuffer> Buffers;
+        typedef std::map<SID,DatagramBuffer> Buffers;
 
         Buffers bufs;
 

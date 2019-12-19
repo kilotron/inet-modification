@@ -14,7 +14,6 @@
 #include <fstream>
 
 #include "../cacheTable/colorCacheTable.h"
-#include "../cacheTable/colorCacheTable.h"
 #include "../cacheTable/colorChunk.h"
 #include "../pendingTable/colorPendingGetTable.h"
 #include "../routingTable/colorRoutingTable.h"
@@ -27,7 +26,12 @@
 #include "inet/networklayer/contract/INetworkProtocol.h"
 #include "inet/networklayer/icn/cluster/ICluster.h"
 #include "inet/networklayer/icn/color/ColorFragBuf.h"
+#include "inet/networklayer/icn/field/NID.h"
+#include "inet/networklayer/icn/field/SID.h"
+
 #include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
 
 
 namespace inet{
@@ -39,14 +43,16 @@ namespace inet{
     class INET_API color : public OperationalBase, public INetworkProtocol, public IProtocolRegistrationListener, public cListener
     {
         public:
-            struct SimRcorder
+            struct SimRecorder
             {
                 color *owner;
 
-                bool multiConsumer;
+                int multiConsumer;
 
                 int index;
-                std::map<SID_t, simtime_t> Delays;
+                std::map<SID, simtime_t> Delays;
+
+               
 
                 B throughput = B(0);
                 int GetSendNum = 0;
@@ -59,6 +65,26 @@ namespace inet{
                 void ConsumerPrint(std::ostream &os);
 
                 void ProviderPrint(std::ostream &os);
+            };
+
+            struct Pendingpkt
+            {
+                enum pktType
+                {
+                    GET,
+                    DATA
+                };
+                pktType type;
+                uint64_t pktID;
+                cMessage *pkt;
+                simtime_t delayTime;
+            };
+
+            enum class SendMode
+            {
+                EqualInterval = 1,
+                UniformDisInterval = 2,
+                ExpDisInterval = 3
             };
 
         private:
@@ -84,7 +110,7 @@ namespace inet{
             std::set<const Protocol *> upperProtocols;
 
             //节点标示NID
-            NID_t nid;
+            NID nid;
 
             //最大跳数
             int hopLimit;
@@ -114,21 +140,16 @@ namespace inet{
             int Cindex;
             int Pindex;
 
-            std::map<SID_t, simtime_t> Delays;
-            B throuput;
-            int sendNum;
-            int recvNum;
             double sentInterval;
-            simtime_t delay;
+   
+            SimRecorder testModule;
 
-            SimRcorder testModule;
+            using PendingPktMap = std::map<cMessage *, Pendingpkt>;
+            PendingPktMap PendingPkts;
 
-            enum class SendMode
-            {
-                EqualInterval = 1,
-                UniformDisInterval = 2,
-                ExpDisInterval = 3
-            };
+            //处理时延,两种包的处理时延不同
+            double getProdelay;
+            double dataProdelay;
 
         protected:
             virtual void finish() override;
@@ -169,30 +190,30 @@ namespace inet{
             void handleDataPacket(Packet* packet);
 
             //为GET包寻找路由
-            shared_ptr<Croute> findRoute(SID_t sid);
+            shared_ptr<Croute> findRoute(SID sid);
 
             //对收到的DATA包进行缓存
-            void CachePacket(SID_t sid, Packet* packet);
+            void CachePacket(SID sid, Packet* packet);
             
             //在缓存中寻找内容
-            shared_ptr<ContentBlock> findContentInCache(SID_t sid);
+            shared_ptr<ContentBlock> findContentInCache(SID sid);
 
             //创建路由条目
-            shared_ptr<Croute> createRoute(SID_t sid, simtime_t ttl);
+            shared_ptr<Croute> createRoute(SID sid, simtime_t ttl);
 
             //创建PIT条目
-            void createPIT(const SID_t& sid, const NID_t& nid, const MacAddress& mac,simtime_t t);
+            void createPIT(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t);
 
             //在PIT表中找到上一跳的信息
-            colorPendingGetTable::EntrysRange findPITentry(SID_t sid);
+            colorPendingGetTable::EntrysRange findPITentry(SID sid);
 
             //对上层来的包封装, type==0代表GET包， type==1代表DATA包
-            void encapsulate(Packet *packet, int type, SID_t sid);
+            void encapsulate(Packet *packet, int type, SID sid);
 
             void encapsulate(Packet *packet, int type, int portSelf, int portDest);
 
             //对下层来的包解封装
-            void decapsulate(Packet *packet, SID_t sid);
+            void decapsulate(Packet *packet, SID sid);
 
             //将数据包发往指定端口
             void sendDatagramToOutput(Packet *packet, int nic);
@@ -210,10 +231,10 @@ namespace inet{
             const InterfaceEntry *getSourceInterface(Packet *packet);
 
             //节点作为consumer测试发包，转发路由机制，直接在网络层产生GET包发送
-            void testSend(SID_t sid);
+            void testSend(SID sid);
 
             //节点作为provider创建内容包，测试中一个GET包对应一个DATA包
-            void testProvide(SID_t sid, B dataSize);
+            void testProvide(SID sid, B dataSize);
 
             //通过T控制发送get包的时间间隔， mode选择时间间隔的具体分布形式，0均匀分布，1指数分布
             void scheduleGet(simtime_t t, SendMode mode);
@@ -225,13 +246,13 @@ namespace inet{
             void FragmentAndSend(Packet* packet);
 
             //分片存储
-            void FragmentAndStore(Packet* packet, SID_t sid);
+            void FragmentAndStore(Packet* packet, SID sid);
 
             //产生GET包头
-            const inet::Ptr<inet::Get> GetHead(SID_t sid);
+            const Ptr<inet::Get> GetHead(SID sid);
 
             //产生Data包头
-            const inet::Ptr<inet::Data> DataHead(SID_t sid);
+            const Ptr<inet::Data> DataHead(SID sid);
 
             //判断是否是簇头
             bool isHead();

@@ -1148,7 +1148,6 @@ OBJS = \
     $O/inet/networklayer/icn/cluster/SimpleClusterPacket_m.o \
     $O/inet/networklayer/icn/color/AppData_m.o \
     $O/inet/networklayer/icn/color/colorfields_m.o \
-    $O/inet/networklayer/icn/color/colorM_m.o \
     $O/inet/networklayer/icn/color/Data_m.o \
     $O/inet/networklayer/icn/color/Get_m.o \
     $O/inet/networklayer/icn/pendingTable/PITentry_m.o \
@@ -1320,7 +1319,6 @@ MSGFILES = \
     inet/networklayer/icn/cluster/SimpleClusterPacket.msg \
     inet/networklayer/icn/color/AppData.msg \
     inet/networklayer/icn/color/colorfields.msg \
-    inet/networklayer/icn/color/colorM.msg \
     inet/networklayer/icn/color/Data.msg \
     inet/networklayer/icn/color/Get.msg \
     inet/networklayer/icn/pendingTable/PITentry.msg \

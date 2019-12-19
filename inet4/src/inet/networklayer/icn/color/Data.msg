@@ -43,8 +43,8 @@ class Data extends FieldsChunk
     unsigned char PIDIndex = 0;
     //reserved 8 bits
     uint16_t checksum = 0;
-    SID_t SID;
-    NID_t NID;
+    SID sid;
+    NID nid;
     MacAddress MAC;
     uint32_t offset = 0;
     B HeaderLength=B(78) ;

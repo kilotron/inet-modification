@@ -98,7 +98,7 @@ namespace inet{
         delete msg;
     }
 
-    shared_ptr<Croute> ColorRoutingTable::CreateEntry(SID_t sid, NID_t nid, simtime_t t)
+    shared_ptr<Croute> ColorRoutingTable::CreateEntry(SID sid, NID nid, simtime_t t)
     {
         shared_ptr<Croute> route = std::make_shared<Croute>(nid,sid,this,t);
         cMessage* msg = new cMessage();
@@ -123,7 +123,7 @@ namespace inet{
         return findContainingNode(this);
     }
 
-    shared_ptr<Croute> ColorRoutingTable::findMachEntry(SID_t sid)
+    shared_ptr<Croute> ColorRoutingTable::findMachEntry(SID sid)
     {
         auto pair = table.find(sid);
         return pair->second;
@@ -145,7 +145,7 @@ namespace inet{
         rmFromTimers(croute);
     }
 
-    void ColorRoutingTable::removeEntry(SID_t sid)
+    void ColorRoutingTable::removeEntry(SID sid)
     {
         auto range = table.equal_range(sid);
 
@@ -165,7 +165,7 @@ namespace inet{
         Rtimers.erase(timerPair->first);
     }
 
-    shared_ptr<Croute> ColorRoutingTable::findRoute(SID_t sid)
+    shared_ptr<Croute> ColorRoutingTable::findRoute(SID sid)
     {
         return table.find(sid)->second;
     }

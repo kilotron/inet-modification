@@ -60,32 +60,32 @@ module LinkLayerNodeBase extends NodeBase
         }
         lo[numLoInterfaces]: <default("LoopbackInterface")> like ILoopbackInterface {
             parameters:
-                @display("p=750,526,row,150");
+                @display("p=571.725,571.725,row,150");
         }
         // TODO: move wlan interfaces after eth interfaces, but it changes IP address assignment and breaks examples/inet/configurator/complex.ini
         wlan[numWlanInterfaces]: <default("Ieee80211Interface")> like IWirelessInterface {
             parameters:
-                @display("p=375,616,row,150;q=queue");
+                @display("p=403.19998,590.625,row,150;q=queue");
         }
         ppp[sizeof(pppg)]: <default("PppInterface")> like IPppInterface {
             parameters:
-                @display("p=300,526,row,150;q=txQueue");
+                @display("p=300.82498,478.8,row,150;q=txQueue");
         }
         eth[sizeof(ethg)]: <default("EthernetInterface")> like IEthernetInterface {
             parameters:
-                @display("p=900,526,row,150;q=txQueue");
+                @display("p=708.75,466.19998,row,150;q=txQueue");
         }
         ext[numExtInterfaces]: <default("ExtInterface")> like IExternalInterface {
             parameters:
-                @display("p=1125,616,row,150;q=txQueue");
+                @display("p=1108.7999,606.375,row,150;q=txQueue");
         }
         tun[numTunInterfaces]: <default("TunInterface")> like ITunnelInterface {
             parameters:
-                @display("p=975,616,row,150;q=txQueue");
+                @display("p=839.475,606.375,row,150;q=txQueue");
         }
         vlan[numVlanInterfaces]: <default("VlanInterface")> like IVlanInterface {
             parameters:
-                @display("p=975,616,row,150;q=txQueue");
+                @display("p=971.77496,510.3,row,150;q=txQueue");
         }
 
     connections allowunconnected:

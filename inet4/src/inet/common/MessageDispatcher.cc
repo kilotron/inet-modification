@@ -19,8 +19,7 @@
 #include "inet/common/MessageDispatcher.h"
 #include "inet/common/ProtocolTag_m.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
-#include "inet/networklayer/icn/color/Get_m.h"
-#include "inet/networklayer/icn/color/Data_m.h"
+
 
 namespace inet {
 
@@ -68,9 +67,9 @@ cGate *MessageDispatcher::handlePacket(Packet *packet, cGate *inGate)
         else
             throw cRuntimeError("handlePacket(): Unknown socket, id = %d", socketId);
     }
-    auto dispatchProtocolReq = packet->findTag<DispatchProtocolReq>();;
+    auto dispatchProtocolReq = packet->findTag<DispatchProtocolReq>();
     if (dispatchProtocolReq != nullptr) {
-        auto packetProtocolTag = packet->findTag<PacketProtocolTag>();;
+        auto packetProtocolTag = packet->findTag<PacketProtocolTag>();
         auto servicePrimitive = dispatchProtocolReq->getServicePrimitive();
         // TODO: KLUDGE: eliminate this by adding ServicePrimitive to every DispatchProtocolReq
         if (servicePrimitive == static_cast<ServicePrimitive>(-1)) {

@@ -15,19 +15,23 @@
 import inet.common.INETDefs;
 
 
-namespace inet;
+
 
 cplusplus {{
-    #include <omnetpp.h>
-    #include <stdint.h>
+
     #include <vector>
     #include <list>
-    #include "../field/dataType.h"
+
+    #include "../field/NID.h"
+    #include "../field/SID.h"
+    using PID_t = int;
+    using Port_t = unsigned;
     
     typedef std::vector<PID_t> PIDS;
-    typedef std::list<NID_t> NIDS;
+    typedef std::list<NID> NIDS;
     typedef std::vector<int> path;
 }}
+
 
 enum TYPE
 {
@@ -45,6 +49,16 @@ class NIDS
     @existingClass;
 }
 
+class NID
+{
+    @existingClass;
+}
+
+class SID
+{
+    @existingClass;
+}
+
 class PID_t
 {
     @existingClass;
@@ -56,17 +70,7 @@ class PIDS
     @existingClass;
 }
 
-class SID_t
-{
-    @existingClass;
-    @opaque;
-}
 
-class NID_t
-{
-    @existingClass;
-    @opaque;
-}
 
 class Port_t
 {

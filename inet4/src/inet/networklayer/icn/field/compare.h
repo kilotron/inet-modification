@@ -1,7 +1,7 @@
 #ifndef COMPARE_H_
 #define COMPARE_H_
 
-#include "dataType.h"
+
 #include "enumList.h"
 
 namespace inet

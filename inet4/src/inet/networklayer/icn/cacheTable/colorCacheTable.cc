@@ -22,15 +22,18 @@ Define_Module(ColorCacheTable);
 void ColorCacheTable::finish()
 {
     //FINISH时删除所有计时器的指针
-    for (auto iter = timers.begin(); iter != timers.end(); iter++)
+    for (auto iter = timers->begin(); iter != timers->end(); iter++)
     {
         delete iter->first;
     }
-    timers.clear();
+    timers->clear();
     //清理所有缓存
-    for_each(table.begin(), table.end(), [](std::pair<SID_t, shared_ptr<ContentBlock>> entry) {
+    for_each(table->begin(), table->end(), [](std::pair<SID, shared_ptr<ContentBlock>> entry) {
         entry.second->flush();
     });
+
+    delete table;
+    delete timers;
 }
 
 void ColorCacheTable::initialize(int stage)
@@ -40,6 +43,8 @@ void ColorCacheTable::initialize(int stage)
     {
         owner = getContainingNode(this);
         mtu = par("mtu").intValue();
+        table = new CacheTable;
+        timers = new timerTable;
     }
     else if (stage == INITSTAGE_NETWORK_LAYER)
     {
@@ -53,15 +58,15 @@ void ColorCacheTable::handleMessage(cMessage *timer)
 {
     //计时器时间到后删除对应表项
     //找到对应的sid
-    auto sid = timers.find(timer)->second;
+    auto sid = timers->find(timer)->second;
 
     //找到对应的block
-    auto block = table.find(sid)->second;
+    auto block = table->find(sid)->second;
 
     remain += block->GetSize();
 
-    table.erase(sid);
-    timers.erase(timer);
+    table->erase(sid);
+    timers->erase(timer);
     cancelAndDelete(timer);
 }
 
@@ -98,38 +103,38 @@ bool ColorCacheTable::handleOperationStage(LifecycleOperation *operation, IDoneC
 
 void ColorCacheTable::printCacheTable(std::ostream &out)
 {
-    for (auto iter = table.begin(); iter != table.end(); iter++)
+    for (auto iter = table->begin(); iter != table->end(); iter++)
     {
         out << iter->second->str() << endl;
     }
 }
 
-shared_ptr<ContentBlock> ColorCacheTable::getBlock(SID_t sid)
+shared_ptr<ContentBlock> ColorCacheTable::getBlock(SID sid)
 {
-    auto result = table.find(sid);
-    if (result != table.end())
+    auto result = table->find(sid);
+    if (result != table->end())
         return result->second;
     else
         return nullptr;
 }
 
-shared_ptr<ContentBlock> ColorCacheTable::CreateBlock(SID_t sid)
+shared_ptr<ContentBlock> ColorCacheTable::CreateBlock(SID sid)
 {
     //创建表项
     shared_ptr<ContentBlock> block = std::make_shared<ContentBlock>(sid, mtu);
-    table[sid] = block;
+    (*table)[sid] = block;
 
     //创建计时器
     cMessage *timer = new cMessage("timer");
-    timers[timer] = sid;
+    (*timers)[timer] = sid;
     return block;
 }
 
-void ColorCacheTable::CachePacket(SID_t sid, Packet *packet)
+void ColorCacheTable::CachePacket(SID sid, Packet *packet)
 {
 
-    auto iter = table.find(sid);
-    if (iter != table.end())
+    auto iter = table->find(sid);
+    if (iter != table->end())
     {
         //已有block直接插入
         iter->second->InsterPacket(packet);
@@ -138,18 +143,19 @@ void ColorCacheTable::CachePacket(SID_t sid, Packet *packet)
     {
         //没有就创建block后插入
         CreateBlock(sid);
-        iter = table.find(sid);
-        if (iter == table.end())
+        iter = table->find(sid);
+
+        if (iter == table->end())
             std::cout << "end!" << endl;
         auto ptr = iter->second;
         iter->second->InsterPacket(packet);
     }
 }
 
-bool ColorCacheTable::hasThisPacket(Packet *packet, SID_t sid)
+bool ColorCacheTable::hasThisPacket(Packet *packet, SID sid)
 {
-    auto iter = table.find(sid);
-    if (iter == table.end())
+    auto iter = table->find(sid);
+    if (iter == table->end())
     {
         return false;
     }

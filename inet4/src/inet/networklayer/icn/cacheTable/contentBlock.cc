@@ -12,7 +12,7 @@
 
 namespace inet
 {
-using std::string;
+
 colorChunk *ContentBlock::CreateNewChunk()
 {
     colorChunk *chunk = new colorChunk(mtu, 0, 5);
@@ -61,9 +61,9 @@ bool ContentBlock::CheckIntegrity(colorChunk *chunk)
     return chunk->isIntegrity();
 }
 
-string ContentBlock::str()
+std::string ContentBlock::str()
 {
-    string result(string("sid is: ") + sid.str() + string("  number of chunks is: ") + std::to_string(num) + string("lifetime is: ") + lifeTime.ustr());
+    std::string result(" ");
     return result;
 }
 
