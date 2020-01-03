@@ -16,7 +16,7 @@
 package inet.networklayer.icn.color;
 import inet.networklayer.icn.base.icn;
 
-simple color like icn
+simple colorCluster like icn
 {
     parameters:
         string interfaceTableModule = "";   // The path to the InterfaceTable module
@@ -28,9 +28,14 @@ simple color like icn
         double GetProcDelay @unit(s) = default(0s);
         double DataProcDelay @unit(s) = default(0s);
         int mtu=2304;
-        
+  
         int multi;
-        
+
+        double getDelayTime @unit(s) = default(0.001s);
+        double dataDelayTime @unit(s) = default(0.001s);
+        int TC = default(2);
+
+        bool flood = default(true);
     gates:
         input transportIn ;
         output transportOut;

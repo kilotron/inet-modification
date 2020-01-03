@@ -35,8 +35,8 @@ cplusplus {{
 
 enum TYPE
 {
-    intrest=1;
-    data=2;
+    GET=1;
+    DATA=2;
 };
 
 class path

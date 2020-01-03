@@ -31,6 +31,9 @@ class SID
         template <typename T, typename C>
         SID(const T &param, const C &content);
 
+        // template <>
+        // SID::SID(const int &index, const int &content);
+
         //转换为字符串
         std::string str() const;
 
@@ -54,17 +57,26 @@ class SID
 // }
 
 template <typename T, typename C>
-SID::SID(T const &param, const C &content):nidHeader(param)
+SID::SID(const T &param, const C &content) : nidHeader(param), test(content)
 {
     char out1[16];
    
     MurmurHash3_x64_128(&content, sizeof content, 0, out1);
     memcpy(sidTail.data(), out1, 16);
+    sidTail[4] = 0;
     // MurmurHash3_x64_128(&content, sizeof content, 1, out2);
 
     // memcpy(sidTail.data()+16, out2, 4);
 }
 
+// template <>
+// SID::SID(const int &index, const int &content) : nidHeader(index), test(content)
+// {
+//     char out1[16];
+
+//     MurmurHash3_x64_128(&content, sizeof content, 0, out1);
+//     memcpy(sidTail.data(), out1, 16);
+// }
 
 
 

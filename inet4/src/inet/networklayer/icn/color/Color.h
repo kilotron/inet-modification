@@ -9,6 +9,7 @@
 #define INET_NETWORKLAYER_ICN_COLOR_COLOR_H_
 
 #include <list>
+#include <queue>
 #include <map>
 #include <set>
 #include <fstream>
@@ -17,7 +18,7 @@
 #include "../cacheTable/colorChunk.h"
 #include "../pendingTable/colorPendingGetTable.h"
 #include "../routingTable/colorRoutingTable.h"
-#include "../routingTable/Croute.h"
+//#include "../routingTable/Croute.h"
 #include "inet/common/INETDefs.h"
 #include "inet/common/IProtocolRegistrationListener.h"
 #include "inet/common/lifecycle/ModuleOperations.h"
@@ -28,10 +29,8 @@
 #include "inet/networklayer/icn/color/ColorFragBuf.h"
 #include "inet/networklayer/icn/field/NID.h"
 #include "inet/networklayer/icn/field/SID.h"
+#include "inet/networklayer/icn/delayQueue/delayQueue.h"
 
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
-#include <openssl/err.h>
 
 
 namespace inet{
@@ -40,12 +39,12 @@ namespace inet{
     class colorPendingGetTable;
     class ColorRoutingTable;
 
-    class INET_API color : public OperationalBase, public INetworkProtocol, public IProtocolRegistrationListener, public cListener
+    class INET_API colorCluster : public OperationalBase, public INetworkProtocol, public IProtocolRegistrationListener, public cListener
     {
         public:
             struct SimRecorder
             {
-                color *owner;
+                colorCluster *owner;
 
                 int multiConsumer;
 
@@ -65,19 +64,6 @@ namespace inet{
                 void ConsumerPrint(std::ostream &os);
 
                 void ProviderPrint(std::ostream &os);
-            };
-
-            struct Pendingpkt
-            {
-                enum pktType
-                {
-                    GET,
-                    DATA
-                };
-                pktType type;
-                uint64_t pktID;
-                cMessage *pkt;
-                simtime_t delayTime;
             };
 
             enum class SendMode
@@ -144,12 +130,20 @@ namespace inet{
    
             SimRecorder testModule;
 
-            using PendingPktMap = std::map<cMessage *, Pendingpkt>;
-            PendingPktMap PendingPkts;
+            delayQueue delay_queue24;
+            cMessage* delayer24;
+            delayQueue delay_queue5;
+            cMessage *delayer5;
+
+            double getDelayTime;
+            double dataDelayTime;
+            int TC;
 
             //处理时延,两种包的处理时延不同
             double getProdelay;
             double dataProdelay;
+
+            bool flood = true;
 
         protected:
             virtual void finish() override;
@@ -178,9 +172,9 @@ namespace inet{
             /// cListener method
             virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
         public:
-            color(){}
+            colorCluster(){}
 
-            ~color();
+            ~colorCluster();
 
 
             //处理GET包
@@ -190,7 +184,7 @@ namespace inet{
             void handleDataPacket(Packet* packet);
 
             //为GET包寻找路由
-            shared_ptr<Croute> findRoute(SID sid);
+            shared_ptr<Croute> findRoute(NID sid);
 
             //对收到的DATA包进行缓存
             void CachePacket(SID sid, Packet* packet);
@@ -199,7 +193,7 @@ namespace inet{
             shared_ptr<ContentBlock> findContentInCache(SID sid);
 
             //创建路由条目
-            shared_ptr<Croute> createRoute(SID sid, simtime_t ttl);
+            void createRoute(NID dest, NID nextHop, MacAddress mac, simtime_t ttl, int interFace, double linkQ);
 
             //创建PIT条目
             void createPIT(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t);
@@ -217,6 +211,11 @@ namespace inet{
 
             //将数据包发往指定端口
             void sendDatagramToOutput(Packet *packet, int nic);
+
+            void sendDatagramToOutput(Packet *packet, int nic, MacAddress mac);
+
+            //将数据包发往下一跳，通过nid指定下一跳
+            // void sendOutToNode(Packet* pakcet, NID nid);
 
             //处理来自上层的数据包
             void handlePacketFromHL(Packet *packet);
@@ -256,7 +255,12 @@ namespace inet{
 
             //判断是否是簇头
             bool isHead();
+
+            // void handleDelayPkt(Packet *pkt, int seq=0, simtime_t delay=0);
+
     };
+
+ 
 }
 
 

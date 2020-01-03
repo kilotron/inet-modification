@@ -506,13 +506,13 @@ OBJS = \
     $O/inet/networklayer/icn/cacheTable/colorChunk.o \
     $O/inet/networklayer/icn/cacheTable/contentBlock.o \
     $O/inet/networklayer/icn/cluster/SimpleCluster.o \
-    $O/inet/networklayer/icn/color/Color.o \
+    $O/inet/networklayer/icn/color/color.o \
     $O/inet/networklayer/icn/color/ColorFragBuf.o \
+    $O/inet/networklayer/icn/delayQueue/delayQueue.o \
     $O/inet/networklayer/icn/field/NID.o \
     $O/inet/networklayer/icn/field/SID.o \
     $O/inet/networklayer/icn/pendingTable/colorPendingGetTable.o \
     $O/inet/networklayer/icn/routingTable/colorRoutingTable.o \
-    $O/inet/networklayer/icn/routingTable/Croute.o \
     $O/inet/networklayer/internetcloud/CloudDelayerBase.o \
     $O/inet/networklayer/internetcloud/MatrixCloudDelayer.o \
     $O/inet/networklayer/ipv4/Icmp.o \
@@ -1151,6 +1151,7 @@ OBJS = \
     $O/inet/networklayer/icn/color/Data_m.o \
     $O/inet/networklayer/icn/color/Get_m.o \
     $O/inet/networklayer/icn/pendingTable/PITentry_m.o \
+    $O/inet/networklayer/icn/routingTable/Croute_m.o \
     $O/inet/networklayer/ipv4/IcmpHeader_m.o \
     $O/inet/networklayer/ipv4/IgmpMessage_m.o \
     $O/inet/networklayer/ipv4/Ipv4Header_m.o \
@@ -1322,6 +1323,7 @@ MSGFILES = \
     inet/networklayer/icn/color/Data.msg \
     inet/networklayer/icn/color/Get.msg \
     inet/networklayer/icn/pendingTable/PITentry.msg \
+    inet/networklayer/icn/routingTable/Croute.msg \
     inet/networklayer/ipv4/IcmpHeader.msg \
     inet/networklayer/ipv4/IgmpMessage.msg \
     inet/networklayer/ipv4/Ipv4Header.msg \

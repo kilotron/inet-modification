@@ -18,36 +18,35 @@
 #include<map>
 #include<memory>
 #include<iostream>
-#include "Croute.h"
-#include "inet/networklayer/icn/field/compare.h"
+#include "Croute_m.h"
+
 
 namespace inet{
 
 class Croute;
 using std::shared_ptr;
-class ColorRoutingTable : public cSimpleModule, protected cListener, public ILifecycle
+using std::unique_ptr;
+class ColorRoutingTable : public cSimpleModule
 {
     private:
         //转发表
-        IInterfaceTable *ift = nullptr;
+        // IInterfaceTable *ift = nullptr;
 
-        //路由表, 每个SID可能对应多条路径
-        typedef std::multimap<SID, std::shared_ptr<Croute>>  Table;
-        typedef std::map<shared_ptr<Croute>,SID> ReverseTable;
-        //为每个路由表项维护一个生存周期值
-        typedef std::map<cMessage*,shared_ptr<Croute>> timerTable;
-        typedef std::map<shared_ptr<Croute>, cMessage*> RTimerTable;
+        //路由表, 路由表依然以主机为中心建立，每个NID可能对应多条路径
+        using Table = std::multimap<NID, std::shared_ptr<Croute>>;
+        // typedef std::map<shared_ptr<Croute>,SID> ReverseTable;
+        // //为每个路由表项维护一个生存周期值
+        // typedef std::map<cMessage*,shared_ptr<Croute>> timerTable;
+        // typedef std::map<shared_ptr<Croute>, cMessage*> RTimerTable;
         
-        Table table;
-        ReverseTable RT;
-        timerTable timers;
-        RTimerTable Rtimers;
+        Table routingTable;
+        // ReverseTable RT;
+        // timerTable timers;
+        // RTimerTable Rtimers;
 
         bool isNodeUp;
         //是否开启转发
         bool forwarding = false;
-
-        void rmFromTimers(shared_ptr<Croute> croute);
 
         ColorRoutingTable(const ColorRoutingTable&);
         ColorRoutingTable& operator = (const ColorRoutingTable);
@@ -55,7 +54,7 @@ class ColorRoutingTable : public cSimpleModule, protected cListener, public ILif
         ColorRoutingTable(){}
         ~ColorRoutingTable();
         //创建一条路由表向
-        shared_ptr<Croute> CreateEntry(SID sid, NID nid, simtime_t t );
+        void CreateEntry(NID dest, NID nextHop, MacAddress mac, simtime_t ttl, int interFace, double linkQ );
 
         //打印路由表
         void printRoutingTable(std::ostream & out);
@@ -64,21 +63,16 @@ class ColorRoutingTable : public cSimpleModule, protected cListener, public ILif
         cModule *getHostModule();
 
         //通过SID查找路由表
-        shared_ptr<Croute> findMachEntry(SID sid);
+        shared_ptr<Croute> findRoute(NID dest);
 
-        //通过route指针删除路由表项
-        void removeEntry(shared_ptr<Croute> croute);
-
-        //通过SID删除路由表项
-        void removeEntry(SID sid);
+        //通过NID删除路由表项
+        void removeEntry(NID nid);
     protected:
         virtual void handleMessage(cMessage *)override;
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
-        virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
-        virtual bool handleOperationStage(LifecycleOperation *operation, IDoneCallback *doneCallback) override;
+        
 
-        shared_ptr<Croute> findRoute(SID sid);
 };
 }
 

@@ -12,7 +12,7 @@
 #include "inet/common/lifecycle/ILifecycle.h"
 #include "inet/common/packet/Packet.h"
 #include "inet/networklayer/icn/field/SID.h"
-#include "inet/networklayer/icn/field/compare.h"
+
 #include  <iostream>
 
 #include<map>
@@ -35,7 +35,7 @@ class INET_API ColorCacheTable: public cSimpleModule,protected cListener, public
         using CacheTable = std::map<SID, shared_ptr<ContentBlock>>;
         using timerTable = std::map<cMessage *, SID>;
 
-        CacheTable* table;
+        CacheTable table;
 
         //缓存表的父节点指针
         cModule* owner;

@@ -11,7 +11,7 @@
 #include "inet/common/INETDefs.h"
 
 
-#include "inet/networklayer/icn/field/compare.h"
+
 #include <map>
 #include <iostream>
 #include "PITentry_m.h"
@@ -60,7 +60,7 @@ class INET_API colorPendingGetTable: public cSimpleModule
         void PrintPIT(std::ostream & out);
         
         //根据SID，NID，生存时间创建一个PIT表项
-        const colorPendingGetTable::Entry& createEntry(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t, int type = 5, bool is_consumer = false);
+        const colorPendingGetTable::Entry& createEntry(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t, int type = 5, unsigned long Nonce = 0, bool is_consumer = false);
         
         //将表项添加到表中
         void AddPITentry(const Entry& entry);
@@ -76,6 +76,8 @@ class INET_API colorPendingGetTable: public cSimpleModule
 
         //判断是否是GET包的请求者
         bool isConsumer(const SID& sid);
+
+        bool servedForThisGet(const SID &sid, unsigned long Nonce);
 
         //查询PIT中是否有关于这个SID的条目
         bool hasThisSid(const SID& sid){return !(table->find(sid)==table->end());}

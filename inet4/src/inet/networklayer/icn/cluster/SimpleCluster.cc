@@ -295,7 +295,7 @@ void SimpleCluster::processClusterPacket(Packet *packet)
         break;
     }
     }
-//    delete packet;
+   delete packet;
 }
 
 void SimpleCluster::processAuthPacket(Packet *packet)
@@ -335,6 +335,8 @@ void SimpleCluster::processAuthPacket(Packet *packet)
     {
         std::cout << "deny!" << endl;
     }
+
+    delete packet;
 }
 
 void SimpleCluster::handleSelfMessage(cMessage *msg)

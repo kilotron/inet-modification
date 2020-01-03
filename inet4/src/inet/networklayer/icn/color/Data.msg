@@ -54,6 +54,9 @@ class Data extends FieldsChunk
     PID_t pidnr = 0;
 
     uint16_t MTU = 0;
+
+    NID lastHop;
+    bool comeFromSource;
     
     //测试
     path trace;

@@ -60,7 +60,7 @@ module ColorNetworklayer like INetworkLayer
             parameters:
                 @display("p=550,300;b=600,5");
         }
-        colorNet: <default("color")> like icn {
+        colorNet: <default("colorCluster")> like icn {
             parameters:
                 @display("p=400,200;q=queue");
         }

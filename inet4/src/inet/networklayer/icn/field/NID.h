@@ -66,7 +66,7 @@ class NID
 
         void print(std::ostream &out) const;
 
-
+        bool isDefault();
 };
 
 template<typename T>

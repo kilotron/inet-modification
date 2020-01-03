@@ -11,36 +11,38 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-//
+// 
 
 import inet.common.INETDefs;
-//import inet.common.packet.chunk.Chunk;
+
 import inet.linklayer.common.MacAddress;
 import inet.networklayer.icn.color.colorfields;
-
 
 namespace inet;
 
 
-class PITentry extends cObject
+//
+// TODO generated message class
+//
+class Croute extends cObject
 {
-    NID nid;
-    simtime_t TTL;
-    MacAddress mac;
     
-    
-    //24 for 2.4GHz, 5 for 5GHz
-    int type;
-
-    unsigned long Nonce;
-
-    //判断是否是GET包的发出者，即Data包是否已经返回到请求发起者
-    bool isConsumer;
-
-    
+    NID nextHop;
+    MacAddress nextMac;
+    simtime_t lifeTime;
+    int interFace;
+    double linkQlt;
 }
 
-cplusplus(PITentry) {{
+cplusplus(Croute) {{
   public:
-    PITentry(NID nid, simtime_t t, MacAddress mac, int type=5, unsigned long Nonce = 0, bool isconsumer=false): cObject(), nid(nid), TTL(t), mac(mac), type(type), Nonce(Nonce),  isConsumer_(isconsumer){}    
+    Croute(NID next, MacAddress mac, simtime_t time, int interFace = 0, double link= 1.0): cObject(), nextHop(next), nextMac(mac), lifeTime(time), interFace(interFace), linkQlt(link){}
+
+    //比较是否已有相同的路由条目
+    bool comparator(Croute& c1, Croute& c2)
+    {
+        if(c1.nextHop == c2.nextHop && c1.nextMac == c2.nextMac)
+            return true;
+        else return false;
+    }
 }}

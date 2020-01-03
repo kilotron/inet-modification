@@ -16,6 +16,16 @@ const NID& NID::operator=(const NID &other)
     return *this;
 }
 
+bool NID::isDefault()
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if(value[i]!=0)
+            return false;
+    }
+    return true;
+}
+
 void NID::setNID(std::array<uint64_t, 2> nid)
 {
     memcpy(this->value.data(), nid.data(), 16);
