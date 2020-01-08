@@ -36,6 +36,8 @@ simple colorCluster like icn
         int TC = default(2);
 
         bool flood = default(true);
+        bool unicast = default(false);
+        double routeLifeTime @unit(s) = default(1.0s);
     gates:
         input transportIn ;
         output transportOut;

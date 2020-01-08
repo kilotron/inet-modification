@@ -14,6 +14,7 @@
 #include "inet/common/packet/Packet.h"
 #include "inet/common/lifecycle/ILifecycle.h"
 #include "inet/networklayer/icn/color/colorfields_m.h"
+#include "inet/linklayer/common/MacAddress_m.h"
 
 namespace inet
 {
@@ -23,18 +24,20 @@ using std::list;
 class delayQueue
 {
 public:
-
-
     struct pendPkt
     {
         Packet *pkt;
         TYPE type;
         simtime_t sendtime;
         int tc;
+        MacAddress nextHop;
 
-        pendPkt(Packet *pkt, TYPE type, simtime_t sendtime, int tc) : pkt(pkt), type(type), sendtime(sendtime), tc(tc) {}
+        pendPkt(Packet *pkt, TYPE type, simtime_t sendtime, int tc , MacAddress mac = MacAddress::BROADCAST_ADDRESS) : pkt(pkt), type(type), sendtime(sendtime), tc(tc), nextHop(mac) {}
 
-        void releasePkt() { delete pkt; }
+        void releasePkt() { 
+            delete pkt;
+            pkt = nullptr;
+        }
     };
 
 private:
@@ -53,8 +56,8 @@ public:
         owner = o;
     }
 
-    //新插入一个包，和延迟发送的时间
-    void insert(Packet *pkt, TYPE type, simtime_t time, int forwardTimes = 1);
+    //新插入一个包，和延迟发送的时间, 侦听发送上限
+    void insert(Packet *pkt, TYPE type, simtime_t time, int forwardTimes = 1, MacAddress mac = MacAddress::BROADCAST_ADDRESS);
 
     //弹出延迟队列的队首元素
     Packet *popAtFront();

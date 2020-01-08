@@ -36,7 +36,7 @@ class Croute extends cObject
 
 cplusplus(Croute) {{
   public:
-    Croute(NID next, MacAddress mac, simtime_t time, int interFace = 0, double link= 1.0): cObject(), nextHop(next), nextMac(mac), lifeTime(time), interFace(interFace), linkQlt(link){}
+    Croute(const NID& next, const MacAddress& mac, const simtime_t& time, int interFace = 0, double link= 1.0): cObject(), nextHop(next), nextMac(mac), lifeTime(time), interFace(interFace), linkQlt(link){}
 
     //比较是否已有相同的路由条目
     bool comparator(Croute& c1, Croute& c2)

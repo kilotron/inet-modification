@@ -39,20 +39,26 @@ void ColorRoutingTable::handleMessage(cMessage *msg)
 {
 }
 
-void ColorRoutingTable::CreateEntry(NID dest, NID nextHop, MacAddress mac, simtime_t ttl, int interFace, double linkQ)
+void ColorRoutingTable::CreateEntry(const NID &dest, const NID &nextHop, const MacAddress &mac, const simtime_t &ttl, int interFace, double linkQ)
 {
     auto range = routingTable.equal_range(dest);
    
    //先检查路由表中是否有完全相同的表项，若有在生存期更长的情况下更新生存期
     for (auto iter = range.first; iter != range.second; iter++)
     {
-       if(iter->second->getNextHop() == nextHop && iter->second->getNextMac() == mac)
+       if((iter->second->getNextHop() == nextHop && iter->second->getNextMac() == mac))
        {
-           if(ttl > iter->second->getLifeTime())
+           if (ttl + simTime() > iter->second->getLifeTime())
            {
-               iter->second->setLifeTime(ttl);
+               iter->second->setLifeTime(ttl + simTime());
            }
 
+           return;
+       }
+       
+        //对于链路质量差的不插入条目
+       if (iter->second->getLinkQlt() > linkQ)
+       {
            return;
        }
     }

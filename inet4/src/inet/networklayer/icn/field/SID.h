@@ -22,7 +22,7 @@ class SID
     private:
         NID nidHeader;
         Name sidTail;
-        int test;
+        long long test;
     public:
         //默认构造函数
         SID() : nidHeader() { sidTail.fill(0); }
@@ -30,6 +30,8 @@ class SID
         //模板构造函数
         template <typename T, typename C>
         SID(const T &param, const C &content);
+
+        SID(int nid, long long Lsid);
 
         // template <>
         // SID::SID(const int &index, const int &content);
@@ -69,14 +71,7 @@ SID::SID(const T &param, const C &content) : nidHeader(param), test(content)
     // memcpy(sidTail.data()+16, out2, 4);
 }
 
-// template <>
-// SID::SID(const int &index, const int &content) : nidHeader(index), test(content)
-// {
-//     char out1[16];
 
-//     MurmurHash3_x64_128(&content, sizeof content, 0, out1);
-//     memcpy(sidTail.data(), out1, 16);
-// }
 
 
 

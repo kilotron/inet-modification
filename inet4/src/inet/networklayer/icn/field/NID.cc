@@ -7,20 +7,36 @@
 
 #include "NID.h"
 
-const NID& NID::operator=(const NID &other)
+NID::NID(int x)
 {
-    for (int i = 0; i < 4;i++)\
-    {
-        value[i] = other.getNID()[i];
-    }
-    return *this;
+    MurmurHash3_x64_128(&x, sizeof x, 0, value.data());
+    test = x;
 }
 
-bool NID::isDefault()
+NID::NID(const NID &other)
 {
     for (int i = 0; i < 4; i++)
     {
-        if(value[i]!=0)
+        value[i] = other.getNID()[i];
+    }
+    test = other.test;
+}
+
+const NID &NID::operator=(const NID &other)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        value[i] = other.getNID()[i];
+    }
+    test = other.test;
+    return *this;
+}
+
+bool NID::isDefault() const
+{
+    for (int i = 0; i < 4; i++)
+    {
+        if (value[i] != 0)
             return false;
     }
     return true;
@@ -55,10 +71,11 @@ void NID::print(std::ostream &out) const
 
 bool operator<(const NID &lhs, const NID &nid)
 {
-     return ArrayCmp(lhs.value,nid.value);
+    return ArrayCmp(lhs.value, nid.value);
 }
 
-bool operator!=(const NID &lhs, const NID &rhs){
+bool operator!=(const NID &lhs, const NID &rhs)
+{
     return lhs.value != rhs.value;
 }
 
@@ -72,8 +89,3 @@ std::ostream &operator<<(std::ostream &os, const NID &entry)
     entry.print(os);
     return os;
 }
-
-
-
-
-

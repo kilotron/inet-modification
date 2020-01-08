@@ -1,0 +1,15 @@
+/*
+ * TwoNicCluster.h
+ *
+ *  Created on: 2020年1月8日
+ *      Author: hiro
+ */
+
+#ifndef INET_NETWORKLAYER_ICN_CLUSTER_TWONICCLUSTER_H_
+#define INET_NETWORKLAYER_ICN_CLUSTER_TWONICCLUSTER_H_
+
+
+
+
+
+#endif /* INET_NETWORKLAYER_ICN_CLUSTER_TWONICCLUSTER_H_ */

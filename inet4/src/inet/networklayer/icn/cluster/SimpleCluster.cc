@@ -182,7 +182,7 @@ void SimpleCluster::handleMessageWhenUp(cMessage *msg)
 void SimpleCluster::handleStartOperation(LifecycleOperation *operation)
 {
     ASSERT(clusterTable.table.empty());
-    ie5 = chooseInterface("wlan1");
+    ie5 = chooseInterface("wlan2");
 
     std::ofstream outfile;
     if (getParentModule()->getParentModule()->getIndex() == 0)
@@ -242,8 +242,6 @@ void SimpleCluster::processClusterPacket(Packet *packet)
         // cancelEvent(wait);
 
         maxNeighbor = maxNeighbor < id ? id : maxNeighbor;
-
-
         if(nodeIndex == 1)
         {
 
@@ -361,12 +359,10 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
         if (isMax())
         {
             becomeHead();
-
         }
         else
         {
-            scheduleWait();
-            
+            scheduleWait();        
         }
             
         recorder(inifile);
@@ -430,7 +426,6 @@ void SimpleCluster::sendCluster(PacketType type)
     clusterMsg->setMAC(src);
     clusterMsg->setNodeIndex(nodeIndex);
     
-
     //数据包添加头部
     packet->insertAtFront(clusterMsg);
 
@@ -484,13 +479,9 @@ void SimpleCluster::sendAuth(int type, double time)
     if (RSA_private_encrypt(strlen(source), (unsigned char *)source, encode, rsa, RSA_PKCS1_PADDING) < 0)
     std::cout << "error" << endl;
 
-
-
     auto src = ie5->getMacAddress();
     Packet *packet = new Packet("auth");
     const auto &authMsg = makeShared<AuthPacket>();
-
-    
 
     authMsg->setNid(nid);
     authMsg->setPublicKey(rsa);

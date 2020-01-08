@@ -7,7 +7,15 @@
 
 #include "SID.h"
 
-std::string SID::str() const{
+SID::SID(int nid, long long Lsid) : nidHeader(nid)
+{
+    MurmurHash3_x64_128(&Lsid, sizeof Lsid, 0, sidTail.data());
+    sidTail[4] = 0;
+    test = Lsid;
+}
+
+std::string SID::str() const
+{
     std::string result(nidHeader.str());
 
 }

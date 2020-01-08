@@ -50,8 +50,7 @@ namespace inet{
 
                 int index;
                 std::map<SID, simtime_t> Delays;
-
-               
+                std::vector<double> delayArray;
 
                 B throughput = B(0);
                 int GetSendNum = 0;
@@ -144,9 +143,12 @@ namespace inet{
             double dataProdelay;
 
             bool flood = true;
+            bool unicast;
+            double routeLifeTime;
 
         protected:
-            virtual void finish() override;
+            virtual void
+            finish() override;
             /**
              * IProtocolRegistrationListener methods
              */
@@ -193,7 +195,7 @@ namespace inet{
             shared_ptr<ContentBlock> findContentInCache(SID sid);
 
             //创建路由条目
-            void createRoute(NID dest, NID nextHop, MacAddress mac, simtime_t ttl, int interFace, double linkQ);
+            void createRoute(const NID &dest, const NID &nextHop, const MacAddress &mac, const simtime_t &ttl, int interFace, double linkQ);
 
             //创建PIT条目
             void createPIT(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t);
@@ -205,14 +207,14 @@ namespace inet{
             void encapsulate(Packet *packet, int type, SID sid);
 
             void encapsulate(Packet *packet, int type, int portSelf, int portDest);
-
+      
             //对下层来的包解封装
             void decapsulate(Packet *packet, SID sid);
 
-            //将数据包发往指定端口
-            void sendDatagramToOutput(Packet *packet, int nic);
 
-            void sendDatagramToOutput(Packet *packet, int nic, MacAddress mac);
+
+            //将数据包通过指定端口发送
+            void sendDatagramToOutput(Packet *packet, int nic, MacAddress mac = MacAddress::BROADCAST_ADDRESS);
 
             //将数据包发往下一跳，通过nid指定下一跳
             // void sendOutToNode(Packet* pakcet, NID nid);

@@ -38,13 +38,19 @@ class NID
 {
     private:
         std::array<Word, 4> value;
-        int test;
+        
 
     public:
+        int test;
+        
         NID() { value.fill(0); }
+
+        NID(int x);
 
         template<typename T>
         NID(T &param);
+
+        NID(const NID &ohter);
 
         const NID &operator=(const NID& other);
 
@@ -66,13 +72,14 @@ class NID
 
         void print(std::ostream &out) const;
 
-        bool isDefault();
+        bool isDefault() const;
 };
 
 template<typename T>
 NID::NID(T &param)
 {
     MurmurHash3_x64_128(&param, sizeof param, 0, value.data());
+
 }
 
 // inline std::ostream &operator<<(std::ostream &os, const NID &entry);

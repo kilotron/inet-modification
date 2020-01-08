@@ -10,7 +10,7 @@
 #include "inet/networklayer/icn/color/Get_m.h"
 
 namespace inet{
-void delayQueue::insert(Packet *pkt, TYPE type, simtime_t time, int forwardTimes)
+void delayQueue::insert(Packet *pkt, TYPE type, simtime_t time, int forwardTimes, MacAddress mac)
 {
     if(priQueue.size()==0)
     {
@@ -22,7 +22,8 @@ void delayQueue::insert(Packet *pkt, TYPE type, simtime_t time, int forwardTimes
         else if (type == GET)
             priQueue.insert(priQueue.begin(), pendPkt(pkt, GET, time, forwardTimes));
     }
-    else{
+    else
+    {
         for (auto iter = priQueue.begin(); iter != priQueue.end(); iter++)
         {
             if (iter->sendtime < time)

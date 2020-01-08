@@ -18,7 +18,7 @@ package inet.node.icnAdhoc;
 module testHost extends IcnNetworkLayerNodeBase
 {
 parameters:       
-    numWlanInterfaces = default(2);
+    numWlanInterfaces = default(3);
     @display("i=device/cellphone");
     wlan[*].mgmt.typename = default("Ieee80211MgmtAdhoc");
     wlan[*].agent.typename = default("");

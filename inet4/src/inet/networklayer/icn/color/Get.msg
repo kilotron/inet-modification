@@ -79,7 +79,7 @@ class Get extends FieldsChunk
     
     PIDS pids;
     
-    bool MustBeFresh;
+    bool MustBeFresh = false;
     simtime_t IntrestLifeTime;
     
     unsigned long Nonce;

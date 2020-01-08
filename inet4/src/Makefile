@@ -506,6 +506,7 @@ OBJS = \
     $O/inet/networklayer/icn/cacheTable/colorChunk.o \
     $O/inet/networklayer/icn/cacheTable/contentBlock.o \
     $O/inet/networklayer/icn/cluster/SimpleCluster.o \
+    $O/inet/networklayer/icn/cluster/TwoNicCluster.o \
     $O/inet/networklayer/icn/color/color.o \
     $O/inet/networklayer/icn/color/ColorFragBuf.o \
     $O/inet/networklayer/icn/delayQueue/delayQueue.o \

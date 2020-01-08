@@ -54,7 +54,7 @@ class ColorRoutingTable : public cSimpleModule
         ColorRoutingTable(){}
         ~ColorRoutingTable();
         //创建一条路由表向
-        void CreateEntry(NID dest, NID nextHop, MacAddress mac, simtime_t ttl, int interFace, double linkQ );
+        void CreateEntry(const NID& dest, const NID& nextHop, const MacAddress& mac, const simtime_t& ttl, int interFace, double linkQ );
 
         //打印路由表
         void printRoutingTable(std::ostream & out);
