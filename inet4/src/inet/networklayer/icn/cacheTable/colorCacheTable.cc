@@ -109,7 +109,7 @@ void ColorCacheTable::printCacheTable(std::ostream &out)
     }
 }
 
-shared_ptr<ContentBlock> ColorCacheTable::getBlock(SID sid)
+shared_ptr<ContentBlock> ColorCacheTable::getBlock(const SID& sid)
 {
     auto result = table.find(sid);
     if (result != table.end())
@@ -118,7 +118,7 @@ shared_ptr<ContentBlock> ColorCacheTable::getBlock(SID sid)
         return nullptr;
 }
 
-shared_ptr<ContentBlock> ColorCacheTable::CreateBlock(SID sid)
+shared_ptr<ContentBlock> ColorCacheTable::CreateBlock(const SID& sid)
 {
     //创建表项
     shared_ptr<ContentBlock> block = std::make_shared<ContentBlock>(sid, mtu);
@@ -130,7 +130,7 @@ shared_ptr<ContentBlock> ColorCacheTable::CreateBlock(SID sid)
     return block;
 }
 
-void ColorCacheTable::CachePacket(SID sid, Packet *packet)
+void ColorCacheTable::CachePacket(const SID &sid, Packet *packet)
 {
 
     auto iter = table.find(sid);
@@ -152,7 +152,7 @@ void ColorCacheTable::CachePacket(SID sid, Packet *packet)
     }
 }
 
-bool ColorCacheTable::hasThisPacket(Packet *packet, SID sid)
+bool ColorCacheTable::hasThisPacket(Packet *packet, const SID &sid)
 {
     auto iter = table.find(sid);
     if (iter == table.end())

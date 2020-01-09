@@ -129,4 +129,19 @@ bool delayQueue::check_and_decrease(Packet *pkt)
     }
 }
 
+void delayQueue::cancelDelayeForwarding(const SID &sid)
+{
+    for (auto iter = priQueue.begin(); iter != priQueue.end(); iter++)
+    {
+        if (iter->type == GET)
+        {
+            const auto &packetHead = iter->pkt->peekAtFront<Get>();
+            if(packetHead->getSid() == sid)
+            {
+                priQueue.erase(iter);
+            }   
+        }
+    }
+}
+
 } // namespace inet

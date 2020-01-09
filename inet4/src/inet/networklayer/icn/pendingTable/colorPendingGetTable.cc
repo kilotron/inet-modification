@@ -64,19 +64,20 @@ void colorPendingGetTable::PrintPIT(std::ostream &out)
 }
 
 const colorPendingGetTable::Entry &colorPendingGetTable::createEntry(const SID &sid, const NID &nid,
-                                                                     const MacAddress &mac, simtime_t t, int type, unsigned long Nonce, bool is_consumer)
+                                                                     const MacAddress &mac, simtime_t t, int type, unsigned long Nonce, bool served, bool is_consumer)
 {
     Enter_Method("createEntry()");
     //首先根据信息生成pit表项
-    PITentry nt(nid, t, mac, type, Nonce, is_consumer);
+    PITentry nt(nid, t, mac, type, Nonce, served, is_consumer);
 
     //检查这条pit表项是否已经存在（收到重复的get包），如果已经存在直接返回已存在的表项
     auto range = table->equal_range(sid);
     for (auto iter = range.first; iter != range.second; iter++)
     {
-        //用请求者的MAC（或者NID）和Nonce来判断
-        if (nt.getMac() == iter->second.getMac() && Nonce == iter->second.getNonce())
+        //每次插入前检查相同SID对应的条目是否已被服务过（数据包回传），是的情况下删除服务过的条目
+        if (Nonce == iter->second.getNonce())
             return *iter;
+  
     }
 
     //在pit table中插入表项
@@ -143,9 +144,18 @@ bool colorPendingGetTable::servedForThisGet(const SID& sid, unsigned long Nonce)
     auto range = table->equal_range(sid);
     for (auto iter = range.first; iter != range.second; iter++)
     {
-        if(iter->second.getNonce() == Nonce)
+        if(iter->second.getNonce() == Nonce && iter->second.getServed())
             return true;
     }
     return false;
+}
+
+void colorPendingGetTable::SetServed(const SID &sid)
+{
+    auto range = table->equal_range(sid);
+    for (auto iter = range.first; iter != range.second; iter++)
+    {
+            iter->second.setServed(true);
+    }
 }
 } // namespace inet

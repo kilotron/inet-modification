@@ -34,13 +34,14 @@ class PITentry extends cObject
 
     unsigned long Nonce;
 
+    bool served;
+
     //判断是否是GET包的发出者，即Data包是否已经返回到请求发起者
     bool isConsumer;
 
-    
 }
 
 cplusplus(PITentry) {{
   public:
-    PITentry(NID nid, simtime_t t, MacAddress mac, int type=5, unsigned long Nonce = 0, bool isconsumer=false): cObject(), nid(nid), TTL(t), mac(mac), type(type), Nonce(Nonce),  isConsumer_(isconsumer){}    
+    PITentry(NID nid, simtime_t t, MacAddress mac, int type=5, unsigned long Nonce = 0, bool served = false, bool isconsumer=false): cObject(), nid(nid), TTL(t), mac(mac), type(type), Nonce(Nonce), served(served), isConsumer_(isconsumer){}    
 }}

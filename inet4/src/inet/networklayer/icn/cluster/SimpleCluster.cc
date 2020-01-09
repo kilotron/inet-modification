@@ -18,6 +18,7 @@
 #include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/networklayer/icn/cluster/SimpleClusterPacket_m.h"
 #include "inet/common/bloomfilter/hash/MurmurHash3.h"
+#include "inet/common/packet/chunk/Chunk.h"
 
 
 #include <fstream>
@@ -162,7 +163,7 @@ void SimpleCluster::handleMessageWhenUp(cMessage *msg)
     else
     {
         Packet *packet = check_and_cast<Packet *>(msg);
-        auto head = packet->peekAtFront<Chunk>(B(18), -1);
+        auto head = packet->peekAtFront<Chunk>(B(18), Chunk::PF_ALLOW_ALL);
         auto pointer = head.get();
 
         //转换为raw pointer

@@ -270,7 +270,7 @@ void colorCluster::handleMessageWhenUp(cMessage *msg)
     //自消息，定时器
     else if (msg->isSelfMessage())
     {
-        static long long requestIndex = 50;
+        static long long requestIndex = 0;
         if (msg == testGet)
         {
             if (testModule.multiConsumer == 0)
@@ -296,7 +296,7 @@ void colorCluster::handleMessageWhenUp(cMessage *msg)
         }
         else if (msg == testData)
         {
-            for (long long i = 50; i < 20000; i++)
+            for (long long i = 0; i < 20000; i++)
             {
                 testProvide({Pindex, i}, B(2000));
             }
@@ -356,7 +356,7 @@ void colorCluster::handleIncomingDatagram(Packet *packet)
 void colorCluster::handleDataPacket(Packet *packet)
 {
     //取出头部
-    const auto head = packet->peekAtFront<Data>(B(78), 0);
+    const auto head = packet->peekAtFront<Data>();
     const SID &headSid = head->getSid();
     auto ie = getSourceInterface(packet);
 
@@ -371,6 +371,7 @@ void colorCluster::handleDataPacket(Packet *packet)
     // {
     // }
 
+    //检查是否是请求者
     if (pit->isConsumer(headSid))
     {
         //调试信息
@@ -428,7 +429,7 @@ void colorCluster::handleDataPacket(Packet *packet)
     //查看PIT表是否有此SID记录
     if (pit->hasThisSid(headSid))
     {
-        std::cout << "data received, PIT hit, index: " << nodeIndex << "at " << simTime() << endl;
+        std::cout << "data received, PIT hit, index: " << nodeIndex << " at " << simTime() << endl;
 
         //转发原则与NDN相同，get包从哪个端口来，data包就往哪个端口回
         //指示data包应该发往那个端口，hz5 == true发往5GHz端口，hz24 == true发往2.4GHz端口
@@ -512,17 +513,19 @@ void colorCluster::handleDataPacket(Packet *packet)
             {
                 //数据包发往5GHz端口
                 //                std::cout << "send back" << endl;
-                sendDatagramToOutput(newPacket->dup(), 5);
                 delay_queue5.insert(newPacket->dup(), DATA, simTime(), 5);
             }
 
             //在一个get包就对应一个data包的情况中，缓存转发后移除PIT条目
             pit->RemoveEntry(headSid);
+//            delay_queue24.cancelDelayeForwarding(headSid);
         }
     }
     else
     {
         //PIT中没有对应条目时不做任何操作
+        if(isHead())
+            ;
     }
 
     //删除两个数据包，避免内存泄露
@@ -532,11 +535,6 @@ void colorCluster::handleDataPacket(Packet *packet)
 
 void colorCluster::handleGetPacket(Packet *packet)
 {
-
-    // if (nodeIndex == Pindex)
-    // {
-    //     testModule.GetRecvNum++;
-    // }
     //根据GET包头部内容进行相应操作
     packet->trim();
 
@@ -666,8 +664,9 @@ void colorCluster::handleGetPacket(Packet *packet)
             {
                 if (!pit->servedForThisGet(headSID, head->getNonce()))
                     testModule.GetRecvNum++;
-                pit->createEntry(headSID, head->getSource(), head->getMAC(), simtime_t(0.5), nic, head->getNonce());
-                
+                pit->SetServed(headSID);
+                pit->createEntry(headSID, head->getSource(), head->getMAC(), simtime_t(1), nic, head->getNonce());
+
                 testModule.DataSendNum++;
                 auto newP = P->dup();
                 //                std::cout << "sent data packet" << endl;
@@ -694,7 +693,7 @@ void colorCluster::handleGetPacket(Packet *packet)
 }
 
 //下面函数只是对几个表操作的简单封装
-shared_ptr<Croute> colorCluster::findRoute(NID nid)
+shared_ptr<Croute> colorCluster::findRoute(const NID& nid)
 {
     return rt->findRoute(nid);
 }
@@ -709,22 +708,22 @@ void colorCluster::createPIT(const SID &sid, const NID &nid, const MacAddress &m
     pit->createEntry(sid, nid, mac, ttl);
 }
 
-colorPendingGetTable::EntrysRange colorCluster::findPITentry(SID sid)
+colorPendingGetTable::EntrysRange colorCluster::findPITentry(const SID& sid)
 {
     return pit->findPITentry(sid);
 }
 
-void colorCluster::CachePacket(SID sid, Packet *packet)
+void colorCluster::CachePacket(const SID &sid, Packet *packet)
 {
     ct->CachePacket(sid, packet);
 }
 
-shared_ptr<ContentBlock> colorCluster::findContentInCache(SID sid)
+shared_ptr<ContentBlock> colorCluster::findContentInCache(const SID &sid)
 {
     return ct->getBlock(sid);
 }
 
-const Ptr<inet::Get> colorCluster::GetHead(SID sid)
+const Ptr<inet::Get> colorCluster::GetHead(const SID &sid)
 {
     auto route = rt->findRoute(sid.getNidHead());
 
@@ -748,7 +747,7 @@ const Ptr<inet::Get> colorCluster::GetHead(SID sid)
     return get;
 }
 
-const Ptr<inet::Data> colorCluster::DataHead(SID sid)
+const Ptr<inet::Data> colorCluster::DataHead(const SID &sid)
 {
     const auto &data = makeShared<Data>();
     data->setVersion(0);
@@ -765,7 +764,7 @@ const Ptr<inet::Data> colorCluster::DataHead(SID sid)
     return data;
 }
 
-void colorCluster::encapsulate(Packet *packet, int type, SID sid)
+void colorCluster::encapsulate(Packet *packet, int type, const SID& sid)
 {
     //封装数据包，加上color的头部, 0是get包，1是data包
     if (type == 0)
@@ -797,7 +796,7 @@ void colorCluster::encapsulate(Packet *packet, int type, int portSelf, int portD
     //重载，添加端口号
 }
 
-void colorCluster::decapsulate(Packet *packet, SID sid)
+void colorCluster::decapsulate(Packet *packet,  const SID& sid)
 {
     //解封装数据包record
     testModule.DataRecvNum++;
@@ -814,7 +813,7 @@ void colorCluster::decapsulate(Packet *packet, SID sid)
     delete packet;
 }
 
-void colorCluster::sendDatagramToOutput(Packet *packet, int nic, MacAddress mac)
+void colorCluster::sendDatagramToOutput(Packet *packet, int nic, const MacAddress &mac)
 {
     //对数据包添加tag后发送到下层
     ASSERT((nic == 24) || (nic == 5));
@@ -874,7 +873,7 @@ const InterfaceEntry *colorCluster::getSourceInterface(Packet *packet)
     return tag != nullptr ? ift->getInterfaceById(tag->getInterfaceId()) : nullptr;
 }
 
-void colorCluster::FragmentAndStore(Packet *packet, SID sid)
+void colorCluster::FragmentAndStore(Packet *packet, const SID &sid)
 {
     const auto &data = makeShared<Data>();
     int headerLength = data->getHeaderLength().get();
@@ -934,7 +933,7 @@ void colorCluster::FragmentAndSend(Packet *packet)
 {
 }
 
-void colorCluster::testSend(SID sid)
+void colorCluster::testSend(const SID &sid)
 {
     Packet *packet = new Packet("getPacket");
 
@@ -942,16 +941,16 @@ void colorCluster::testSend(SID sid)
     {
         encapsulate(packet, 0, sid);
         auto mac = ie24->getMacAddress();
-        pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, true);
+        pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
         sendDatagramToOutput(packet->dup(), 24);
-        pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, true);
+        pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
         sendDatagramToOutput(packet->dup(), 5);
     }
     else
     {
         encapsulate(packet, 0, sid);
         auto mac = ie5->getMacAddress();
-        auto entry = pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, true);
+        auto entry = pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
 
         sendDatagramToOutput(packet->dup(), 5);
     }
@@ -966,7 +965,7 @@ void colorCluster::testSend(SID sid)
     delete packet;
 }
 
-void colorCluster::testProvide(SID sid, B dataSize)
+void colorCluster::testProvide(const SID &sid, const B &dataSize)
 {
     auto playload = makeShared<AppData>();
     playload->setChunkLength(dataSize);

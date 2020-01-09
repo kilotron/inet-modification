@@ -13,94 +13,92 @@
 #include "inet/common/packet/Packet.h"
 #include "inet/networklayer/icn/field/SID.h"
 
-#include  <iostream>
+#include <iostream>
 
-#include<map>
+#include <map>
 #include <unordered_map>
-#include<memory>
+#include <memory>
 #include "contentBlock.h"
 /*
 缓存表采用三级目录结构，每个SID对应一个block，每个block中有多个chunk，chunk用链表的形式组织起来，每个chunk中可以存放多个packet
 这样对于有序的数据流可以提供局部完整的缓存，每个节点中对应的缓存可能是整体不完整，但是每个chunk中是完整的，在AD-HOC网络中可以
 利用多路径回传提高效率和冗余性，对于一个SID对应一个DATA包的情况可以退化到一个block中单个chunk的情况
  */
-namespace inet{
+namespace inet
+{
 
 class ContentBlock;
 using std::shared_ptr;
-class INET_API ColorCacheTable: public cSimpleModule,protected cListener, public ILifecycle
+class INET_API ColorCacheTable : public cSimpleModule, protected cListener, public ILifecycle
 {
-    private:
-        //缓存表的数据核心，一个SID对应一个block
-        using CacheTable = std::map<SID, shared_ptr<ContentBlock>>;
-        using timerTable = std::map<cMessage *, SID>;
+private:
+    //缓存表的数据核心，一个SID对应一个block
+    using CacheTable = std::map<SID, shared_ptr<ContentBlock>>;
+    using timerTable = std::map<cMessage *, SID>;
 
-        CacheTable table;
+    CacheTable table;
 
-        //缓存表的父节点指针
-        cModule* owner;
+    //缓存表的父节点指针
+    cModule *owner;
 
-        //为每个缓存条目维护一个计时器，计时器记录生存时间，生存时间为0时删除缓存，也可以为之后的缓存替换策略提供支持
-        
-        timerTable* timers;
+    //为每个缓存条目维护一个计时器，计时器记录生存时间，生存时间为0时删除缓存，也可以为之后的缓存替换策略提供支持
 
-        //网络层的MTU
-        unsigned mtu;
+    timerTable *timers;
 
-        //节点初始化是否完成
-        bool isNodeUp;
+    //网络层的MTU
+    unsigned mtu;
 
-        //缓存大小
-        B size;
+    //节点初始化是否完成
+    bool isNodeUp;
 
-        //剩余缓存大小
-        B remain;
-        
-    public:
-        ColorCacheTable(){};
-        ~ColorCacheTable(){};
+    //缓存大小
+    B size;
 
-        //原则上缓存表禁止进行拷贝和赋值
-        ColorCacheTable(const ColorCacheTable&) = delete;
-        ColorCacheTable& operator = (const ColorCacheTable) = delete;
+    //剩余缓存大小
+    B remain;
 
-        void setOwner(cModule* own){owner = own;};
+public:
+    ColorCacheTable(){};
+    ~ColorCacheTable(){};
 
-        //打印缓存表信息
-        void printCacheTable(std::ostream & out);
+    //原则上缓存表禁止进行拷贝和赋值
+    ColorCacheTable(const ColorCacheTable &) = delete;
+    ColorCacheTable &operator=(const ColorCacheTable) = delete;
 
-        //根据SID返回对应的block
-        shared_ptr<ContentBlock> getBlock(SID sid);
-        
-        //创建block，并相应的创建计时器
-        shared_ptr<ContentBlock> CreateBlock(SID sid);
+    void setOwner(cModule *own) { owner = own; };
 
-        //存入packet
-        void CachePacket(SID sid,Packet* packet);
+    //打印缓存表信息
+    void printCacheTable(std::ostream &out);
 
-        //移除缓存
-        void RemoveBlock(shared_ptr<ContentBlock> block);
+    //根据SID返回对应的block
+    shared_ptr<ContentBlock> getBlock(const SID &sid);
 
-        //检查此数据包是否已经在缓存中 
-        bool hasThisPacket(Packet *packet,SID sid);
+    //创建block，并相应的创建计时器
+    shared_ptr<ContentBlock> CreateBlock(const SID &sid);
 
-    protected:
-        void finish() override;
-        virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-        virtual void initialize(int stage) override;
+    //存入packet
+    void CachePacket(const SID &sid, Packet *packet);
 
-        virtual cModule *getHostModule(){return owner;}
+    //移除缓存
+    void RemoveBlock(shared_ptr<ContentBlock> block);
 
-        virtual void handleMessage(cMessage *) override;
-        
-        virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
+    //检查此数据包是否已经在缓存中
+    bool hasThisPacket(Packet *packet, const SID &sid);
 
-        virtual bool handleOperationStage(LifecycleOperation *operation, IDoneCallback *doneCallback) override;
+protected:
+    void finish() override;
+    virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+    virtual void initialize(int stage) override;
+
+    virtual cModule *getHostModule() { return owner; }
+
+    virtual void handleMessage(cMessage *) override;
+
+    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
+
+    virtual bool handleOperationStage(LifecycleOperation *operation, IDoneCallback *doneCallback) override;
 };
 
-
-}
-
-
+} // namespace inet
 
 #endif /* INET_NETWORKLAYER_ICN_CACHETABLE_COLORCACHETABLE_H_ */

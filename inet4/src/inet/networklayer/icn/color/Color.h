@@ -186,13 +186,13 @@ namespace inet{
             void handleDataPacket(Packet* packet);
 
             //为GET包寻找路由
-            shared_ptr<Croute> findRoute(NID sid);
+            shared_ptr<Croute> findRoute(const NID &sid);
 
             //对收到的DATA包进行缓存
-            void CachePacket(SID sid, Packet* packet);
+            void CachePacket(const SID &sid, Packet* packet);
             
             //在缓存中寻找内容
-            shared_ptr<ContentBlock> findContentInCache(SID sid);
+            shared_ptr<ContentBlock> findContentInCache(const SID &sid);
 
             //创建路由条目
             void createRoute(const NID &dest, const NID &nextHop, const MacAddress &mac, const simtime_t &ttl, int interFace, double linkQ);
@@ -201,20 +201,20 @@ namespace inet{
             void createPIT(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t);
 
             //在PIT表中找到上一跳的信息
-            colorPendingGetTable::EntrysRange findPITentry(SID sid);
+            colorPendingGetTable::EntrysRange findPITentry(const SID &sid);
 
             //对上层来的包封装, type==0代表GET包， type==1代表DATA包
-            void encapsulate(Packet *packet, int type, SID sid);
+            void encapsulate(Packet *packet, int type, const SID& sid);
 
             void encapsulate(Packet *packet, int type, int portSelf, int portDest);
       
             //对下层来的包解封装
-            void decapsulate(Packet *packet, SID sid);
+            void decapsulate(Packet *packet, const SID& sid);
 
 
 
             //将数据包通过指定端口发送
-            void sendDatagramToOutput(Packet *packet, int nic, MacAddress mac = MacAddress::BROADCAST_ADDRESS);
+            void sendDatagramToOutput(Packet *packet, int nic, const MacAddress& mac = MacAddress::BROADCAST_ADDRESS);
 
             //将数据包发往下一跳，通过nid指定下一跳
             // void sendOutToNode(Packet* pakcet, NID nid);
@@ -232,10 +232,10 @@ namespace inet{
             const InterfaceEntry *getSourceInterface(Packet *packet);
 
             //节点作为consumer测试发包，转发路由机制，直接在网络层产生GET包发送
-            void testSend(SID sid);
+            void testSend(const SID &sid);
 
             //节点作为provider创建内容包，测试中一个GET包对应一个DATA包
-            void testProvide(SID sid, B dataSize);
+            void testProvide(const SID &sid, const B& dataSize);
 
             //通过T控制发送get包的时间间隔， mode选择时间间隔的具体分布形式，0均匀分布，1指数分布
             void scheduleGet(simtime_t t, SendMode mode);
@@ -247,13 +247,13 @@ namespace inet{
             void FragmentAndSend(Packet* packet);
 
             //分片存储
-            void FragmentAndStore(Packet* packet, SID sid);
+            void FragmentAndStore(Packet* packet, const SID& sid);
 
             //产生GET包头
-            const Ptr<inet::Get> GetHead(SID sid);
+            const Ptr<inet::Get> GetHead(const SID &sid);
 
             //产生Data包头
-            const Ptr<inet::Data> DataHead(SID sid);
+            const Ptr<inet::Data> DataHead(const SID &sid);
 
             //判断是否是簇头
             bool isHead();

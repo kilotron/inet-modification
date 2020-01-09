@@ -68,7 +68,7 @@ public:
     //检查延迟队列中是否有此包，并且计数器递减
     bool check_and_decrease(Packet *pkt);
 
- 
+    void cancelDelayeForwarding(const SID& sid);
 };
 
 } // namespace inet
