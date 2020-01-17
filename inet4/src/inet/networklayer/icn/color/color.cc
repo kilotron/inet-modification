@@ -422,7 +422,10 @@ void colorCluster::handleDataPacket(Packet *packet)
         else
         {
             if (isHead())
+            {
                 createRoute(head->getSid().getNidHead(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
+                createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
+            }    
         }
     }
 
@@ -564,7 +567,10 @@ void colorCluster::handleGetPacket(Packet *packet)
         std::cout << endl;
       
         if (ie == ie24)
+        {
             createRoute(head->getSource(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
+            createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
+        }
         else
             createRoute(head->getSource(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 5, head->getTimeToLive());
     }

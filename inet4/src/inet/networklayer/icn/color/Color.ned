@@ -31,8 +31,8 @@ simple colorCluster like icn
   
         int multi;
 
-        double getDelayTime @unit(s) = default(0.001s);
-        double dataDelayTime @unit(s) = default(0.001s);
+        double getDelayTime = default(0.001);
+        double dataDelayTime  = default(0.001);
         int TC = default(2);
 
         bool flood = default(true);

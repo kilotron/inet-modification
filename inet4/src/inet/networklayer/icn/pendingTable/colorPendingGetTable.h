@@ -15,7 +15,7 @@
 #include <map>
 #include <iostream>
 #include "PITentry_m.h"
-
+#include "../routingTable/colorRoutingTable.h"
 
 namespace inet{
 
@@ -33,8 +33,7 @@ class INET_API colorPendingGetTable: public cSimpleModule
         //为每条记录分配一个自消息用作定时器
         timerTable* timers;
 
-        colorPendingGetTable(const colorPendingGetTable& pit){};
-        colorPendingGetTable& operator = (const colorPendingGetTable pit);
+        ColorRoutingTable *rt = nullptr;
 
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -44,6 +43,9 @@ class INET_API colorPendingGetTable: public cSimpleModule
         void finish() override;
 
     public:
+        colorPendingGetTable(const colorPendingGetTable &pit) = delete;
+        colorPendingGetTable &operator=(const colorPendingGetTable &pit) = delete;
+
         colorPendingGetTable():cSimpleModule(){};
         //一个GET包到来时进行记录，包括上一跳的nid，一个PIT条目的生存时间
         //PIT中的一条记录

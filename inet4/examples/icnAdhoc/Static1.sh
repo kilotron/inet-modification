@@ -1,0 +1,4 @@
+screen -d -m -S Static10 opp_run -r 0,7 -m -u Cmdenv -c Static1 -n ../../src:..:../../tutorials:../../showcases --image-path=../../images -l ../../src/INET --record-eventlog=false --scalar-recording=false --vector-recording=false omnetpp.ini
+screen -d -m -S Static11 opp_run -r 1,6 -m -u Cmdenv -c Static1 -n ../../src:..:../../tutorials:../../showcases --image-path=../../images -l ../../src/INET --record-eventlog=false --scalar-recording=false --vector-recording=false omnetpp.ini
+screen -d -m -S Static12 opp_run -r 2,5 -m -u Cmdenv -c Static1 -n ../../src:..:../../tutorials:../../showcases --image-path=../../images -l ../../src/INET --record-eventlog=false --scalar-recording=false --vector-recording=false omnetpp.ini
+screen -d -m -S Static13 opp_run -r 3,4 -m -u Cmdenv -c Static1 -n ../../src:..:../../tutorials:../../showcases --image-path=../../images -l ../../src/INET --record-eventlog=false --scalar-recording=false --vector-recording=false omnetpp.ini

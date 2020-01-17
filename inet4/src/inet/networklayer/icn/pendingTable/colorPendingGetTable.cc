@@ -36,6 +36,13 @@ void colorPendingGetTable::initialize(int stage)
         table = new std::multimap<SID, PITentry>;
         timers = new timerTable;
         sids = new std::map<SID, cMessage *>;
+
+        //得到指向路由表的指针
+        auto name = getParentModule()->getFullPath();
+        name = name + ".routingTable";
+        auto path = name.c_str();
+        auto mod = this->getModuleByPath(path);
+        rt = dynamic_cast<ColorRoutingTable *>(mod);
     }
 }
 
@@ -43,6 +50,7 @@ void colorPendingGetTable::handleMessage(cMessage *msg)
 {
     //定时器触发，删除对应的pit 表项
     auto sid = timers->find(msg)->second;
+    rt->removeEntry(sid.getNidHead());
     RemoveEntry(sid);
     //删除定时器消息本身a
     cancelEvent(msg);
