@@ -956,7 +956,7 @@ void colorCluster::testSend(const SID &sid)
     {
         encapsulate(packet, 0, sid);
         auto mac = ie5->getMacAddress();
-        auto entry = pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
+        pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
 
         sendDatagramToOutput(packet->dup(), 5);
     }

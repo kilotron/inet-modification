@@ -111,6 +111,38 @@
                         					
                     </folderInfo>
                     					
+                    <folderInfo id="org.omnetpp.cdt.gnu.config.debug.229043752.575621387" name="/" resourcePath="src">
+                        						
+                        <toolChain id="org.omnetpp.cdt.gnu.toolchain.debug.2144339820" name="GCC for OMNeT++" superClass="org.omnetpp.cdt.gnu.toolchain.debug" unusedChildren="">
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.archiver.base.1394521554" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1843986175"/>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1596483222" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1544720771">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.566544462" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+                                							
+                            </tool>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.c.compiler.base.637365787" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.892294620">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1690592958" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+                                							
+                            </tool>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.c.linker.base.2120124328" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1169210834"/>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1952042296" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1065738287"/>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.assembler.base.1788979163" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.420284418">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.assembler.input.132797056" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+                                							
+                            </tool>
+                            						
+                        </toolChain>
+                        					
+                    </folderInfo>
+                    					
                     <sourceEntries>
                         						
                         <entry excluding="inet/linklayer/ext|inet/transportlayer/tcp_lwip|inet/transportlayer/tcp_nsc|inet/emulation|transport/tcp_lwip|inet/applications/voipstream|transport/tcp_nsc|inet/routing/extras" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
@@ -218,6 +250,38 @@
                                 </option>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.assembler.input.1865888372" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+                                							
+                            </tool>
+                            						
+                        </toolChain>
+                        					
+                    </folderInfo>
+                    					
+                    <folderInfo id="org.omnetpp.cdt.gnu.config.release.1746235823.774352607" name="/" resourcePath="src">
+                        						
+                        <toolChain id="org.omnetpp.cdt.gnu.toolchain.release.1704516696" name="GCC for OMNeT++" superClass="org.omnetpp.cdt.gnu.toolchain.release" unusedChildren="">
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.archiver.base.1384024455" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1643927787"/>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1423063141" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1039888888">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.50675702" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+                                							
+                            </tool>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1028511670" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.419916163">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.408763148" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+                                							
+                            </tool>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.c.linker.base.727627853" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1190158571"/>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.503198276" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.893445214"/>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.assembler.base.285749400" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.960891752">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.assembler.input.300137342" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
                                 							
                             </tool>
                             						

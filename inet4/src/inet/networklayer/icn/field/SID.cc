@@ -20,6 +20,12 @@ std::string SID::str() const
 
 }
 
+SID::SID(const SID& other):nidHeader(other.nidHeader), sidTail(other.sidTail),test(other.test)
+{
+    
+    
+}
+
 bool operator<(const SID &lhs, const SID &rhs)
 {
     // if (lhs.nidHeader == rhs.nidHeader)

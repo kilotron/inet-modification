@@ -839,6 +839,8 @@ OBJS = \
     $O/inet/power/storage/SimpleEpEnergyStorage.o \
     $O/inet/routing/aodv/Aodv.o \
     $O/inet/routing/aodv/AodvRouteData.o \
+    $O/inet/routing/aodv_cluster/Aodv_cluster.o \
+    $O/inet/routing/aodv_cluster/AodvRouteData.o \
     $O/inet/routing/bgpv4/Bgp.o \
     $O/inet/routing/bgpv4/BgpConfigReader.o \
     $O/inet/routing/bgpv4/BgpFsm.o \

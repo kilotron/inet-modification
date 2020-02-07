@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/hiro/omnetpp-5.5.1/include/"
+                "/home/hiro/omnetpp-5.6/include/"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang"

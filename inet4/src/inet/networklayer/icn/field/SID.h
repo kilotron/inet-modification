@@ -22,8 +22,10 @@ class SID
     private:
         NID nidHeader;
         Name sidTail;
-        long long test;
+        
     public:
+        long long test;
+        
         //默认构造函数
         SID() : nidHeader() { sidTail.fill(0); }
 
@@ -32,6 +34,8 @@ class SID
         SID(const T &param, const C &content);
 
         SID(int nid, long long Lsid);
+
+        SID(const SID &other);
 
         // template <>
         // SID::SID(const int &index, const int &content);
