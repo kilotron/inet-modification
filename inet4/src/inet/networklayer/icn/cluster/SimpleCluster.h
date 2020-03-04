@@ -35,7 +35,8 @@ class INET_API SimpleCluster : public OperationalBase, public ICluster
         INI,
         PREHEAD,
         HEAD,
-        MEMBER
+        MEMBER,
+        GATEWAY
     };
 
     static BloomFilter<std::array<Word, 4>> nidFilter;
@@ -138,6 +139,9 @@ public:
 
     bool isPreHead();
 
+    //is gateway node?
+    bool isGateWay() override;
+
     //选择接口
     InterfaceEntry *chooseInterface(const char *interfaceName);
 
@@ -176,6 +180,8 @@ public:
 
     //退化成簇成员
     void becomeMember();
+
+    void becomeGateway();
 
     //记录输出分簇信息到文件
     void recorder(std::string filename);

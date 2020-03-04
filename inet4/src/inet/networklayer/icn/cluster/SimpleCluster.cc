@@ -43,13 +43,14 @@ void SimpleCluster::initialize(int stage)
     if (stage == INITSTAGE_LOCAL)
     {
 
-        int ID = getParentModule()->getParentModule()->getId();
+        int ID = getContainingNode(this)->getId();
         std::array<uint64_t, 2> hashValue;
         MurmurHash3_x64_128(&ID, sizeof(int), 0, hashValue.data());
 
         neighbors = new std::set<int>;
         nodeIndex = getContainingNode(this)->getIndex();
         nid.setNID(hashValue);
+        nid.test = nodeIndex;
 
         nidFilter.Insert(nid.getNID());
 
@@ -94,7 +95,7 @@ void SimpleCluster::initialize(int stage)
 InterfaceEntry *SimpleCluster::chooseInterface(const char *interfaceName)
 {
     //得到指向转发表的指针
-    auto name = getParentModule()->getParentModule()->getFullPath();
+    auto name = getContainingNode(this)->getFullPath();
     name = name + ".interfaceTable";
     auto path = name.c_str();
     cModule *mod = this->getModuleByPath(path);
@@ -174,7 +175,7 @@ void SimpleCluster::handleMessageWhenUp(cMessage *msg)
         }
         else
         {
-                processAuthPacket(packet);
+            processAuthPacket(packet);
         }
 
     }
@@ -183,7 +184,7 @@ void SimpleCluster::handleMessageWhenUp(cMessage *msg)
 void SimpleCluster::handleStartOperation(LifecycleOperation *operation)
 {
     ASSERT(clusterTable.table.empty());
-    ie5 = chooseInterface("wlan2");
+    ie5 = chooseInterface("wlan1");
 
     std::ofstream outfile;
     if (getParentModule()->getParentModule()->getIndex() == 0)
@@ -262,13 +263,18 @@ void SimpleCluster::processClusterPacket(Packet *packet)
             cancelEvent(collect);
             // std::cout << nodeIndex << "become member" << endl;
         }
-
         else if (state == MEMBER)
         {
-
+            if(clusterHeads.size()>1)
+                becomeGateway();
             scheduleWait();
         }
-            
+        else if (state == GATEWAY)
+        {
+            if(clusterHeads.size() == 1)
+                becomeMember();
+            scheduleWait();
+        }           
         else if(state == PREHEAD)
         {
             
@@ -279,9 +285,13 @@ void SimpleCluster::processClusterPacket(Packet *packet)
             }
                 
         }
-        else
+        else if(state == HEAD)
         {
             
+        }
+        else
+        {
+            throw cRuntimeError("unknown node state");
         }
         
         ClusterEntry entry(head->getNid(), head->getMAC(), simTime());
@@ -363,6 +373,7 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
         }
         else
         {
+//            becomeMember();
             scheduleWait();        
         }
             
@@ -382,6 +393,7 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
         } 
         else
         {
+            std::cout<< simTime()<<endl;
             becomeHead();
         }        
     }
@@ -396,7 +408,7 @@ void SimpleCluster::handleSelfMessage(cMessage *msg)
     }
     else if (msg == neighborsClear)
     {
-//        clusterHeads.clear();
+        clusterHeads.clear();
         scheduleAt(simTime() + nbClearInterval, neighborsClear);
     }
     else if(msg == prehead)
@@ -572,13 +584,28 @@ void SimpleCluster::becomeHead()
     scheduleHello();
 }
 
+void SimpleCluster::becomeGateway()
+{
+    cancelEvent(neighborsClear);
+    scheduleAt(simTime() + nbClearInterval, neighborsClear);
+    cancelEvent(hello);
+    scheduleWait();
+    getParentModule()->getParentModule()->bubble("I'm Gateway");
+    state = GATEWAY;
+}
+
 void SimpleCluster::recorder(std::string filename)
 {
     std::ofstream outfile;
     outfile.open(filename, std::ofstream::app);
     int index = getParentModule()->getParentModule()->getIndex();
 
-    outfile << (state == HEAD);
+    if(state == HEAD)
+        outfile << 1;
+    else if(state == GATEWAY)
+        outfile << 2;
+    else
+        outfile << 0;
     outfile.close();
 
     outfile.open(path+"position.txt", std::ofstream::app);
@@ -624,5 +651,12 @@ bool SimpleCluster::isPreHead()
 {
     return state == PREHEAD;
 }
+
+bool SimpleCluster::isGateWay()
+{
+    return state == GATEWAY;
+}
+
+
 
 } // namespace inet

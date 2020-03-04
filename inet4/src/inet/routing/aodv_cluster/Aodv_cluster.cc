@@ -44,6 +44,13 @@ void Aodv_cluster::initialize(int stage)
     RoutingProtocolBase::initialize(stage);
 
     if (stage == INITSTAGE_LOCAL) {
+        //得到指向分簇模块的指针
+        auto name = getParentModule()->getFullPath();
+        name = name + ".cluster";
+        auto path = name.c_str();
+        auto mod = this->getModuleByPath(path);
+        clusterModule = dynamic_cast<ICluster *>(mod);
+
         lastBroadcastTime = SIMTIME_ZERO;
         rebootTime = SIMTIME_ZERO;
         rreqId = sequenceNum = 0;
@@ -239,6 +246,11 @@ L3Address Aodv_cluster::getSelfIPAddress() const
     return routingTable->getRouterIdAsGeneric();
 }
 
+bool Aodv_cluster::isSelfAdress(const L3Address& adress)
+{
+    return interfaceTable->isLocalAddress(adress);
+}
+
 void Aodv_cluster::delayDatagram(Packet *datagram)
 {
     const auto& networkHeader = getNetworkProtocolHeader(datagram);
@@ -259,7 +271,7 @@ void Aodv_cluster::sendRREQ(const Ptr<Rreq>& rreq, const L3Address& destAddr, un
     // again with the TTL incremented by TTL_INCREMENT.  This continues
     // until the TTL set in the RREQ reaches TTL_THRESHOLD, beyond which a
     // TTL = NET_DIAMETER is used for each attempt.
-    std::cout<<destAddr<<endl;
+  
     if (rreqCount >= rreqRatelimit) {
         EV_WARN << "A node should not originate more than RREQ_RATELIMIT RREQ messages per second. Canceling sending RREQ" << endl;
         return;
@@ -322,6 +334,8 @@ void Aodv_cluster::sendRREP(const Ptr<Rrep>& rrep, const L3Address& destAddr, un
 {
     EV_INFO << "Sending Route Reply to " << destAddr << endl;
 
+    std::cout << "Sending Route Reply to " << destAddr << endl;
+
     // When any node transmits a RREP, the precursor list for the
     // corresponding destination node is updated by adding to it
     // the next hop node to which the RREP is forwarded.
@@ -361,6 +375,10 @@ const Ptr<Rreq> Aodv_cluster::createRREQ(const L3Address& destAddr)
     IRoute *lastKnownRoute = routingTable->findBestMatchingRoute(destAddr);
 
     rreqPacket->setPacketType(RREQ);
+    
+    if(clusterModule->isHead() || clusterModule->isPreHead())
+        rreqPacket->setCluster(true);
+    else rreqPacket->setCluster(false);
 
     // The Originator Sequence Number in the RREQ message is the
     // node's own sequence number, which is incremented prior to
@@ -433,7 +451,7 @@ const Ptr<Rrep> Aodv_cluster::createRREP(const Ptr<Rreq>& rreq, IRoute *destRout
     // if it is an intermediate node with an fresh enough route to the destination
     // (see section 6.6.2).
 
-    if (rreq->getDestAddr() == getSelfIPAddress()) {    // node is itself the requested destination
+    if (isSelfAdress(rreq->getDestAddr())) {    // node is itself the requested destination
         // If the generating node is the destination itself, it MUST increment
         // its own sequence number by one if the sequence number in the RREQ
         // packet is equal to that incremented value.
@@ -625,7 +643,7 @@ void Aodv_cluster::handleRREP(const Ptr<Rrep>& rrep, const L3Address& sourceAddr
     // information in that route table entry.
 
     IRoute *originatorRoute = routingTable->findBestMatchingRoute(rrep->getOriginatorAddr());
-    if (getSelfIPAddress() != rrep->getOriginatorAddr()) {
+    if (!isSelfAdress(rrep->getOriginatorAddr())) {
         // If a node forwards a RREP over a link that is likely to have errors or
         // be unidirectional, the node SHOULD set the 'A' flag to require that the
         // recipient of the RREP acknowledge receipt of the RREP by sending a RREP-ACK
@@ -863,8 +881,12 @@ void Aodv_cluster::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr
     IRoute *destRoute = routingTable->findBestMatchingRoute(rreq->getDestAddr());
     AodvRouteData_cluster *destRouteData = destRoute ? dynamic_cast<AodvRouteData_cluster *>(destRoute->getProtocolData()) : nullptr;
 
+    
+//    std::cout <<"nodeIndex: "<<getContainingNode(this)->getIndex() <<endl;
+//    std::cout <<"dest: "<< rreq->getDestAddr() << endl;
+//    std::cout << "self: " << getSelfIPAddress() << endl;
     // check (i)
-    if (rreq->getDestAddr() == getSelfIPAddress()) {
+    if (isSelfAdress(rreq->getDestAddr())) {
         EV_INFO << "I am the destination node for which the route was requested" << endl;
 
         // create RREP
@@ -935,7 +957,12 @@ void Aodv_cluster::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr
         rreq->setUnknownSeqNumFlag(false);
 
         auto outgoingRREQ = dynamicPtrCast<Rreq>(rreq->dupShared());
-        forwardRREQ(outgoingRREQ, timeToLive);
+        int nodeIndex = getParentModule()->getIndex();
+
+        //gateway nodes only forward rreq when lasthop is cluster head
+        auto forward = rreq->getCluster() && isGateway() || isHead();
+        if(forward)
+            forwardRREQ(outgoingRREQ, timeToLive);
     }
     else
         EV_WARN << "Can't forward the RREQ because of its small (<= 1) TTL: " << timeToLive << " or the AODV reboot has not completed yet" << endl;
@@ -954,6 +981,43 @@ IRoute *Aodv_cluster::createRoute(const L3Address& destAddr, const L3Address& ne
     newRoute->setPrefixLength(addressType->getMaxPrefixLength());    // TODO:
     newRoute->setMetric(hopCount);
     InterfaceEntry *ifEntry = interfaceTable->getInterfaceByName("wlan0");    // TODO: IMPLEMENT: multiple interfaces
+    if (ifEntry)
+        newRoute->setInterface(ifEntry);
+    newRoute->setSourceType(IRoute::AODV);
+    newRoute->setSource(this);
+
+    // A route towards a destination that has a routing table entry
+    // that is marked as valid.  Only active routes can be used to
+    // forward data packets.
+
+    // adding protocol-specific fields
+    AodvRouteData_cluster *newProtocolData = new AodvRouteData_cluster();
+    newProtocolData->setIsActive(isActive);
+    newProtocolData->setHasValidDestNum(hasValidDestNum);
+    newProtocolData->setDestSeqNum(destSeqNum);
+    newProtocolData->setLifeTime(lifeTime);
+    newRoute->setProtocolData(newProtocolData);
+
+    EV_DETAIL << "Adding new route " << newRoute << endl;
+    routingTable->addRoute(newRoute);
+
+    scheduleExpungeRoutes();
+    return newRoute;
+}
+
+IRoute *Aodv_cluster::createRoute(const L3Address& destAddr, const L3Address& nextHop,
+        unsigned int hopCount, bool hasValidDestNum, unsigned int destSeqNum,
+        bool isActive, simtime_t lifeTime, InterfaceEntry *ie)
+{
+    // create a new route
+    IRoute *newRoute = routingTable->createRoute();
+
+    // adding generic fields
+    newRoute->setDestination(destAddr);
+    newRoute->setNextHop(nextHop);
+    newRoute->setPrefixLength(addressType->getMaxPrefixLength());    // TODO:
+    newRoute->setMetric(hopCount);
+    InterfaceEntry *ifEntry = ie;    // TODO: IMPLEMENT: multiple interfaces
     if (ifEntry)
         newRoute->setInterface(ifEntry);
     newRoute->setSourceType(IRoute::AODV);
@@ -1185,6 +1249,8 @@ void Aodv_cluster::handleStartOperation(LifecycleOperation *operation)
         scheduleAt(simTime() + helloInterval - *periodicJitter, helloMsgTimer);
 
     scheduleAt(simTime() + 1, counterTimer);
+
+    
 }
 
 void Aodv_cluster::handleStopOperation(LifecycleOperation *operation)
@@ -1255,12 +1321,22 @@ void Aodv_cluster::forwardRREP(const Ptr<Rrep>& rrep, const L3Address& destAddr,
     // When a node forwards a message, it SHOULD be jittered by delaying it
     // by a random duration.  This delay SHOULD be generated uniformly in an
     // interval between zero and MAXJITTER.
+    std::cout << "Forwarding the Route Reply to the node " << rrep->getOriginatorAddr() << " which originated the Route Request" << endl;
     sendAODVPacket(rrep, destAddr, 100, *jitterPar);
 }
 
 void Aodv_cluster::forwardRREQ(const Ptr<Rreq>& rreq, unsigned int timeToLive)
 {
     EV_INFO << "Forwarding the Route Request message with TTL= " << timeToLive << endl;
+    if(isGateway())
+    {
+        rreq->setCluster(false);
+    }
+    else if(isHead())
+    {
+        rreq->setCluster(true);
+    }
+
     sendAODVPacket(rreq, addressType->getBroadcastAddress(), timeToLive, *jitterPar);
 }
 
@@ -1664,6 +1740,11 @@ Aodv_cluster::~Aodv_cluster()
     delete counterTimer;
     delete rrepAckTimer;
     delete blacklistTimer;
+}
+
+bool Aodv_cluster::isHeadOrGateWay()
+{
+    return clusterModule->isHead() || clusterModule->isPreHead() || clusterModule->isGateWay();
 }
 
 } // namespace aodv

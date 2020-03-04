@@ -127,6 +127,8 @@ class INET_API Protocol
     //ZEUSNET specific protocol
     static const Protocol color;
     static const Protocol simplecluster;
+    static const Protocol colorTwoInterface;
+    static const Protocol colorNoCluster;
     static const Protocol icntp;
 };
 

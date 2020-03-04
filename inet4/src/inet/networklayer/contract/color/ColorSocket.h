@@ -12,6 +12,9 @@
 #include "inet/common/packet/Message.h"
 #include "inet/common/packet/Packet.h"
 #include "inet/common/socket/ISocket.h"
+#include "inet/common/Protocol.h"
+#include "inet/networklayer/icn/field/NID.h"
+#include "inet/networklayer/icn/field/SID.h"
 
 namespace inet
 {
@@ -33,7 +36,7 @@ class INET_API ColorSocket : public ISocket
         /**
          * Notifies about error indication arrival, indication ownership is transferred to the callee.
          */
-        virtual void socketErrorArrived(ColorSocket *socket, Indication *indication) = 0;
+        // virtual void socketErrorArrived(ColorSocket *socket, Indication *indication) = 0;
 
         /**
          * Notifies about socket closed, indication ownership is transferred to the callee.
@@ -44,13 +47,52 @@ class INET_API ColorSocket : public ISocket
 
     protected:
 
-    int socketId;
-    ICallback *cb = nullptr;
-    void *userData = nullptr;
-    cGate *gateToColor = nullptr;
-    State sockState = CLOSED;
+      int socketId;
+      ICallback *cb = nullptr;
+      void *userData = nullptr;
+      cGate *gateToColor = nullptr;
+      State sockState = CLOSED;
 
-    
+      ColorSocket::ICallback *callback = nullptr;
+      cGate *outputGate = nullptr;
+      bool bound = false;
+      bool isOpen_ = false;
+      const Protocol *l3Protocol = nullptr;
+
+    public:
+      ColorSocket(const Protocol* protocol, cGate *outputGate = nullptr);
+
+      ~ColorSocket(){};
+
+      void *getUserData() const { return userData; }
+
+      void setUserData(void *userData) { this->userData = userData; }
+
+      void setOutputGate(cGate *outputGate) { this->outputGate = outputGate; }
+
+      void bind(const Protocol *protocol, const NID &nid);
+
+      void setCallback(ColorSocket::ICallback *callback);
+
+      int getSocketId() const override { return socketId; }
+
+      void sendGET(const SID &sid);
+
+      void sendDATA(Packet *packet){};
+
+      void close();
+
+      void destroy();
+
+      const Protocol *getNetworkProtocol() const { return l3Protocol; };
+
+      bool belongsToSocket(cMessage *msg) const;
+
+      void processMessage(cMessage *msg) ;
+
+      bool isOpen() const {return isOpen_;};
+
+      void sendToOutput(cMessage *message);
 };
 
 }

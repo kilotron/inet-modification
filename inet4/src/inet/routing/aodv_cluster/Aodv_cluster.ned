@@ -39,7 +39,7 @@ import inet.routing.contract.IManetRouting;
 simple Aodv_cluster like IManetRouting
 {
     parameters:
-        @class("aodv::Aodv");
+        @class("aodv::Aodv_cluster");
         @display("i=block/network2");
         string routingTableModule = default("^.ipv4.routingTable");
         string interfaceTableModule = default("^.interfaceTable");

@@ -259,7 +259,7 @@ void Aodv::sendRREQ(const Ptr<Rreq>& rreq, const L3Address& destAddr, unsigned i
     // again with the TTL incremented by TTL_INCREMENT.  This continues
     // until the TTL set in the RREQ reaches TTL_THRESHOLD, beyond which a
     // TTL = NET_DIAMETER is used for each attempt.
-    std::cout<<destAddr<<endl;
+    // std::cout<<destAddr<<endl;
     if (rreqCount >= rreqRatelimit) {
         EV_WARN << "A node should not originate more than RREQ_RATELIMIT RREQ messages per second. Canceling sending RREQ" << endl;
         return;
@@ -740,6 +740,7 @@ void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsign
 {
     EV_INFO << "AODV Route Request arrived with source addr: " << sourceAddr << " originator addr: " << rreq->getOriginatorAddr()
             << " destination addr: " << rreq->getDestAddr() << endl;
+    // std::cout << sourceAddr <<endl;
 
     // A node ignores all RREQs received from any node in its blacklist set.
 
@@ -809,7 +810,7 @@ void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsign
     //   (ExistingLifetime, MinimalLifetime), where
     //
     //   MinimalLifetime = (current time + 2*NET_TRAVERSAL_TIME - 2*HopCount*NODE_TRAVERSAL_TIME).
-
+    // std::cout<< rreq->getOriginatorAddr() << endl;
     unsigned int hopCount = rreq->getHopCount();
     simtime_t minimalLifeTime = simTime() + 2 * netTraversalTime - 2 * hopCount * nodeTraversalTime;
     simtime_t newLifeTime = std::max(simTime(), minimalLifeTime);
@@ -817,6 +818,7 @@ void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsign
     if (!reverseRoute || reverseRoute->getSource() != this) {    // create
         // This reverse route will be needed if the node receives a RREP back to the
         // node that originated the RREQ (identified by the Originator IP Address).
+
         reverseRoute = createRoute(rreq->getOriginatorAddr(), sourceAddr, hopCount, true, rreqSeqNum, true, newLifeTime);
     }
     else {
@@ -980,6 +982,7 @@ IRoute *Aodv::createRoute(const L3Address& destAddr, const L3Address& nextHop,
 
 void Aodv::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
+    // std::cout << simTime() <<endl;
     Enter_Method("receiveChangeNotification");
     if (signalID == linkBrokenSignal) {
         EV_DETAIL << "Received link break signal" << endl;
@@ -1094,6 +1097,7 @@ void Aodv::handleLinkBreakSendRERR(const L3Address& unreachableAddr)
 
 const Ptr<Rerr> Aodv::createRERR(const std::vector<UnreachableNode>& unreachableNodes)
 {
+    // std::cout<< simTime() <<endl;
     auto rerr = makeShared<Rerr>(); // TODO: "AODV-RERR");
     unsigned int destCount = unreachableNodes.size();
 
@@ -1115,7 +1119,7 @@ const Ptr<Rerr> Aodv::createRERR(const std::vector<UnreachableNode>& unreachable
 void Aodv::handleRERR(const Ptr<const Rerr>& rerr, const L3Address& sourceAddr)
 {
     EV_INFO << "AODV Route Error arrived with source addr: " << sourceAddr << endl;
-
+    // std::cout << simTime() << endl;
     // A node initiates processing for a RERR message in three situations:
     // (iii)   if it receives a RERR from a neighbor for one or more
     //         active routes.

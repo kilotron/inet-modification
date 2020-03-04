@@ -8,8 +8,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "inet/applications/common/SocketTag_m.h"
-#include "inet/networklayer/icn/color/Color.h"
+#include "inet/networklayer/icn/color/colorTwoInterface.h"
 #include "inet/common/bloomfilter/hash/MurmurHash3.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 #include "inet/linklayer/common/MacAddressTag_m.h"
@@ -20,16 +19,15 @@
 #include "inet/networklayer/icn/color/Get_m.h"
 #include "inet/networklayer/icn/color/AppData_m.h"
 #include "inet/networklayer/common/L3Tools.h"
-#include "inet/networklayer/contract/color/ColorSocketCommand_m.h"
 #include "inet/physicallayer/common/packetlevel/SignalTag_m.h"
 
 namespace inet
 {
 
 using std::string;
-Define_Module(colorCluster);
+Define_Module(colorTwoInterface);
 
-void colorCluster::SimRecorder::ConsumerPrint(std::ostream &os)
+void colorTwoInterface::SimRecorder::ConsumerPrint(std::ostream &os)
 {
 
     os << "index:    " << index << endl;
@@ -52,7 +50,7 @@ void colorCluster::SimRecorder::ConsumerPrint(std::ostream &os)
     os << endl;
 }
 
-void colorCluster::SimRecorder::ProviderPrint(std::ostream &os)
+void colorTwoInterface::SimRecorder::ProviderPrint(std::ostream &os)
 {
     os << "index:    " << index << endl;
     os << "DataSendNum: " << DataSendNum << endl;
@@ -60,11 +58,11 @@ void colorCluster::SimRecorder::ProviderPrint(std::ostream &os)
     os << endl;
 }
 
-colorCluster::~colorCluster()
+colorTwoInterface::~colorTwoInterface()
 {
 }
 
-void colorCluster::finish()
+void colorTwoInterface::finish()
 {
 
     record();
@@ -74,7 +72,7 @@ void colorCluster::finish()
     cancelAndDelete(delayer5);
 }
 
-void colorCluster::initialize(int stage)
+void colorTwoInterface::initialize(int stage)
 {
     OperationalBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL)
@@ -160,7 +158,7 @@ void colorCluster::initialize(int stage)
     }
 }
 
-InterfaceEntry *colorCluster::chooseInterface(const char *interfaceName)
+InterfaceEntry *colorTwoInterface::chooseInterface(const char *interfaceName)
 {
     //得到指向转发表的指针
     InterfaceEntry *ie = nullptr;
@@ -190,12 +188,12 @@ InterfaceEntry *colorCluster::chooseInterface(const char *interfaceName)
     return ie;
 }
 
-void colorCluster::handleRegisterService(const Protocol &protocol, cGate *out, ServicePrimitive servicePrimitive)
+void colorTwoInterface::handleRegisterService(const Protocol &protocol, cGate *out, ServicePrimitive servicePrimitive)
 {
     Enter_Method("handleRegisterService");
 }
 
-void colorCluster::handleRegisterProtocol(const Protocol &protocol, cGate *in, ServicePrimitive servicePrimitive)
+void colorTwoInterface::handleRegisterProtocol(const Protocol &protocol, cGate *in, ServicePrimitive servicePrimitive)
 {
     //对上层协议提供注册服务
     Enter_Method("handleRegisterProtocol");
@@ -203,12 +201,12 @@ void colorCluster::handleRegisterProtocol(const Protocol &protocol, cGate *in, S
         upperProtocols.insert(&protocol);
 }
 
-void colorCluster::refreshDisplay() const
+void colorTwoInterface::refreshDisplay() const
 {
     OperationalBase::refreshDisplay();
 }
 
-void colorCluster::handleStartOperation(LifecycleOperation *operation)
+void colorTwoInterface::handleStartOperation(LifecycleOperation *operation)
 {
     //默认wlan0是2.4GHz， wlan1是5GHz
     ie24 = chooseInterface("wlan0");
@@ -241,20 +239,20 @@ void colorCluster::handleStartOperation(LifecycleOperation *operation)
     }
 }
 
-void colorCluster::handleStopOperation(LifecycleOperation *operation)
+void colorTwoInterface::handleStopOperation(LifecycleOperation *operation)
 {
     // TODO: stop should send and wait pending packets
     cancelAndDelete(testGet);
     cancelAndDelete(testData);
 }
 
-void colorCluster::handleCrashOperation(LifecycleOperation *operation)
+void colorTwoInterface::handleCrashOperation(LifecycleOperation *operation)
 {
     cancelAndDelete(testGet);
     cancelAndDelete(testData);
 }
 
-void colorCluster::handleMessageWhenUp(cMessage *msg)
+void colorTwoInterface::handleMessageWhenUp(cMessage *msg)
 {
     //数据包来自上层
     if (msg->arrivedOn("transportIn"))
@@ -328,7 +326,7 @@ void colorCluster::handleMessageWhenUp(cMessage *msg)
         throw cRuntimeError("message arrived on unknown gate '%s'", msg->getArrivalGate()->getName());
 }
 
-void colorCluster::handleIncomingDatagram(Packet *packet)
+void colorTwoInterface::handleIncomingDatagram(Packet *packet)
 {
 
     //对链路层传来的数据包进行操作，先取得数据包的头部
@@ -355,7 +353,7 @@ void colorCluster::handleIncomingDatagram(Packet *packet)
     }
 }
 
-void colorCluster::handleDataPacket(Packet *packet)
+void colorTwoInterface::handleDataPacket(Packet *packet)
 {
     //取出头部
     const auto head = packet->peekAtFront<Data>();
@@ -411,7 +409,7 @@ void colorCluster::handleDataPacket(Packet *packet)
         return;
     }
 
-    if(isForwarder())
+    if(isHead())
     {
         ;
     }
@@ -423,7 +421,7 @@ void colorCluster::handleDataPacket(Packet *packet)
             createRoute(head->getSid().getNidHead(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 5, head->getTimeToLive());
         else
         {
-            if (isForwarder())
+            if (isHead())
             {
                 createRoute(head->getSid().getNidHead(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
                 createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
@@ -457,7 +455,7 @@ void colorCluster::handleDataPacket(Packet *packet)
                 hz5 = true;
             }
         }
-        if (isForwarder() && !ct->hasThisPacket(packet, headSid))
+        if (isHead() && !ct->hasThisPacket(packet, headSid))
         {
             //测试信息
             //                        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
@@ -529,7 +527,7 @@ void colorCluster::handleDataPacket(Packet *packet)
     else
     {
         //PIT中没有对应条目时不做任何操作
-        if(isForwarder())
+        if(isHead())
             ;
     }
 
@@ -538,7 +536,7 @@ void colorCluster::handleDataPacket(Packet *packet)
     delete newPacket;
 }
 
-void colorCluster::handleGetPacket(Packet *packet)
+void colorTwoInterface::handleGetPacket(Packet *packet)
 {
     //根据GET包头部内容进行相应操作
     packet->trim();
@@ -551,10 +549,9 @@ void colorCluster::handleGetPacket(Packet *packet)
     //信号强度，之后用作设置延时定时器
     auto signalPower = packet->findTag<SignalPowerInd>();
     auto headSID = head->getSid();
-    auto isLastHopHead = head->getCluster();
 
-    //检查ttl，ttl小于等于0丢弃
-    if (head->getTimeToLive() < 0)
+    //检查ttl，ttl小于等于1丢弃
+    if (head->getTimeToLive() < 1)
     {
         delete packet;
         return;
@@ -562,7 +559,7 @@ void colorCluster::handleGetPacket(Packet *packet)
 
     //簇头可以插入两个端口的路由信息，簇成员由于在2.4GHz上只侦听不发送，所以只在路由表中只插入来自5GHz端口的信息
     //检查
-    if (isForwarder())
+    if (isHead())
     {
         //测试信息
         std::cout << nodeIndex << "  " << simTime() << "     ";
@@ -584,18 +581,14 @@ void colorCluster::handleGetPacket(Packet *packet)
     }
 
     //首先在缓存中查找,节点成为潜在转发者的条件是缓存中没有该数据或者请求端指定了要从源端获取数据
-    if (findContentInCache(headSID) == nullptr || (head->getMustBeFresh() && nid != headSID.getNidHead()))
+    if (findContentInCache(headSID) == nullptr || (head->getMustBeFresh() && nodeIndex != headSID.getNidHead()))
     {
         simtime_t ttl = 1;
         //先查看路由表中,是否有对应表项，若有设置下一跳后直接转发，pit增加相应表项
         //只有簇头才进行转发，添加PIT等操作
         auto route = rt->findRoute(headSID.getNidHead());
-
-        bool forward =  isLastHopHead && isGateway() || isHead();
-    
-        if (forward)
+        if (isHead())
         {
-            head->setCluster(isHead());
             if (route != nullptr && flood == false && !pit->hasThisSid(headSID))
             {
 
@@ -620,8 +613,6 @@ void colorCluster::handleGetPacket(Packet *packet)
                         delay_queue24.insert(packet, GET, simTime(), 1, route->getNextMac());
                     else
                         delay_queue5.insert(packet, GET, simTime(), 1, route->getNextMac());
-
-//                    delete packet;
                     return;
                 }
             }
@@ -641,7 +632,7 @@ void colorCluster::handleGetPacket(Packet *packet)
                 {
                     if (delay_queue24.check_and_decrease(newPacket) == false)
                         delay_queue24.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
-                    // delay_queue5.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
+                    delay_queue5.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
                 }
                 else
                 {
@@ -661,9 +652,6 @@ void colorCluster::handleGetPacket(Packet *packet)
     //缓存中存在，根据数据包的入网卡不同进行不同的操作
     else
     {
-        createRoute(head->getSource(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
-        createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
-
         //仅为了测试使用，处理逻辑是如果缓存中有就回传SID对应的所有数据包
         std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
         std::cout << nodeIndex;
@@ -673,7 +661,7 @@ void colorCluster::handleGetPacket(Packet *packet)
         auto lists = findContentInCache(headSID)->GetList();
         int nic = (ie == ie24) ? 24 : 5;
 
-//        if(nic == 24 && !isForwarder())
+//        if(nic == 24 && !isHead())
 //            return;
 
         for (const auto &P : lists)
@@ -687,9 +675,23 @@ void colorCluster::handleGetPacket(Packet *packet)
 
                 testModule.DataSendNum++;
                 auto newP = P->dup();
+                //                std::cout << "sent data packet" << endl;
+                // if(head->getNexthop().isDefault() || head->getNexthop() == nodeIndex)
+                // {
+                if (isHead())
+                    sendDatagramToOutput(newP, nic);
+                else 
+                {
+                    if (head->getNexthop().isDefault() || head->getNexthop() == nodeIndex)
+                    {
+                        if (nic == 24)
+                            sendDatagramToOutput(newP, 5);
+                        if (nic == 5)
+                            sendDatagramToOutput(newP, 5, macInfo->getSrcAddress());
+                    }
+                }
 
-                sendDatagramToOutput(newP, 24, macInfo->getSrcAddress());
-   
+                // }     
             }
         }
     }
@@ -697,37 +699,37 @@ void colorCluster::handleGetPacket(Packet *packet)
 }
 
 //下面函数只是对几个表操作的简单封装
-shared_ptr<Croute> colorCluster::findRoute(const NID& nid)
+shared_ptr<Croute> colorTwoInterface::findRoute(const NID& nid)
 {
     return rt->findRoute(nid);
 }
 
-void colorCluster::createRoute(const NID &dest, const NID &nextHop, const MacAddress &mac, const simtime_t &ttl, int interFace, double linkQ)
+void colorTwoInterface::createRoute(const NID &dest, const NID &nextHop, const MacAddress &mac, const simtime_t &ttl, int interFace, double linkQ)
 {
     return rt->CreateEntry(dest, nextHop, mac, ttl, interFace, linkQ);
 }
 
-void colorCluster::createPIT(const SID &sid, const NID &nid, const MacAddress &mac, simtime_t ttl)
+void colorTwoInterface::createPIT(const SID &sid, const NID &nid, const MacAddress &mac, simtime_t ttl)
 {
     pit->createEntry(sid, nid, mac, ttl);
 }
 
-colorPendingGetTable::EntrysRange colorCluster::findPITentry(const SID& sid)
+colorPendingGetTable::EntrysRange colorTwoInterface::findPITentry(const SID& sid)
 {
     return pit->findPITentry(sid);
 }
 
-void colorCluster::CachePacket(const SID &sid, Packet *packet)
+void colorTwoInterface::CachePacket(const SID &sid, Packet *packet)
 {
     ct->CachePacket(sid, packet);
 }
 
-shared_ptr<ContentBlock> colorCluster::findContentInCache(const SID &sid)
+shared_ptr<ContentBlock> colorTwoInterface::findContentInCache(const SID &sid)
 {
     return ct->getBlock(sid);
 }
 
-const Ptr<inet::Get> colorCluster::GetHead(const SID &sid)
+const Ptr<inet::Get> colorTwoInterface::GetHead(const SID &sid)
 {
     auto route = rt->findRoute(sid.getNidHead());
 
@@ -738,13 +740,11 @@ const Ptr<inet::Get> colorCluster::GetHead(const SID &sid)
     get->setSid(sid);
     get->setSource(nid);
     get->setLastHop(nid);
-    get->setMAC(ie24->getMacAddress());
     get->setNonce(this->getRNG(0)->intRand());
     if (isHead())
-        get->setCluster(true);
+        get->setMAC(ie24->getMacAddress());
     else
-        get->setCluster(false);
-
+        get->setMAC(ie5->getMacAddress());
     if(route != nullptr && flood == false)
     {
         get->setNexthop(route->getNextHop());
@@ -753,7 +753,7 @@ const Ptr<inet::Get> colorCluster::GetHead(const SID &sid)
     return get;
 }
 
-const Ptr<inet::Data> colorCluster::DataHead(const SID &sid)
+const Ptr<inet::Data> colorTwoInterface::DataHead(const SID &sid)
 {
     const auto &data = makeShared<Data>();
     data->setVersion(0);
@@ -762,7 +762,7 @@ const Ptr<inet::Data> colorCluster::DataHead(const SID &sid)
     data->setSid(sid);
     data->setNid(nid);
     data->setLastHop(nid);
-    if(isForwarder())
+    if(isHead())
         data->setMAC(ie24->getMacAddress());
     else
         data->setMAC(ie5->getMacAddress());
@@ -770,7 +770,7 @@ const Ptr<inet::Data> colorCluster::DataHead(const SID &sid)
     return data;
 }
 
-void colorCluster::encapsulate(Packet *packet, int type, const SID& sid)
+void colorTwoInterface::encapsulate(Packet *packet, int type, const SID& sid)
 {
     //封装数据包，加上color的头部, 0是get包，1是data包
     if (type == 0)
@@ -797,12 +797,12 @@ void colorCluster::encapsulate(Packet *packet, int type, const SID& sid)
     }
 }
 
-void colorCluster::encapsulate(Packet *packet, int type, int portSelf, int portDest)
+void colorTwoInterface::encapsulate(Packet *packet, int type, int portSelf, int portDest)
 {
     //重载，添加端口号
 }
 
-void colorCluster::decapsulate(Packet *packet,  const SID& sid)
+void colorTwoInterface::decapsulate(Packet *packet,  const SID& sid)
 {
     //解封装数据包record
     testModule.DataRecvNum++;
@@ -819,7 +819,7 @@ void colorCluster::decapsulate(Packet *packet,  const SID& sid)
     delete packet;
 }
 
-void colorCluster::sendDatagramToOutput(Packet *packet, int nic, const MacAddress &mac)
+void colorTwoInterface::sendDatagramToOutput(Packet *packet, int nic, const MacAddress &mac)
 {
     //对数据包添加tag后发送到下层
     ASSERT((nic == 24) || (nic == 5));
@@ -868,18 +868,18 @@ void colorCluster::sendDatagramToOutput(Packet *packet, int nic, const MacAddres
 
 
 
-void colorCluster::handlePacketFromHL(Packet *packet)
+void colorTwoInterface::handlePacketFromHL(Packet *packet)
 {
     //todo implement later
 }
 
-const InterfaceEntry *colorCluster::getSourceInterface(Packet *packet)
+const InterfaceEntry *colorTwoInterface::getSourceInterface(Packet *packet)
 {
     auto tag = packet->findTag<InterfaceInd>();
     return tag != nullptr ? ift->getInterfaceById(tag->getInterfaceId()) : nullptr;
 }
 
-void colorCluster::FragmentAndStore(Packet *packet, const SID &sid)
+void colorTwoInterface::FragmentAndStore(Packet *packet, const SID &sid)
 {
     const auto &data = makeShared<Data>();
     int headerLength = data->getHeaderLength().get();
@@ -935,36 +935,31 @@ void colorCluster::FragmentAndStore(Packet *packet, const SID &sid)
     delete packet;
 }
 
-void colorCluster::FragmentAndSend(Packet *packet)
+void colorTwoInterface::FragmentAndSend(Packet *packet)
 {
 }
 
-void colorCluster::testSend(const SID &sid)
+void colorTwoInterface::testSend(const SID &sid)
 {
     Packet *packet = new Packet("getPacket");
 
-    encapsulate(packet, 0, sid);
-    auto mac = ie24->getMacAddress();
-    pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
-    sendDatagramToOutput(packet->dup(), 24);
+    if (isHead())
+    {
+        encapsulate(packet, 0, sid);
+        auto mac = ie24->getMacAddress();
+        pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
+        sendDatagramToOutput(packet->dup(), 24);
+        pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
+        sendDatagramToOutput(packet->dup(), 5);
+    }
+    else
+    {
+        encapsulate(packet, 0, sid);
+        auto mac = ie5->getMacAddress();
+        pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
 
-    // if (isForwarder())
-    // {
-    //     encapsulate(packet, 0, sid);
-    //     auto mac = ie24->getMacAddress();
-    //     pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
-    //     sendDatagramToOutput(packet->dup(), 24);
-    //     // pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
-    //     // sendDatagramToOutput(packet->dup(), 5);
-    // }
-    // else
-    // {
-    //     encapsulate(packet, 0, sid);
-    //     auto mac = ie5->getMacAddress();
-    //     pit->createEntry(sid, nid, mac, simtime_t(5), 5, 0, false, true);
-
-    //     sendDatagramToOutput(packet->dup(), 5);
-    // }
+        sendDatagramToOutput(packet->dup(), 5);
+    }
     testModule.Delays[sid] = simTime();
     // delay = SimTime();
 
@@ -976,7 +971,7 @@ void colorCluster::testSend(const SID &sid)
     delete packet;
 }
 
-void colorCluster::testProvide(const SID &sid, const B &dataSize)
+void colorTwoInterface::testProvide(const SID &sid, const B &dataSize)
 {
     auto playload = makeShared<AppData>();
     playload->setChunkLength(dataSize);
@@ -988,7 +983,7 @@ void colorCluster::testProvide(const SID &sid, const B &dataSize)
     //    ct->CachePacket(1024, packet);
 }
 
-void colorCluster::scheduleGet(simtime_t t, SendMode mode)
+void colorTwoInterface::scheduleGet(simtime_t t, SendMode mode)
 {
     //不同的发包模式
     cancelEvent(testGet);
@@ -1021,11 +1016,11 @@ void colorCluster::scheduleGet(simtime_t t, SendMode mode)
     }
 }
 
-void colorCluster::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
+void colorTwoInterface::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
 }
 
-void colorCluster::record()
+void colorTwoInterface::record()
 {
     std::ofstream outfile;
 
@@ -1086,80 +1081,9 @@ void colorCluster::record()
     }
 }
 
-bool colorCluster::isForwarder()
+bool colorTwoInterface::isHead()
 {
-    return clusterModule->isHead() || clusterModule->isPreHead() || clusterModule->isGateWay();
-}
-
-void  colorCluster::handleRequest(Request *request)
-{
-    auto ctrl = request->getControlInfo();
-    if (ctrl == nullptr)
-        throw cRuntimeError("Request '%s' arrived without controlinfo", request->getName());
-    else if(ColorSocketBindCommand *command = dynamic_cast<ColorSocketBindCommand *>(ctrl))
-    {
-        int socketId = request->getTag<SocketReq>()->getSocketId();
-        SocketDescriptor *descriptor = new SocketDescriptor(socketId, command->getProtocol()->getId(), command->getNid());
-        socketIdToSocketDescriptor[socketId] = descriptor;
-        delete request;
-    }
-    else if(ColorSocketSendGetCommand *command = dynamic_cast<ColorSocketSendGetCommand *>(ctrl))
-    {
-        testSend(command->getSid());
-        delete request;
-    }
-}
-
-INetfilter::IHook::Result colorCluster::datagramPreRoutingHook(Packet *datagram)
-{
-    return INetfilter::IHook::ACCEPT;
-}
-
-
-INetfilter::IHook::Result colorCluster::datagramForwardHook(Packet *datagram)
-{
-    return INetfilter::IHook::ACCEPT;
-}
-
-
-INetfilter::IHook::Result colorCluster::datagramPostRoutingHook(Packet *datagram)
-{
-    return INetfilter::IHook::ACCEPT;
-}
-
-
-INetfilter::IHook::Result colorCluster::datagramLocalInHook(Packet *datagram)
-{
-    return INetfilter::IHook::ACCEPT;
-}
-
-
-INetfilter::IHook::Result colorCluster::datagramLocalOutHook(Packet *datagram)
-{
-    return INetfilter::IHook::ACCEPT;
-}
-
-void colorCluster::registerHook(int priority, IHook *hook)
-{
-
-}
-
-
-void colorCluster::unregisterHook(IHook *hook)
-{
-
-}
-
-
-void colorCluster::dropQueuedDatagram(const Packet *datagram) 
-{
-
-}
-
-
-void colorCluster::reinjectQueuedDatagram(const Packet *datagram)
-{
-    
+    return clusterModule->isHead() || clusterModule->isPreHead();
 }
 
 } // namespace inet

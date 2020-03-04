@@ -64,6 +64,9 @@ class Rreq extends AodvControlPacket
     unsigned int destSeqNum;
     L3Address originatorAddr;
     unsigned int originatorSeqNum;
+
+    //for cluster-adptive aodv
+    bool cluster = false;
 }
 
 //

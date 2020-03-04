@@ -30,7 +30,6 @@
 #include "inet/networklayer/icn/field/NID.h"
 #include "inet/networklayer/icn/field/SID.h"
 #include "inet/networklayer/icn/delayQueue/delayQueue.h"
-#include "inet/networklayer/contract/INetfilter.h"
 
 
 
@@ -40,12 +39,12 @@ namespace inet{
     class colorPendingGetTable;
     class ColorRoutingTable;
 
-    class INET_API colorCluster : public OperationalBase, public INetworkProtocol, public NetfilterBase, public IProtocolRegistrationListener, public cListener
+    class INET_API colorTwoInterface : public OperationalBase, public INetworkProtocol, public IProtocolRegistrationListener, public cListener
     {
         public:
             struct SimRecorder
             {
-                colorCluster *owner;
+                colorTwoInterface *owner;
 
                 int multiConsumer;
 
@@ -66,17 +65,6 @@ namespace inet{
                 void ProviderPrint(std::ostream &os);
             };
 
-            struct SocketDescriptor
-            {
-                int socketId = -1;
-                int protocolId = -1;
-                NID nid;
-                // Ipv4Address remoteAddress;
-
-                SocketDescriptor(int socketId, int protocolId, const NID& nid)
-                        : socketId(socketId), protocolId(protocolId), nid(nid) {}
-            };
-
             enum class SendMode
             {
                 EqualInterval = 1,
@@ -84,13 +72,9 @@ namespace inet{
                 ExpDisInterval = 3
             };
 
-
         private:
             //节点索引
             int nodeIndex;
-
-
-            std::map<int, SocketDescriptor *> socketIdToSocketDescriptor;
 
             //转发表
             IInterfaceTable *ift = nullptr;
@@ -163,8 +147,7 @@ namespace inet{
             double routeLifeTime;
 
         protected:
-            virtual void
-            finish() override;
+            virtual void finish() override;
             /**
              * IProtocolRegistrationListener methods
              */
@@ -189,56 +172,10 @@ namespace inet{
             
             /// cListener method
             virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details) override;
-        
-            /**
-             * called before a packet arriving from the network is routed
-             */
-            IHook::Result datagramPreRoutingHook(Packet *datagram);
-
-            /**
-             * called before a packet arriving from the network is delivered via the network
-             */
-            IHook::Result datagramForwardHook(Packet *datagram);
-
-            /**
-             * called before a packet is delivered via the network
-             */
-            IHook::Result datagramPostRoutingHook(Packet *datagram);
-
-            /**
-             * called before a packet arriving from the network is delivered locally
-             */
-            IHook::Result datagramLocalInHook(Packet *datagram);
-
-            /**
-             * called before a packet arriving locally is delivered
-             */
-            IHook::Result datagramLocalOutHook(Packet *datagram);
-
         public:
-            /**
-             * registers a Hook to be executed during datagram processing
-             */
-            virtual void registerHook(int priority, IHook *hook) override;
+            colorTwoInterface(){}
 
-            /**
-             * unregisters a Hook to be executed during datagram processing
-             */
-            virtual void unregisterHook(IHook *hook) override;
-
-            /**
-             * drop a previously queued datagram
-             */
-            virtual void dropQueuedDatagram(const Packet *datagram) override;
-
-            /**
-             * re-injects a previously queued datagram
-             */
-            virtual void reinjectQueuedDatagram(const Packet *datagram) override;
-
-            colorCluster(){}
-
-            ~colorCluster();
+            ~colorTwoInterface();
 
 
             //处理GET包
@@ -317,14 +254,8 @@ namespace inet{
             //产生Data包头
             const Ptr<inet::Data> DataHead(const SID &sid);
 
-            //判断是否是
-            bool isForwarder();
-
-            bool isHead(){return clusterModule->isHead() || clusterModule->isPreHead();}
-
-            bool isGateway(){return clusterModule->isGateWay();}
-
-            void handleRequest(Request *request);
+            //判断是否是簇头
+            bool isHead();
 
             // void handleDelayPkt(Packet *pkt, int seq=0, simtime_t delay=0);
 

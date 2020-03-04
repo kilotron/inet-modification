@@ -86,4 +86,6 @@ class Get extends FieldsChunk
     
     //测试
     path trace;
+
+    bool cluster = 0;
 }

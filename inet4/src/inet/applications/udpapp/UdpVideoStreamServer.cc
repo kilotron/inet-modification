@@ -23,6 +23,7 @@
 #include "inet/networklayer/common/L3AddressTag_m.h"
 #include "inet/transportlayer/common/L4PortTag_m.h"
 #include "inet/transportlayer/contract/udp/UdpControlInfo_m.h"
+#include "inet/applications/udpapp/stastics_m.h"
 
 namespace inet {
 
@@ -126,11 +127,19 @@ void UdpVideoStreamServer::sendStreamData(cMessage *timer)
     Packet *pkt = new Packet("VideoStrmPk");
     long pktLen = *packetLen;
 
+    //statics information
+    pkt->setTimestamp(simTime());
+//    auto data = new statics();
+//    data->setTotalNum(ceil(double(d->videoSize) / double(pktLen)));
+//    data->setStart(simTime());
+//    pkt->setControlInfo(data);
+
     if (pktLen > d->bytesLeft)
         pktLen = d->bytesLeft;
     const auto& payload = makeShared<ByteCountChunk>(B(pktLen));
     payload->addTag<CreationTimeTag>()->setCreationTime(simTime());
     pkt->insertAtBack(payload);
+    
 
     emit(packetSentSignal, pkt);
     socket.sendTo(pkt, d->clientAddr, d->clientPort);
@@ -148,6 +157,7 @@ void UdpVideoStreamServer::sendStreamData(cMessage *timer)
         streams.erase(it);
         delete timer;
     }
+//    std::cout << *d << endl;
 }
 
 void UdpVideoStreamServer::clearStreams()

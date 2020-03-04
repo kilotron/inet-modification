@@ -31,6 +31,7 @@
 #include "inet/routing/base/RoutingProtocolBase.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "inet/transportlayer/udp/UdpHeader_m.h"
+#include "inet/networklayer/icn/cluster/ICluster.h"
 
 namespace inet {
 namespace aodv {
@@ -43,6 +44,11 @@ namespace aodv {
 class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::HookBase, public cListener
 {
   protected:
+    //分簇协议模块
+    ICluster* clusterModule;
+
+    std::set<L3Address> selfAdress;
+    
     /*
      * It implements a unique identifier for an arbitrary RREQ message
      * in the network. See: rreqsArrivalTime.
@@ -152,6 +158,7 @@ class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::
     /* Routing Table management */
     void updateRoutingTable(IRoute *route, const L3Address& nextHop, unsigned int hopCount, bool hasValidDestNum, unsigned int destSeqNum, bool isActive, simtime_t lifeTime);
     IRoute *createRoute(const L3Address& destAddr, const L3Address& nextHop, unsigned int hopCount, bool hasValidDestNum, unsigned int destSeqNum, bool isActive, simtime_t lifeTime);
+    IRoute *createRoute(const L3Address& destAddr, const L3Address& nextHop, unsigned int hopCount, bool hasValidDestNum, unsigned int destSeqNum, bool isActive, simtime_t lifeTime, InterfaceEntry *ie);
     bool updateValidRouteLifeTime(const L3Address& destAddr, simtime_t lifetime);
     void scheduleExpungeRoutes();
     void expungeRoutes();
@@ -214,6 +221,15 @@ class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::
   public:
     Aodv_cluster();
     virtual ~Aodv_cluster();
+
+    //判断是否是簇头
+    bool isHeadOrGateWay();
+
+    bool isGateway(){return clusterModule->isGateWay();}
+
+    bool isHead(){return clusterModule->isPreHead() || clusterModule->isHead();}
+
+    bool isSelfAdress(const L3Address& adress);
 };
 
 } // namespace aodv

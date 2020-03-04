@@ -16,16 +16,52 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
+#include <algorithm>
+#include <fstream>
 
 #include "inet/applications/udpapp/UdpVideoStreamClient.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/common/packet/chunk/ByteCountChunk.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "inet/transportlayer/contract/udp/UdpControlInfo_m.h"
+#include "inet/applications/udpapp/stastics_m.h"
 
 namespace inet {
 
+using std::string;
 Define_Module(UdpVideoStreamClient);
+
+void UdpVideoStreamClient::SimRecorder::ConsumerPrint(std::ostream &os)
+{
+
+
+    os << "index:    " << index << endl;
+    os << "sendNum: " << GetSendNum << endl;
+    os << "recvNum: " << DataRecvNum << endl;
+    if (GetSendNum != 0)
+        os << "trans ratio: " << 100 * DataRecvNum / owner->pktNum << "%" << endl;
+    os << "send Interval: " << owner->sendInterval << "s" << endl;
+    os << "Throughput: " << throughput.get() * 8 / ((last.dbl() - owner->startTime )* 1000 * 1000) << " Mbps" << endl;
+    os << "Average delay: ";
+    double sum = 0;
+    if(delayArray.size()>0)
+    {
+        std::for_each(delayArray.begin(), delayArray.end(), [&sum](double value) { sum += value; });
+        os << sum / delayArray.size() << " ms" << endl;
+    }
+    else
+        os << 0 << "ms" << endl;
+
+    os << endl;
+}
+
+void UdpVideoStreamClient::SimRecorder::ProviderPrint(std::ostream &os)
+{
+    os << "index:    " << index << endl;
+    os << "DataSendNum: " << DataSendNum << endl;
+    os << "GetRecvNum: " << GetRecvNum << endl;
+    os << endl;
+}
 
 void UdpVideoStreamClient::initialize(int stage)
 {
@@ -33,12 +69,25 @@ void UdpVideoStreamClient::initialize(int stage)
 
     if (stage == INITSTAGE_LOCAL) {
         selfMsg = new cMessage("UDPVideoStreamStart");
+        Recorder.index = getParentModule()->getIndex();
+        Recorder.owner = this;
+        startTime = par("startTime").doubleValue();
+        sendInterval = par("sendInterval").doubleValue();
+        int size = par("videoSize").intValue();
+        int len = par("packetLen").intValue();
+        pktNum = ceil(double(size) / double(len));
+        path = par("RSTpath").stdstringValue();
     }
 }
 
 void UdpVideoStreamClient::finish()
 {
     ApplicationBase::finish();
+    std::ofstream outfile;
+    auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_Consumer.txt");
+    outfile.open(path + fileName, std::ofstream::app);
+    Recorder.ConsumerPrint(outfile);
+    outfile.close();
 }
 
 void UdpVideoStreamClient::handleMessageWhenUp(cMessage *msg)
@@ -94,7 +143,13 @@ void UdpVideoStreamClient::requestStream()
 
 void UdpVideoStreamClient::receiveStream(Packet *pk)
 {
+    Recorder.DataRecvNum++;
+    Recorder.delayArray.push_back(simTime().dbl() - pk->getTimestamp().dbl());
+    Recorder.last = simTime();
+    Recorder.throughput += B(pk->getByteLength());
+    
     EV_INFO << "Video stream packet: " << UdpSocket::getReceivedPacketInfo(pk) << endl;
+     std::cout << "Video stream packet: " << UdpSocket::getReceivedPacketInfo(pk) << endl;
     emit(packetReceivedSignal, pk);
     delete pk;
 }

@@ -27,6 +27,7 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 OBJS = \
     $O/inet/applications/Fap/Fap.o \
     $O/inet/applications/Fap/hash/MurmurHash3.o \
+    $O/inet/applications/ICNapp/SimpleApp.o \
     $O/inet/applications/WCAcluster/WCAcluster.o \
     $O/inet/applications/base/ApplicationBase.o \
     $O/inet/applications/base/ApplicationPacketSerializer.o \
@@ -509,6 +510,7 @@ OBJS = \
     $O/inet/networklayer/icn/cluster/TwoNicCluster.o \
     $O/inet/networklayer/icn/color/color.o \
     $O/inet/networklayer/icn/color/ColorFragBuf.o \
+    $O/inet/networklayer/icn/color/colorTwoInterface.o \
     $O/inet/networklayer/icn/delayQueue/delayQueue.o \
     $O/inet/networklayer/icn/field/NID.o \
     $O/inet/networklayer/icn/field/SID.o \
@@ -1074,6 +1076,7 @@ OBJS = \
     $O/inet/applications/netperfmeter/NetPerfMeter_m.o \
     $O/inet/applications/packetdrill/PacketDrillInfo_m.o \
     $O/inet/applications/tcpapp/GenericAppMsg_m.o \
+    $O/inet/applications/udpapp/stastics_m.o \
     $O/inet/applications/voip/SimpleVoipPacket_m.o \
     $O/inet/common/ByteArray_m.o \
     $O/inet/common/INETDefs_m.o \
@@ -1140,6 +1143,7 @@ OBJS = \
     $O/inet/networklayer/contract/L3SocketCommand_m.o \
     $O/inet/networklayer/contract/NetworkHeaderBase_m.o \
     $O/inet/networklayer/contract/clns/ClnsAddress_m.o \
+    $O/inet/networklayer/contract/color/ColorSocketCommand_m.o \
     $O/inet/networklayer/contract/ipv4/Ipv4Address_m.o \
     $O/inet/networklayer/contract/ipv4/Ipv4SocketCommand_m.o \
     $O/inet/networklayer/contract/ipv6/Ipv6Address_m.o \
@@ -1246,6 +1250,7 @@ MSGFILES = \
     inet/applications/netperfmeter/NetPerfMeter.msg \
     inet/applications/packetdrill/PacketDrillInfo.msg \
     inet/applications/tcpapp/GenericAppMsg.msg \
+    inet/applications/udpapp/stastics.msg \
     inet/applications/voip/SimpleVoipPacket.msg \
     inet/common/ByteArray.msg \
     inet/common/INETDefs.msg \
@@ -1312,6 +1317,7 @@ MSGFILES = \
     inet/networklayer/contract/L3SocketCommand.msg \
     inet/networklayer/contract/NetworkHeaderBase.msg \
     inet/networklayer/contract/clns/ClnsAddress.msg \
+    inet/networklayer/contract/color/ColorSocketCommand.msg \
     inet/networklayer/contract/ipv4/Ipv4Address.msg \
     inet/networklayer/contract/ipv4/Ipv4SocketCommand.msg \
     inet/networklayer/contract/ipv6/Ipv6Address.msg \

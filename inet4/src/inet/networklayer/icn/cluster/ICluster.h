@@ -55,6 +55,7 @@ class INET_API ICluster
         virtual const ClusterTable getClusterHead() = 0;
         virtual bool isHead() = 0;
         virtual bool isPreHead() { return true; };
+        virtual bool isGateWay() = 0;
 };
 }
 

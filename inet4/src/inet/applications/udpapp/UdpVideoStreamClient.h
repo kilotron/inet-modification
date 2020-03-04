@@ -36,8 +36,32 @@ namespace inet {
  */
 class INET_API UdpVideoStreamClient : public ApplicationBase, public UdpSocket::ICallback
 {
+  public:
+    struct SimRecorder
+    {
+        UdpVideoStreamClient *owner;
+
+        int multiConsumer;
+
+        int index;
+        std::vector<double> delayArray;
+
+        B throughput = B(0);
+        int GetSendNum = 0;
+        int GetRecvNum = 0;
+
+        int DataSendNum = 0;
+        int DataRecvNum =0;
+        simtime_t delay = 0;
+        simtime_t last = 0;
+
+        void ConsumerPrint(std::ostream &os);
+
+        void ProviderPrint(std::ostream &os);
+    };
   protected:
 
+    SimRecorder Recorder;
     // state
     UdpSocket socket;
     cMessage *selfMsg = nullptr;
@@ -61,6 +85,10 @@ class INET_API UdpVideoStreamClient : public ApplicationBase, public UdpSocket::
     virtual void socketClosed(UdpSocket *socket) override;
 
   public:
+    double startTime;
+    double sendInterval;
+    double pktNum;
+    std::string path;
     UdpVideoStreamClient() { }
     virtual ~UdpVideoStreamClient() { cancelAndDelete(selfMsg); }
 };

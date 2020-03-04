@@ -12,19 +12,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+import inet.common.INETDefs;
 
-package inet.node.aodv_cluster;
 
-import inet.common.MessageDispatcher;
-import inet.node.base.NetworkLayerNodeBase;
-import inet.networklayer.icn.cluster.ICluster;
-import inet.networklayer.icn.cluster.SimpleCluster;
+namespace inet;
 
-module Network_clusterNodeBase extends NetworkLayerNodeBase
+
+class statics extends cObject
 {
-     submodules:
-         cluster: SimpleCluster {
-            parameters:
-                @display("p=676,200;q=pendingQueue");
-        }
+    int totalNum;
+    simtime_t start;
+    
 }

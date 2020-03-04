@@ -83,6 +83,8 @@ ProtocolGroup ProtocolGroup::ethertype("ethertype", {
     { 0x88CC, &Protocol::lldp },
 //color protocol tags
     {1024,&Protocol::color },
+    {0x0801, &Protocol::colorTwoInterface},
+    {0x0802, &Protocol::colorNoCluster},
     {666, &Protocol::simplecluster},
 });
 

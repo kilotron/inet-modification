@@ -35,6 +35,11 @@ import inet.applications.contract.IApp;
 simple UdpVideoStreamClient like IApp
 {
     parameters:
+        string RSTpath = default("");
+        double sendInterval @unit(s);
+        volatile int packetLen @unit(B);  // length of a video packet in bytes
+        volatile int videoSize @unit(B);  // length of full a video stream in bytes
+
         int localPort = default(-1);  // local port (-1: use ephemeral port)
         string serverAddress;  // server address
         int serverPort;  // server port

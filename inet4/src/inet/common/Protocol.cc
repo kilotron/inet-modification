@@ -140,6 +140,8 @@ const Protocol Protocol::wiseRoute("wiseroute", "WiseRoute"); // WiseRoute Netwo
 
 //ZeusNet protocol
 const Protocol Protocol::color("color","Color",Protocol::NetworkLayer);
+const Protocol Protocol::colorTwoInterface("colorTwoInterface","colorTwoInterface",Protocol::NetworkLayer);
+const Protocol Protocol::colorNoCluster("colorNoCluster","colorNoCluster",Protocol::NetworkLayer);
 const Protocol Protocol::simplecluster("simplecluster", "SimpleCluster",Protocol::NetworkLayer);
 const Protocol Protocol::icntp("icntp","IcnTp",Protocol::TransportLayer);
 } // namespace inet
