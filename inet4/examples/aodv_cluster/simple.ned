@@ -28,6 +28,7 @@ network Simple
 {
     parameters:
         int numHosts = default(6);
+        double sendinterval = default(1);
     submodules:
         radioMedium: Ieee80211ScalarRadioMedium {
             parameters:
