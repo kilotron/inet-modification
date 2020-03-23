@@ -40,12 +40,14 @@ class ColorSocketCommandBase extends cObject
 class ColorSocketBindCommand extends ColorSocketCommandBase
 {
     const Protocol *protocol;
+    int localPort;
     NID nid;
 }
 
 class ColorSocketSendGetCommand extends ColorSocketCommandBase
 {
-	SID sid;   
+	SID sid;
+    int localPort;   
 }
 
 class ColorSocketCloseCommand extends ColorSocketCommandBase

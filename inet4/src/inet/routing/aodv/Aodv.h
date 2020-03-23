@@ -214,6 +214,11 @@ class INET_API Aodv : public RoutingProtocolBase, public NetfilterBase::HookBase
   public:
     Aodv();
     virtual ~Aodv();
+
+  bool isSelfAdress(const L3Address& adress)
+  {
+    return interfaceTable->isLocalAddress(adress);
+  }
 };
 
 } // namespace aodv

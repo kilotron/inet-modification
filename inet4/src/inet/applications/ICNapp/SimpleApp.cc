@@ -5,9 +5,9 @@
  *      Author: hiro
  */
 #include <algorithm>
+#include <fstream>
 
 #include "inet/applications/ICNapp/SimpleApp.h"
-
 #include "inet/common/ModuleAccess.h"
 #include "inet/common/Protocol.h"
 #include "inet/common/ProtocolGroup.h"
@@ -20,6 +20,7 @@
 #include "inet/networklayer/common/IpProtocolId_m.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/networklayer/icn/field/NID.h"
+#include "inet/applications/common/SocketTag_m.h"
 
 namespace inet
 {
@@ -35,15 +36,15 @@ void SimpleApp::SimRecorder::ConsumerPrint(std::ostream &os)
         os << "trans ratio: " << 100 * DataRecvNum / GetSendNum << "%" << endl;
     os << "send Interval: " << owner->sendInterval << "s" << endl;
     os << "Throughput: " << throughput.get() * 8 / ((simTime().dbl() - owner->startTime.dbl()) * 1000 * 1000) << " Mbps" << endl;
-    os << "Average delay: ";
+//    os << "Average delay: ";
     double sum = 0;
-    if(delayArray.size()>0)
-    {
-        std::for_each(delayArray.begin(), delayArray.end(), [&sum](double value) { sum += value; });
-        os << sum / delayArray.size() << " ms" << endl;
-    }
-    else
-        os << 0 << "ms" << endl;
+//    if(delayArray.size()>0)
+//    {
+//        std::for_each(delayArray.begin(), delayArray.end(), [&sum](double value) { sum += value; });
+//        os << sum / delayArray.size() << " ms" << endl;
+//    }
+//    else
+//        os << 0 << "ms" << endl;
 
     os << endl;
 }
@@ -65,7 +66,11 @@ void SimpleApp::initialize(int stage)
         sendInterval = par("sendInterval").doubleValue();
         startTime = par("startTime").doubleValue();
         stopTime = par("stopTime").doubleValue();
-        timer = new cMessage("sendPing");
+        timer = new cMessage("sendGET");
+        localPort = par("port").intValue();
+        path=par("RSTpath").stdstringValue();
+        Recorder.owner = this;
+        start = new cMessage("start");
 
         int nodeIndex = getParentModule()->getIndex();
         std::array<uint64_t, 2> hashValue;
@@ -79,26 +84,32 @@ void SimpleApp::handleMessageWhenUp(cMessage *msg){
     if (msg->isSelfMessage())
         handleSelfMessage(msg);
     else {
-        auto socket = check_and_cast_nullable<INetworkSocket *>(socketMap.findSocketFor(msg));
-        if (socket)
-            socket->processMessage(msg);
-        else
-            throw cRuntimeError("Unaccepted message: %s(%s)", msg->getName(), msg->getClassName());
+        currentSocket->processMessage(msg);
     }
-    if (operationalState == State::STOPPING_OPERATION && socketMap.size() == 0)
+    if (operationalState == State::STOPPING_OPERATION )
         startActiveOperationExtraTimeOrFinish(par("stopOperationExtraTime"));
 }
 
 void SimpleApp::handleSelfMessage(cMessage *msg)
 {
-    static long long content = 1;
-    if(content < requestNum)
+    static long long content = 0;
+    if(msg == start)
     {
-        content++;
         sendRequest({destIndex,content});
         scheduleAt(simTime()+sendInterval, timer);
     }
-    else cancelEvent(timer);
+    else if(msg == timer)
+    {
+        if(content < requestNum)
+        {
+            content++;
+            sendRequest({destIndex,content});
+            scheduleAt(simTime()+sendInterval, timer);
+        }
+        else cancelEvent(timer);
+    }
+    
+    
 }
 
 void SimpleApp::socketDataArrived(ColorSocket *socket, Packet *packet)
@@ -118,9 +129,9 @@ void SimpleApp::socketDataArrived(ColorSocket *socket, Packet *packet)
 
 void SimpleApp::socketClosed(ColorSocket *socket)
 {
-    if (socket == currentSocket)
-        currentSocket = nullptr;
-    delete socketMap.removeSocket(socket);
+
+   delete currentSocket;
+   currentSocket = nullptr;
 }
 
 void SimpleApp::handleStartOperation(LifecycleOperation *operation)
@@ -128,10 +139,9 @@ void SimpleApp::handleStartOperation(LifecycleOperation *operation)
     if (isEnabled())
     {
         currentSocket = new ColorSocket(&Protocol::color, gate("socketOut"));
-        currentSocket->bind(&Protocol::color,nid);
+        currentSocket->bind(&Protocol::color,nid, localPort);
         currentSocket->setCallback(this);
-        sendRequest({destIndex,0});
-        
+        scheduleAt(startTime, start);
     }
         
 }
@@ -144,7 +154,7 @@ void SimpleApp::refreshDisplay() const
 
 void SimpleApp::sendRequest(const SID &sid){
 
-    currentSocket->sendGET(sid);
+    currentSocket->sendGET(sid, localPort);
     Recorder.GetSendNum++;
 }
 
@@ -155,7 +165,12 @@ bool SimpleApp::isEnabled()
 
 void SimpleApp::finish()
 {
-
+    ApplicationBase::finish();
+    std::ofstream outfile;
+    auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_Consumer.txt");
+    outfile.open(path + fileName, std::ofstream::app);
+    Recorder.ConsumerPrint(outfile);
+    outfile.close();
 }
 
 void SimpleApp::handleStopOperation(LifecycleOperation *operation)

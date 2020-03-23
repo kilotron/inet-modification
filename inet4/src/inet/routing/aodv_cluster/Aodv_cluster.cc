@@ -882,9 +882,7 @@ void Aodv_cluster::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr
     AodvRouteData_cluster *destRouteData = destRoute ? dynamic_cast<AodvRouteData_cluster *>(destRoute->getProtocolData()) : nullptr;
 
     
-//    std::cout <<"nodeIndex: "<<getContainingNode(this)->getIndex() <<endl;
-//    std::cout <<"dest: "<< rreq->getDestAddr() << endl;
-//    std::cout << "self: " << getSelfIPAddress() << endl;
+
     // check (i)
     if (isSelfAdress(rreq->getDestAddr())) {
         EV_INFO << "I am the destination node for which the route was requested" << endl;

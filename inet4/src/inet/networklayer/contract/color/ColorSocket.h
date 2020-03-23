@@ -70,13 +70,13 @@ class INET_API ColorSocket : public ISocket
 
       void setOutputGate(cGate *outputGate) { this->outputGate = outputGate; }
 
-      void bind(const Protocol *protocol, const NID &nid);
+      void bind(const Protocol *protocol, const NID &nid, int localPort);
 
       void setCallback(ColorSocket::ICallback *callback);
 
       int getSocketId() const override { return socketId; }
 
-      void sendGET(const SID &sid);
+      void sendGET(const SID &sid, int port);
 
       void sendDATA(Packet *packet){};
 
@@ -93,6 +93,8 @@ class INET_API ColorSocket : public ISocket
       bool isOpen() const {return isOpen_;};
 
       void sendToOutput(cMessage *message);
+
+      int generateSocketId(){ return getEnvir()->getUniqueNumber();}
 };
 
 }

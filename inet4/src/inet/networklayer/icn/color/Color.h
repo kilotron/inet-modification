@@ -71,10 +71,11 @@ namespace inet{
                 int socketId = -1;
                 int protocolId = -1;
                 NID nid;
-                // Ipv4Address remoteAddress;
+                int localPort;
+                
 
-                SocketDescriptor(int socketId, int protocolId, const NID& nid)
-                        : socketId(socketId), protocolId(protocolId), nid(nid) {}
+                SocketDescriptor(int socketId, int protocolId, const NID& nid ,int port)
+                        : socketId(socketId), protocolId(protocolId), nid(nid),localPort(port) {}
             };
 
             enum class SendMode
@@ -91,6 +92,8 @@ namespace inet{
 
 
             std::map<int, SocketDescriptor *> socketIdToSocketDescriptor;
+
+            std::map<int, SocketDescriptor *> socketsByPortMap;
 
             //转发表
             IInterfaceTable *ift = nullptr;
@@ -116,11 +119,9 @@ namespace inet{
             //最大跳数
             int hopLimit;
 
-            //2.4GHz端口
-            InterfaceEntry * ie24;
+            //端口
+            InterfaceEntry * ie;
 
-            //5GHz
-            InterfaceEntry * ie5;
 
             //分簇协议模块
             ICluster* clusterModule;
@@ -147,8 +148,7 @@ namespace inet{
 
             delayQueue delay_queue24;
             cMessage* delayer24;
-            delayQueue delay_queue5;
-            cMessage *delayer5;
+
 
             double getDelayTime;
             double dataDelayTime;
@@ -268,7 +268,7 @@ namespace inet{
             //对上层来的包封装, type==0代表GET包， type==1代表DATA包
             void encapsulate(Packet *packet, int type, const SID& sid);
 
-            void encapsulate(Packet *packet, int type, int portSelf, int portDest);
+            void encapsulate(Packet *packet, int type, const SID& sid, int port);
       
             //对下层来的包解封装
             void decapsulate(Packet *packet, const SID& sid);
@@ -296,6 +296,8 @@ namespace inet{
             //节点作为consumer测试发包，转发路由机制，直接在网络层产生GET包发送
             void testSend(const SID &sid);
 
+            void sendGET(const SID &sid, int port);
+
             //节点作为provider创建内容包，测试中一个GET包对应一个DATA包
             void testProvide(const SID &sid, const B& dataSize);
 
@@ -316,6 +318,8 @@ namespace inet{
 
             //产生Data包头
             const Ptr<inet::Data> DataHead(const SID &sid);
+
+            void sendUp(Packet *pkt, SocketDescriptor *sd);
 
             //判断是否是
             bool isForwarder();

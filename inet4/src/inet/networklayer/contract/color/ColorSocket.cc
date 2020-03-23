@@ -21,13 +21,14 @@ outputGate(outputGate)
 {
 }
 
-void ColorSocket::bind(const Protocol *protocol, const NID &nid)
+void ColorSocket::bind(const Protocol *protocol, const NID &nid, int localPort)
 {
     ASSERT(!bound);
     ASSERT(l3Protocol != nullptr);
     auto *command = new ColorSocketBindCommand();
     command->setProtocol(protocol);
     command->setNid(nid);
+    command->setLocalPort(localPort);
     auto request = new Request("bind", COLOR_C_BIND);
     request->setControlInfo(command);
     sendToOutput(request);
@@ -50,12 +51,13 @@ void ColorSocket::setCallback(ColorSocket::ICallback *callback)
     this->callback = callback;
 }
 
-void ColorSocket::sendGET(const SID &sid)
+void ColorSocket::sendGET(const SID &sid, int port)
 {
     ASSERT(bound);
     ASSERT(l3Protocol != nullptr);
     auto *command = new ColorSocketSendGetCommand();
     command->setSid(sid);
+    command->setLocalPort(port);
     auto request = new Request("bind", COLOR_C_SEND_GET);
     request->setControlInfo(command);
     sendToOutput(request);

@@ -132,7 +132,7 @@ void SimpleCluster::finish()
     if(nodeIndex==0)
     {
         std::ofstream outfile;
-        outfile.open("authTime", std::ofstream::app);
+        outfile.open("authTime.txt", std::ofstream::app);
         outfile<<proTime<<",";
         outfile.close();
     }
@@ -184,7 +184,7 @@ void SimpleCluster::handleMessageWhenUp(cMessage *msg)
 void SimpleCluster::handleStartOperation(LifecycleOperation *operation)
 {
     ASSERT(clusterTable.table.empty());
-    ie5 = chooseInterface("wlan1");
+    ie5 = chooseInterface("wlan0");
 
     std::ofstream outfile;
     if (getParentModule()->getParentModule()->getIndex() == 0)

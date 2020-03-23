@@ -29,7 +29,7 @@ simple colorCluster like icn
         double DataProcDelay @unit(s) = default(0s);
         int mtu=2304;
   
-        int multi;
+        int multi = default(0);
 
         double getDelayTime = default(0.001);
         double dataDelayTime  = default(0.001);

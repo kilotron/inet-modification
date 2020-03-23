@@ -23,6 +23,7 @@ module IcnAppLayerNodeBase extends IcnNetworkLayerNodeBase
     
     parameters:       
         numWlanInterfaces = default(3);
+        int numApps = default(1);
         @display("i=device/cellphone");
         wlan[*].mgmt.typename = default("Ieee80211MgmtAdhoc");
         wlan[*].agent.typename = default("");

@@ -433,7 +433,7 @@ const Ptr<Rrep> Aodv::createRREP(const Ptr<Rreq>& rreq, IRoute *destRoute, IRout
     // if it is an intermediate node with an fresh enough route to the destination
     // (see section 6.6.2).
 
-    if (rreq->getDestAddr() == getSelfIPAddress()) {    // node is itself the requested destination
+    if (isSelfAdress(rreq->getDestAddr())) {    // node is itself the requested destination
         // If the generating node is the destination itself, it MUST increment
         // its own sequence number by one if the sequence number in the RREQ
         // packet is equal to that incremented value.
@@ -625,7 +625,7 @@ void Aodv::handleRREP(const Ptr<Rrep>& rrep, const L3Address& sourceAddr)
     // information in that route table entry.
 
     IRoute *originatorRoute = routingTable->findBestMatchingRoute(rrep->getOriginatorAddr());
-    if (getSelfIPAddress() != rrep->getOriginatorAddr()) {
+    if (isSelfAdress(rrep->getOriginatorAddr())) {
         // If a node forwards a RREP over a link that is likely to have errors or
         // be unidirectional, the node SHOULD set the 'A' flag to require that the
         // recipient of the RREP acknowledge receipt of the RREP by sending a RREP-ACK
@@ -866,7 +866,7 @@ void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsign
     AodvRouteData *destRouteData = destRoute ? dynamic_cast<AodvRouteData *>(destRoute->getProtocolData()) : nullptr;
 
     // check (i)
-    if (rreq->getDestAddr() == getSelfIPAddress()) {
+    if (isSelfAdress(rreq->getDestAddr())) {
         EV_INFO << "I am the destination node for which the route was requested" << endl;
 
         // create RREP

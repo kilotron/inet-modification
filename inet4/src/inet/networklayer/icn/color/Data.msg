@@ -61,4 +61,5 @@ class Data extends FieldsChunk
     //测试
     path trace;
 
+    bool cluster;
 }

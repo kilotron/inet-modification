@@ -36,7 +36,7 @@ simple UdpVideoStreamClient like IApp
 {
     parameters:
         string RSTpath = default("");
-        double sendInterval @unit(s);
+        double sendInterval = default(1s) @unit(s);
         volatile int packetLen @unit(B);  // length of a video packet in bytes
         volatile int videoSize @unit(B);  // length of full a video stream in bytes
 

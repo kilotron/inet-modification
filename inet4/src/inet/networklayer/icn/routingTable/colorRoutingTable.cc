@@ -93,6 +93,7 @@ shared_ptr<Croute> ColorRoutingTable::findRoute(NID dest)
         else
         {
             routingTable.erase(iter);
+            break;
         }
     }
     if (result == routingTable.end())

@@ -72,7 +72,7 @@ void UdpVideoStreamClient::initialize(int stage)
         Recorder.index = getParentModule()->getIndex();
         Recorder.owner = this;
         startTime = par("startTime").doubleValue();
-        sendInterval = cSimulation::getActiveSimulation()->getSystemModule()->par("sendinterval").doubleValue();
+        sendInterval = cSimulation::getActiveSimulation()->getSystemModule()->par("sendInterval").doubleValue();
         int size = par("videoSize").intValue();
         int len = par("packetLen").intValue();
         pktNum = ceil(double(size) / double(len));

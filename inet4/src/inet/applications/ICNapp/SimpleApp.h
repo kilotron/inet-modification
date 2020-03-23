@@ -52,18 +52,23 @@ class INET_API SimpleApp : public ApplicationBase, public ColorSocket::ICallback
         NID nid;
         int destIndex;
         int requestNum;
-        double sendInterval;
+        
+        int localPort;
         
         simtime_t stopTime;
         
-        SocketMap socketMap;
+
         ColorSocket *currentSocket = nullptr;
         int pid = 0;
         cMessage *timer = nullptr;    // to schedule the next Ping request
+        cMessage *start = nullptr;
         SimRecorder Recorder;
+
+        std::string path;
 
     public:
         simtime_t startTime;
+        double sendInterval;
         
         SimpleApp(){};
         ~SimpleApp(){};

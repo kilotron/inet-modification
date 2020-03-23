@@ -49,7 +49,7 @@ void UdpVideoStreamServer::initialize(int stage)
     ApplicationBase::initialize(stage);
 
     if (stage == INITSTAGE_LOCAL) {
-        sendInterval = &cSimulation::getActiveSimulation()->getSystemModule()->par("sendinterval");
+        sendInterval = &cSimulation::getActiveSimulation()->getSystemModule()->par("sendInterval");
         packetLen = &par("packetLen");
         videoSize = &par("videoSize");
         localPort = par("localPort");
