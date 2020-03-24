@@ -76,9 +76,9 @@ class INET_API ColorSocket : public ISocket
 
       int getSocketId() const override { return socketId; }
 
-      void sendGET(const SID &sid, int port);
+      void sendGET(const SID &sid, int port, double inter);
 
-      void sendDATA(Packet *packet){};
+      void CacheData(const SID &sid, cMessage *msg);
 
       void close();
 

@@ -139,8 +139,8 @@ namespace inet{
 
             //测试变量
             simtime_t startTime;
-            int Cindex;
-            int Pindex;
+            int Cindex = 10000;
+
 
             double sentInterval;
    
@@ -273,7 +273,7 @@ namespace inet{
             //对下层来的包解封装
             void decapsulate(Packet *packet, const SID& sid);
 
-
+            void cacheData(const SID &sid, Packet *packet);
 
             //将数据包通过指定端口发送
             void sendDatagramToOutput(Packet *packet, int nic, const MacAddress& mac = MacAddress::BROADCAST_ADDRESS);

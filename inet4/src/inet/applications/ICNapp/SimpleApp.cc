@@ -92,7 +92,7 @@ void SimpleApp::handleMessageWhenUp(cMessage *msg){
 
 void SimpleApp::handleSelfMessage(cMessage *msg)
 {
-    static long long content = 0;
+    
     if(msg == start)
     {
         sendRequest({destIndex,content});
@@ -154,7 +154,7 @@ void SimpleApp::refreshDisplay() const
 
 void SimpleApp::sendRequest(const SID &sid){
 
-    currentSocket->sendGET(sid, localPort);
+    currentSocket->sendGET(sid, localPort, sendInterval);
     Recorder.GetSendNum++;
 }
 
@@ -166,11 +166,11 @@ bool SimpleApp::isEnabled()
 void SimpleApp::finish()
 {
     ApplicationBase::finish();
-    std::ofstream outfile;
-    auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_Consumer.txt");
-    outfile.open(path + fileName, std::ofstream::app);
-    Recorder.ConsumerPrint(outfile);
-    outfile.close();
+    // std::ofstream outfile;
+    // auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_Consumer.txt");
+    // outfile.open(path + fileName, std::ofstream::app);
+    // Recorder.ConsumerPrint(outfile);
+    // outfile.close();
 }
 
 void SimpleApp::handleStopOperation(LifecycleOperation *operation)

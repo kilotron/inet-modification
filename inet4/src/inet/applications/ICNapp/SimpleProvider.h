@@ -1,12 +1,12 @@
 /*
- * SimpleApp.h
+ * SimpleProvider.h
  *
- *  Created on: Mar 2, 2020
+ *  Created on: Mar 24, 2020
  *      Author: hiro
  */
 
-#ifndef INET_APPLICATIONS_ICNAPP_SIMPLEAPP_H_
-#define INET_APPLICATIONS_ICNAPP_SIMPLEAPP_H_
+#ifndef INET_APPLICATIONS_ICNAPP_SIMPLEPROVIDER_H_
+#define INET_APPLICATIONS_ICNAPP_SIMPLEPROVIDER_H_
 
 #include "inet/common/INETDefs.h"
 #include "inet/applications/base/ApplicationBase.h"
@@ -22,57 +22,31 @@
 
 namespace inet
 {
-class INET_API SimpleApp : public ApplicationBase, public ColorSocket::ICallback
+class INET_API SimpleProvider : public ApplicationBase, public ColorSocket::ICallback
 {
-    public:
-        struct SimRecorder
-        {
-            SimpleApp * owner;
-
-            int multiConsumer;
-
-            int index;
-            std::map<SID, simtime_t> Delays;
-            std::vector<double> delayArray;
-
-            B throughput = B(0);
-            int GetSendNum = 0;
-            int GetRecvNum = 0;
-
-            int DataSendNum = 0;
-            int DataRecvNum =0;
-            simtime_t delay = 0;
-
-            void ConsumerPrint(std::ostream &os);
-
-            void ProviderPrint(std::ostream &os);
-        };
 
     private:
         NID nid;
-        int destIndex;
-        int requestNum;
-        
+        int pktLen;
+        int pktNum;
+        int nodeIndex;
+
         int localPort;
-        
+
         simtime_t stopTime;
-        long long content = 0;
-        
+
 
         ColorSocket *currentSocket = nullptr;
         int pid = 0;
-        cMessage *timer = nullptr;    // to schedule the next Ping request
-        cMessage *start = nullptr;
-        SimRecorder Recorder;
 
-        std::string path;
+        cMessage *start = nullptr;
+        long long content = 0;
 
     public:
         simtime_t startTime;
-        double sendInterval;
-        
-        SimpleApp(){};
-        ~SimpleApp(){};
+
+        SimpleProvider(){};
+        ~SimpleProvider(){};
         int getPid() const {return pid;}
 
         virtual void initialize(int stage) override;
@@ -82,7 +56,7 @@ class INET_API SimpleApp : public ApplicationBase, public ColorSocket::ICallback
         virtual void finish() override;
         virtual void refreshDisplay() const override;
 
-        void sendRequest(const SID &sid);
+        void generateAndCacheData(const SID &sid);
 
         bool isEnabled();
 
@@ -101,5 +75,4 @@ class INET_API SimpleApp : public ApplicationBase, public ColorSocket::ICallback
 
 
 
-
-#endif /* INET_APPLICATIONS_ICNAPP_SIMPLEAPP_H_ */
+#endif /* INET_APPLICATIONS_ICNAPP_SIMPLEPROVIDER_H_ */

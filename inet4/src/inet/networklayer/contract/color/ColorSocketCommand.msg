@@ -25,6 +25,7 @@ enum ColorCommandCode
  	 COLOR_C_SEND_GET = 2;
      COLOR_C_CLOSE = 3;
      COLOR_C_DESTROY = 4;
+     COLOR_C_CACHE_DATA = 5; 
 };
 
 enum ColorStatusInd {
@@ -47,7 +48,14 @@ class ColorSocketBindCommand extends ColorSocketCommandBase
 class ColorSocketSendGetCommand extends ColorSocketCommandBase
 {
 	SID sid;
-    int localPort;   
+    int localPort;
+    double Inter;   
+}
+
+class ColorSocketCacheDataCommand extends ColorSocketCommandBase
+{
+	SID sid;
+    cMessage *pkt; 
 }
 
 class ColorSocketCloseCommand extends ColorSocketCommandBase

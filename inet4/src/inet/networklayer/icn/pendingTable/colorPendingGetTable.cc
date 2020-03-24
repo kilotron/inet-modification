@@ -50,7 +50,7 @@ void colorPendingGetTable::handleMessage(cMessage *msg)
 {
     //定时器触发，删除对应的pit 表项
     auto sid = timers->find(msg)->second;
-    rt->removeEntry(sid.getNidHead());
+    // rt->removeEntry(sid.getNidHead());
     RemoveEntry(sid);
     //删除定时器消息本身a
     cancelEvent(msg);

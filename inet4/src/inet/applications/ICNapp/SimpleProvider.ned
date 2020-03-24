@@ -14,20 +14,20 @@
 // 
 
 package inet.applications.ICNapp;
-
 import inet.applications.contract.IApp;
 
-//
-simple SimpleApp like IApp
+simple SimpleProvider like IApp
 {
     parameters:
         int port = default(8709);
         int destAddr = default(0); // destination address(es), separated by spaces, "*" means all IPv4/IPv6 interfaces in entire simulation
         int requestNum = default(100000);
+        int pktLen = default(1000);
+        int pktNum = default(100000);
         string RSTpath = default("");
 //        string srcAddr = default(""); // source address (useful with multi-homing)
         // int packetSize @unit(B) = default(56B); // of ping payload, in bytes
-        volatile double sendInterval = default(1); // time to wait between pings (can be random)
+ 
 
         double startTime @unit(s) = default(3s); // send first ping at startTime
         double stopTime @unit(s) = default(-1s); // time to finish sending, negative values mean forever

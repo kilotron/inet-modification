@@ -51,13 +51,14 @@ void ColorSocket::setCallback(ColorSocket::ICallback *callback)
     this->callback = callback;
 }
 
-void ColorSocket::sendGET(const SID &sid, int port)
+void ColorSocket::sendGET(const SID &sid, int port, double inter)
 {
     ASSERT(bound);
     ASSERT(l3Protocol != nullptr);
     auto *command = new ColorSocketSendGetCommand();
     command->setSid(sid);
     command->setLocalPort(port);
+    command->setInter(inter);
     auto request = new Request("bind", COLOR_C_SEND_GET);
     request->setControlInfo(command);
     sendToOutput(request);
@@ -95,6 +96,18 @@ void ColorSocket::processMessage(cMessage *msg)
         callback->socketDataArrived(this, check_and_cast<Packet *>(msg));
     else
         delete msg;
+}
+
+void ColorSocket::CacheData(const SID &sid, cMessage *msg)
+{
+    ASSERT(bound);
+    ASSERT(l3Protocol != nullptr);
+    auto *command = new ColorSocketCacheDataCommand();
+    command->setSid(sid);
+    command->setPkt(msg);
+    auto request = new Request("data", COLOR_C_CACHE_DATA);
+    request->setControlInfo(command);
+    sendToOutput(request);
 }
 
 }

@@ -67,7 +67,7 @@ colorCluster::~colorCluster()
 void colorCluster::finish()
 {
 
-//    record();
+    record();
     cancelAndDelete(testGet);
     cancelAndDelete(testData);
     cancelAndDelete(delayer24);
@@ -96,9 +96,6 @@ void colorCluster::initialize(int stage)
         testModule.index = nodeIndex;
         testModule.multiConsumer = par("multi").intValue();
 
-        Cindex = cSimulation::getActiveSimulation()->getSystemModule()->par("Cindex").intValue();
-        Pindex = cSimulation::getActiveSimulation()->getSystemModule()->par("Pindex").intValue();
-        sentInterval = cSimulation::getActiveSimulation()->getSystemModule()->par("sendInterval").doubleValue();
 
         ResemBuffer = new ColorFragBuf();
         //得到指向转发表的指针
@@ -218,15 +215,13 @@ void colorCluster::handleStartOperation(LifecycleOperation *operation)
     {
         if (nodeIndex % Cindex == 0)
             scheduleAt(testget, testGet);
-        else if (nodeIndex == Pindex)
-            scheduleAt(testdata, testData);
+
     }
     else if (testModule.multiConsumer == 0)
     {
         if (nodeIndex == Cindex)
             scheduleAt(testget, testGet);
-        else if (nodeIndex == Pindex)
-            scheduleAt(testdata, testData);
+
     }
     else if (testModule.multiConsumer == 2)
     {
@@ -235,8 +230,7 @@ void colorCluster::handleStartOperation(LifecycleOperation *operation)
         {
             scheduleAt(testget, testGet);
         }
-        else if (nodeIndex == Pindex)
-            scheduleAt(testdata, testData);
+
     }
 }
 
@@ -278,31 +272,20 @@ void colorCluster::handleMessageWhenUp(cMessage *msg)
         {
             if (testModule.multiConsumer == 0)
             {
-                testSend({Pindex, requestIndex++ % 20000});
-                scheduleGet(sentInterval, SendMode::EqualInterval);
+
             }
             else if (testModule.multiConsumer == 1)
             {
-                if (nodeIndex % Cindex == 0)
-                    testSend({Pindex, requestIndex++ % 20000});
-                scheduleGet(sentInterval, SendMode::EqualInterval);
+
             }
             else
             {
-                //请求的SID与当前时间相关
-                int temp = ceil(uniform(simTime() - 2, simTime() + 2).dbl());
-                int sid = temp < 0 ? 0 : temp;
-                // std::cout << "req sid: " << sid << "interval: " << sentInterval << endl;
-                testSend({Pindex, sid});
-                scheduleGet(sentInterval, SendMode::UniformDisInterval);
+
             }
         }
         else if (msg == testData)
         {
-            for (long long i = 0; i < 100000; i++)
-            {
-                testProvide({Pindex, i}, B(2000));
-            }
+
         }
         else if (msg == delayer24)
         {
@@ -602,8 +585,8 @@ void colorCluster::handleGetPacket(Packet *packet)
                     head->setMAC(ie->getMacAddress());
                     packet->insertAtFront(head);
 
-                    delay_queue24.insert(packet, GET, simTime(), 1, route->getNextMac());
-
+                    sendDatagramToOutput(packet,24,route->getNextMac());
+                    // sendDatagramToOutput(packet,24);
 
 //                    delete packet;
                     return;
@@ -942,13 +925,11 @@ void colorCluster::testSend(const SID &sid)
     pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
     sendDatagramToOutput(packet->dup(), 24);
     testModule.Delays[sid] = simTime();
-    // delay = SimTime();
+
 
     testModule.GetSendNum++;
 
     std::cout << endl;
-    //    std::for_each(clusterModule->getHeads().begin(), clusterModule->getHeads().end(), [](const int &n) { std::cout << n << " "; });
-    //    std::cout << "send get packet" <<simTime()<< endl;
     delete packet;
 }
 
@@ -961,6 +942,7 @@ void colorCluster::sendGET(const SID &sid, int port)
     pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
     sendDatagramToOutput(packet->dup(), 24);
     testModule.Delays[sid] = simTime();
+    testModule.GetSendNum++;
 }
 
 void colorCluster::testProvide(const SID &sid, const B &dataSize)
@@ -973,6 +955,10 @@ void colorCluster::testProvide(const SID &sid, const B &dataSize)
     FragmentAndStore(packet, sid);
 
     //    ct->CachePacket(1024, packet);
+}
+void colorCluster::cacheData(const SID &sid, Packet *packet)
+{
+    FragmentAndStore(packet, sid);
 }
 
 void colorCluster::scheduleGet(simtime_t t, SendMode mode)
@@ -1016,61 +1002,20 @@ void colorCluster::record()
 {
     std::ofstream outfile;
 
-    if (testModule.multiConsumer == 1)
+
+    if (nodeIndex == Cindex)
     {
-        if (Cindex == 0 || nodeIndex % Cindex == 0)
-        {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_") + std::to_string(sentInterval) + string("_Consumer.txt"), std::ofstream::app);
-            testModule.ConsumerPrint(outfile);
-            outfile.close();
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_") + std::to_string(sentInterval) + string("_delays.txt"), std::ofstream::app);
-            outfile << nodeIndex << ": ";
-            std::for_each(testModule.delayArray.begin(), testModule.delayArray.end(), [&outfile](double time) { outfile << time << ","; });
-            outfile << endl;
-            outfile.close();
-        }
-        else if (nodeIndex == Pindex)
-        {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_") + std::to_string(sentInterval) + string("_Provider.txt"), std::ofstream::app);
-            testModule.ProviderPrint(outfile);
-            outfile.close();
-        }
+        auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Consumer.txt");
+        outfile.open("./simu/" + fileName, std::ofstream::app);
+        testModule.ConsumerPrint(outfile);
+        outfile.close();
+        // outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_") + std::to_string(getDelayTime) + "_" + std::to_string(dataDelayTime) + "_" + std::to_string(flood) + string("_delays.txt"), std::ofstream::app);
+        // outfile << nodeIndex << ": ";
+        // std::for_each(testModule.delayArray.begin(), testModule.delayArray.end(), [&outfile](double time) { outfile << time << ","; });
+        // outfile << endl;
+        // outfile << endl;
     }
-    else if (testModule.multiConsumer == 0)
-    {
-        if (nodeIndex == Cindex)
-        {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Consumer.txt"), std::ofstream::app);
-            testModule.ConsumerPrint(outfile);
-            outfile.close();
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_") + std::to_string(getDelayTime) + "_" + std::to_string(dataDelayTime) + "_" + std::to_string(flood) + string("_delays.txt"), std::ofstream::app);
-            outfile << nodeIndex << ": ";
-            std::for_each(testModule.delayArray.begin(), testModule.delayArray.end(), [&outfile](double time) { outfile << time << ","; });
-            outfile << endl;
-            outfile << endl;
-        }
-        else if (nodeIndex == Pindex)
-        {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Provider.txt"), std::ofstream::app);
-            testModule.ProviderPrint(outfile);
-            outfile.close();
-        }
-    }
-    else if (testModule.multiConsumer == 2)
-    {
-        if (nodeIndex - Cindex >= 0 && nodeIndex - Cindex <= 3)
-        {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Consumer.txt"), std::ofstream::app);
-            testModule.ConsumerPrint(outfile);
-            outfile.close();
-        }
-        else if (nodeIndex == Pindex)
-        {
-            outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Provider.txt"), std::ofstream::app);
-            testModule.ProviderPrint(outfile);
-            outfile.close();
-        }
-    }
+
 }
 
 bool colorCluster::isForwarder()
@@ -1093,8 +1038,16 @@ void  colorCluster::handleRequest(Request *request)
     }
     else if(ColorSocketSendGetCommand *command = dynamic_cast<ColorSocketSendGetCommand *>(ctrl))
     {
+        Cindex = nodeIndex;
+        sentInterval = command->getInter();
         sendGET(command->getSid(), command->getLocalPort());
         delete request;
+    }
+    else if(ColorSocketCacheDataCommand *command = dynamic_cast<ColorSocketCacheDataCommand *>(ctrl))
+    {
+        auto msg = const_cast<cMessage *>(command->getPkt());
+        auto pkt = dynamic_cast<Packet *>(msg);
+        cacheData(command->getSid(), pkt);
     }
 }
 

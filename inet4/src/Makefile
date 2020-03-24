@@ -28,6 +28,7 @@ OBJS = \
     $O/inet/applications/Fap/Fap.o \
     $O/inet/applications/Fap/hash/MurmurHash3.o \
     $O/inet/applications/ICNapp/SimpleApp.o \
+    $O/inet/applications/ICNapp/SimpleProvider.o \
     $O/inet/applications/WCAcluster/WCAcluster.o \
     $O/inet/applications/base/ApplicationBase.o \
     $O/inet/applications/base/ApplicationPacketSerializer.o \
