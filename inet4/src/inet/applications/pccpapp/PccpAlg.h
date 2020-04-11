@@ -11,21 +11,27 @@
 #include "inet/common/INETDefs.h"
 #include "inet/applications/pccpapp/PccpStateVariables.h"
 #include "inet/applications/pccpapp/PccpSendQueue.h"
+#include "inet/applications/pccpapp/PccpApp.h"
 
 namespace inet {
 namespace pccp {
 
+class PccpApp;
+
 /**
  * Includes basic algorithms: retransmission, congestion window adjustment.
  */
-class INET_API PccpAlg : public cObject
+class INET_API PccpAlg : public cObject, public ColorSocket::ICallback
 {
 protected:
     PccpStateVariables state;
     PccpSendQueue sendQueue;
 
 public:
+    PccpApp *pccpApp;    // app module, set by the app
+
     PccpAlg();
+    ~PccpAlg();
 
     /**
      * Performs retransmission and increases RTO
@@ -48,6 +54,13 @@ public:
      * will allow rttMeasurementComplete() to do calculations.
      */
     void rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived);
+
+    //INetworkSocket::ICallback:
+    virtual void socketDataArrived(ColorSocket *socket, Packet *packet) override;
+    virtual void socketClosed(ColorSocket *socket) override;
+
+    // interface between PccpApp and PccpAlg
+    void sendRequest(const SID &sid, int localPort, double sendInterval);
 };
 
 } // namespace pccp

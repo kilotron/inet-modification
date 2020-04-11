@@ -18,6 +18,10 @@ PccpAlg::PccpAlg()
 {
 }
 
+PccpAlg::~PccpAlg()
+{
+}
+
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
     // Abort retransmission after max 12 retries.
@@ -111,6 +115,25 @@ void PccpAlg::rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived)
 
     EV << "Measured RTT=" << (newRTT * 1000) << "ms, updated SRTT=" << (state.srtt * 1000)
        << "ms, new RTO=" << (rto * 1000) << "ms\n";
+}
+
+//INetworkSocket::ICallback
+// socket bind is set by PccpApp
+void PccpAlg::socketDataArrived(ColorSocket *socket, Packet *packet)
+{
+    // TODO
+}
+
+void PccpAlg::socketClosed(ColorSocket *socket)
+{
+   delete socket;
+   pccpApp->currentSocket = nullptr;
+}
+
+// interface between PccpApp and PccpAlg
+void PccpAlg::sendRequest(const SID &sid, int localPort, double sendInterval)
+{
+    pccpApp->currentSocket->sendGET(sid, localPort, sendInterval);
 }
 
 } // namespace pccp
