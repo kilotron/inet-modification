@@ -89,3 +89,10 @@ core
 #ignore ini config
 examples/icnAdhoc/omnetpp.ini
 
+# binary files
+inet4/inet-modification
+inet4/inet-modification_dbg
+inet4/src/inet-modification
+inet4/src/inet-modification_dbg
+
+
