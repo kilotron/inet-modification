@@ -81,7 +81,6 @@ public:
      */
     void increaseRexmitCount(const SID& sid);
 
-
     /**
      * Returns the number of the requests that has been sent at least once.
      */

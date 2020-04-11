@@ -23,7 +23,7 @@ public:
     PccpStateVariables();
 
     // round-trip time measurements
-    SID *rtsid;    // SID for RTT measurement(null if RTT measurement is not running)
+    const SID *rtsid;    // SID for RTT measurement(null if RTT measurement is not running)
     simtime_t rtsid_sendtime;    // time when rtsid was sent(0 if RTT measurement is not running)
 
     // round-trip time estimation
@@ -33,7 +33,7 @@ public:
     simtime_t rexmit_timeout;   // current retransmission timeout
 
     uint32 window;    // congestion window
-}
+};
 
 } // namespace pccpnet
 } // namespace inet
