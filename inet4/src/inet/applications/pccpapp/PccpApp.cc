@@ -20,6 +20,8 @@ namespace pccp {
 
 Define_Module(PccpApp);
 
+// TODO 完成provider
+
 PccpApp::PccpApp() {
     pccpAlg = new PccpAlg();
     pccpAlg->pccpApp = this;
@@ -53,10 +55,14 @@ void PccpApp::initialize(int stage)
 }
 
 void PccpApp::handleMessageWhenUp(cMessage *msg){
-    if (msg->isSelfMessage())
+    if (msg->isSelfMessage()) {
         handleSelfMessage(msg);
+    }
+    else if (strcmp(msg->getName(), "REXMIT") == 0) {
+        pccpAlg->processRexmitTimer(msg);
+    }
     else {
-        currentSocket->processMessage(msg); // TODO
+        currentSocket->processMessage(msg);
     }
     if (operationalState == State::STOPPING_OPERATION )
         startActiveOperationExtraTimeOrFinish(par("stopOperationExtraTime"));
@@ -64,7 +70,6 @@ void PccpApp::handleMessageWhenUp(cMessage *msg){
 
 void PccpApp::handleSelfMessage(cMessage *msg)
 {
-
     if(msg == start)
     {
         sendRequest({destIndex,content});
@@ -106,6 +111,11 @@ void PccpApp::maxRexmit(const SID& sid)
 void PccpApp::dataArrived(Packet *packet)
 {
     // TODO 在这里统计
+}
+
+void PccpApp::scheduleTimeout(cMessage *timer, simtime_t timeout)
+{
+    scheduleAt(simTime() + timeout, timer);
 }
 
 bool PccpApp::isEnabled()

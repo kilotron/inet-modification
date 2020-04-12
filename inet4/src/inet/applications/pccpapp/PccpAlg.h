@@ -23,25 +23,28 @@ class PccpApp;
  */
 class INET_API PccpAlg : public cObject, public ColorSocket::ICallback
 {
+    friend class PccpApp;
+
 protected:
     PccpStateVariables state;
     PccpSendQueue sendQueue;
-
-public:
     PccpApp *pccpApp;    // app module, set by the app
 
-    PccpAlg();
-    ~PccpAlg();
-
+private:
     /**
-     * Performs retransmission and increases RTO
+     * Send all of the requests in sendQueue if possible.
      */
-    void processRexmitTimer(cMessage *timer);
+    void sendRequestsToSocket();
 
     /**
      * Schedules retransmission timer and starts round-trip time measurement.
      */
     void requestSent(const SID& sid);
+
+    /**
+     * Retransmit GET, reset timer and increase rexmit count.
+     */
+    void retransmitRequest(const SID& sid);
 
     /**
      * Finishes round-trip time measurement, cancel retransmission timer and adjust
@@ -55,12 +58,22 @@ public:
      */
     void rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived);
 
-    //INetworkSocket::ICallback:
-    virtual void socketDataArrived(ColorSocket *socket, Packet *packet) override;
-    virtual void socketClosed(ColorSocket *socket) override;
+public:
+
+    PccpAlg();
+    ~PccpAlg();
 
     // interface between PccpApp and PccpAlg
     void sendRequest(const SID &sid, int localPort, double sendInterval);
+
+    /**
+     * Performs retransmission and increases RTO
+     */
+    void processRexmitTimer(cMessage *timer);
+
+    //INetworkSocket::ICallback:
+    virtual void socketDataArrived(ColorSocket *socket, Packet *packet) override;
+    virtual void socketClosed(ColorSocket *socket) override;
 };
 
 } // namespace pccp

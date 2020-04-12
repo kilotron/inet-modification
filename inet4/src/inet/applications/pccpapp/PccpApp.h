@@ -68,6 +68,7 @@ class INET_API PccpApp : public ApplicationBase
     // interface between PccpApp and PccpAlg
     void maxRexmit(const SID& sid);
     void dataArrived(Packet *packet);
+    void scheduleTimeout(cMessage *timer, simtime_t timeout);
 
     bool isEnabled(); // TODO what's this
 

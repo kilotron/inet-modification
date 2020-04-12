@@ -29,7 +29,7 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
     sendQueue.increaseRexmitCount(sid);
     if (sendQueue.getRexmitCount(sid) > MAX_REXMIT_COUNT) {
         EV << "Retransmission count exceeds " << MAX_REXMIT_COUNT << ", aborting.\n";
-        // TODO 通知App超过最大重传次数
+        pccpApp->maxRexmit(sid); // Tell app retransmission count exceeds MAX_REXMIT_COUNT.
         return;
     }
 
@@ -44,20 +44,38 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
         state.rexmit_timeout = MAX_REXMIT_TIMEOUT;
     }
 
-    EV << " to " << state.rexmit_timeout << "s, and cancelling RTT measurement\n";
-    // TODO 重新schedule timer
+    EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
 
     // cancel round-trip time measurement
     state.rtsid = nullptr;
     state.rtsid_sendtime = 0;
 
-    // TODO 重传数据
+    retransmitRequest(sid);
+}
+
+void PccpAlg::retransmitRequest(const SID& sid)
+{
+    cMessage *timer = sendQueue.findRexmitTimer(sid);
+    pccpApp->currentSocket->sendGET(sid, pccpApp->localPort, pccpApp->sendInterval);
+    pccpApp->scheduleTimeout(timer, state.rexmit_timeout);
+    sendQueue.increaseRexmitCount(sid);
+}
+
+void PccpAlg::sendRequestsToSocket()
+{
+    int effectiveWindow = state.window - sendQueue.getSentRequestCount();
+    while (effectiveWindow-- > 0 && sendQueue.hasUnsentSID()) {
+        SID sidToSend = sendQueue.popOneUnsentSID();
+        pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
+        requestSent(sidToSend);
+    }
 }
 
 void PccpAlg::requestSent(const SID& sid)
 {
     // if retransmission timer not running, schedule it
     cMessage *timer = sendQueue.findRexmitTimer(sid);
+    pccpApp->scheduleTimeout(timer, state.rexmit_timeout);
 
     // start round-trip time measurement (if not already running)
     if (state.rtsid_sendtime == 0) {
@@ -66,8 +84,6 @@ void PccpAlg::requestSent(const SID& sid)
         state.rtsid_sendtime = simTime();
         EV << "Starting rtt measurement on sid=" << sid.str() << "\n";
     }
-
-    // TODO 启动超时计时器
 }
 
 void PccpAlg::dataReceived(const SID& sid)
@@ -85,12 +101,13 @@ void PccpAlg::dataReceived(const SID& sid)
 
     // cancel retransmission timer
     cMessage *timer = sendQueue.findRexmitTimer(sid);
-    // TODO 取消timer
+    pccpApp->cancelEvent(timer);
 
     // remove the request from sendQueue
     sendQueue.discard(sid);
 
     // TODO 调整拥塞窗口，发送新请求（如果可以的话）
+    sendRequestsToSocket();
 }
 
 void PccpAlg::rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived)
@@ -134,6 +151,7 @@ void PccpAlg::socketClosed(ColorSocket *socket)
 void PccpAlg::sendRequest(const SID &sid, int localPort, double sendInterval)
 {
     pccpApp->currentSocket->sendGET(sid, localPort, sendInterval);
+    sendRequestsToSocket();
 }
 
 } // namespace pccp
