@@ -514,7 +514,6 @@ const IIeee80211Mode *Ieee80211ModeSet::findMode(bps minBitrate, bps maxBitrate,
         auto mode = entries[index].mode;
         auto dataMode = mode->getDataMode();
         auto bitrate = dataMode->getNetBitrate();
-//        std::cout<<Mbps(bitrate)<<endl;
         if (minBitrate <= bitrate && bitrate <= maxBitrate &&
             (std::isnan(bandwidth.get()) || dataMode->getBandwidth() == bandwidth) &&
             (numSpatialStreams == -1 || dataMode->getNumberOfSpatialStreams() == numSpatialStreams))

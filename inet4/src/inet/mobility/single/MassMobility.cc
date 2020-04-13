@@ -41,8 +41,24 @@ void MassMobility::initialize(int stage)
         rotationAxisAngleParameter = &par("rotationAxisAngle");
         speedParameter = &par("speed");
         quaternion = Quaternion(EulerAngles(heading, -elevation, rad(0)));
+
+        
         WATCH(quaternion);
     }
+    else if((stage == INITSTAGE_SINGLE_MOBILITY))
+    {
+        lastPosition.x = uniform(0, par("consX").doubleValue(),0);
+        lastPosition.y = uniform(0, par("consY").doubleValue(),0);
+        // lastPosition.z = uniform(0, par("consZ").doubleValue(),0);
+    }
+}
+
+void MassMobility::initializePosition()
+{
+    LineSegmentsMobilityBase::initializePosition();
+//    auto x = uniform(0, par("consX").doubleValue(),0);
+//    auto y = uniform(0, par("consY").doubleValue(),0);
+
 }
 
 void MassMobility::orient()

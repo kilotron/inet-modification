@@ -22,7 +22,6 @@
 #include "inet/common/INETMath.h"
 #include "inet/common/figures/IIndicatorFigure.h"
 
-// for the moment commented out as omnet cannot instatiate it from a namespace
 namespace inet {
 
 class INET_API CounterFigure : public cGroupFigure, public inet::IIndicatorFigure
@@ -57,6 +56,8 @@ class INET_API CounterFigure : public cGroupFigure, public inet::IIndicatorFigur
     virtual ~CounterFigure() {};
 
     virtual void setValue(int series, simtime_t timestamp, double value) override;
+
+    virtual const Point getSize() const override { return backgroundFigure->getBounds().getSize(); }
 
     // getters and setters
     const Color& getBackgroundColor() const;

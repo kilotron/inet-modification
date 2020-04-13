@@ -52,6 +52,7 @@ class INET_API SimpleApp : public ApplicationBase, public ColorSocket::ICallback
         NID nid;
         int destIndex;
         int requestNum;
+        int rngNum;
         
         int localPort;
         

@@ -18,8 +18,7 @@
 
 package inet.routing.aodv_cluster;
 
-import inet.routing.contract.IManetRouting;
-
+import inet.applications.contract.IApp;
 //
 // Ad hoc On-Demand Distance Vector Routing Protocol module.
 //
@@ -36,20 +35,20 @@ import inet.routing.contract.IManetRouting;
 // This implementation is based on RFC 3561. For more information, you may
 // refer to the following link: https://tools.ietf.org/html/rfc3561.html.
 //
-simple Aodv_cluster like IManetRouting
+simple Aodv_cluster like IApp
 {
     parameters:
-        @class("aodv::Aodv_cluster");
+        @class("aodv_cluster::Aodv_cluster");
         @display("i=block/network2");
         string routingTableModule = default("^.ipv4.routingTable");
         string interfaceTableModule = default("^.interfaceTable");
         string networkProtocolModule = default("^.ipv4.ip");
-
         bool askGratuitousRREP = default(false); // see RFC 3561: 6.6.3
         bool useHelloMessages = default(false); // see RFC 3561: 6.9
         bool useLocalRepair = default(false); // see RFC 3561: 6.12 *not implemented yet*
         bool destinationOnlyFlag = default(false); // see RFC 3561: 5.1
         int udpPort = default(654);
+        string interface = default("wlan0");
 
         double maxPeriodicJitter @unit(s) = default(helloInterval / 4); // it MUST NOT be negative; it MUST NOT be greater than MESSAGE_INTERVAL/2; it SHOULD NOT be greater than MESSAGE_INTERVAL/4.
         volatile double periodicJitter @unit(s) = default(uniform(0s, maxPeriodicJitter)); // jitter for externally triggered message generation and message forwarding
@@ -85,7 +84,8 @@ simple Aodv_cluster like IManetRouting
         double nextHopWait @unit(s) = default(nodeTraversalTime + 0.01s); // timeout for a RREP-ACK
         double pathDiscoveryTime @unit(s) = default(2 * netTraversalTime); // buffer timeout for each broadcasted RREQ message
     gates:
-        input ipIn;
-        output ipOut;
+        input socketIn;
+        output socketOut;
 }
+
 

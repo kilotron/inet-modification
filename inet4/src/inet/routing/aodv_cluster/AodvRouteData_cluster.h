@@ -25,7 +25,7 @@
 #include "inet/networklayer/common/L3Address.h"
 
 namespace inet {
-namespace aodv {
+namespace aodv_cluster {
 
 class INET_API AodvRouteData_cluster : public cObject
 {
@@ -73,4 +73,5 @@ class INET_API AodvRouteData_cluster : public cObject
 } // namespace inet
 
 #endif    // ifndef AODVROUTEDATA_H_
+
 

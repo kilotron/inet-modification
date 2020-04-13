@@ -23,7 +23,6 @@ import inet.linklayer.ieee80211.mac.contract.IDcf;
 import inet.linklayer.ieee80211.mac.contract.IDs;
 import inet.linklayer.ieee80211.mac.contract.IHcf;
 import inet.linklayer.ieee80211.mac.contract.IRx;
-import inet.linklayer.ieee80211.mac.contract.IStatistics;
 import inet.linklayer.ieee80211.mac.contract.ITx;
 import inet.linklayer.ieee80211.mac.coordinationfunction.Dcf;
 import inet.linklayer.ieee80211.mac.coordinationfunction.Hcf;
@@ -31,8 +30,7 @@ import inet.linklayer.ieee80211.mac.coordinationfunction.Hcf;
 //
 // Implementation of the 802.11b MAC protocol. This module is intended
 // to be used in combination with the ~Ieee80211Radio module as the physical
-// layer. (The ~SnrEval80211 and ~Decider80211 modules should also work if
-// per-packet bitrate setting gets implemented.)
+// layer.
 //
 // Encapsulation/decapsulation must be done in the upper layers. (It is
 // typically in the 802.11 management module, see in ~Ieee80211Interface).
@@ -43,15 +41,10 @@ import inet.linklayer.ieee80211.mac.coordinationfunction.Hcf;
 // frames; all other fields must already be filled when this module gets
 // the frame for transmission.
 //
-// The module has an internal queue, but usually it is to be used with an
-// external passive queue module (its name should be given in the queueModule
-// parameter; specifying "" causes the internal queue to be used). The passive
-// queue module is a simple module whose C++ class implements the IPassiveQueue
-// interface.
-//
 // <b>Limitations</b>
 //
-// The following features not supported: 1) power management, 2) polling (PCF).
+// Power management and polling (PCF) are not supported.
+//
 // Physical layer algorithms such as frequency hopping and
 // direct sequence spread spectrum are not modelled directly.
 //
@@ -78,20 +71,20 @@ module Ieee80211Mac extends MacProtocolBase like IIeee80211Mac
 
         @display("i=block/layer");
         @class(Ieee80211Mac);
-        @signal[packetSentToPeer](type=inet::Packet);
-        @signal[packetReceivedFromPeer](type=inet::Packet);
-        @statistic[passedUpPk](title="packets passed to higher layer"; source=packetSentToUpper; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
-        @statistic[sentDownPk](title="packets sent to lower layer"; source=packetSentToLower; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
-        @statistic[rcvdPkFromHl](title="packets received from higher layer"; source=packetReceivedFromUpper; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
-        @statistic[rcvdPkFromLl](title="packets received from lower layer"; source=packetReceivedFromLower; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
-
-        @signal[linkBroken];
-        @statistic[linkBroken](title="link break"; source=linkBroken; record=count; interpolationmode=none);
-        @statistic[packetDropIncorrectlyReceived](title="packet drop: incorrectly received"; source=packetDropReasonIsIncorrectlyReceived(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
-        @statistic[packetDropNotAddressedToUs](title="packet drop: not addressed to us"; source=packetDropReasonIsNotAddressedToUs(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
-        @statistic[packetDropQueueOverflow](title="packet drop: queue overflow"; source=packetDropReasonIsQueueOverflow(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
-        @statistic[packetDropRetryLimitReached](title="packet drop: retry limit reached"; source=packetDropReasonIsRetryLimitReached(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @signal[linkBroken](type=inet::Packet); // TODO: this signal is only present for the statistic to pass the signal check, to be removed
         @signal[modesetChanged](type=inet::physicallayer::Ieee80211ModeSet);
+        @statistic[packetSentToUpper](title="packets sent to upper layer"; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetSentToLower](title="packets sent to lower layer"; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromUpper](title="packets received from upper layer"; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromLower](title="packets received from lower layer"; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[linkBroken](title="link breaks"; record=count, vector?; interpolationmode=none);
+        @statistic[packetDrop](title="packet drops"; source=packetDropped; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropIncorrectlyReceived](title="packet drops: incorrectly received"; source=packetDropReasonIsIncorrectlyReceived(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropNotAddressedToUs](title="packet drops: not addressed to us"; source=packetDropReasonIsNotAddressedToUs(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropQueueOverflow](title="packet drops: queue overflow"; source=packetDropReasonIsQueueOverflow(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropRetryLimitReached](title="packet drops: retry limit reached"; source=packetDropReasonIsRetryLimitReached(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropDuplicateDetected](title="packet drops: duplicate detected"; source=packetDropReasonIsDuplicateDetected(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropOther](title="packet drops: other"; source=packetDropReasonIsOther(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
     gates:
         input mgmtIn;
         output mgmtOut;
@@ -100,7 +93,7 @@ module Ieee80211Mac extends MacProtocolBase like IIeee80211Mac
             parameters:
                 @display("p=100,100");
         }
-        hcf: <default("Hcf")> like IHcf {
+        hcf: <default("Hcf")> like IHcf if qosStation {
             parameters:
                 @display("p=250,100");
         }
@@ -115,10 +108,6 @@ module Ieee80211Mac extends MacProtocolBase like IIeee80211Mac
         tx: <default("Tx")> like ITx {
             parameters:
                 @display("p=250,200");
-        }
-        statistics: <default("BasicStatistics")> like IStatistics {
-            parameters:
-                @display("p=400,200");
         }
 }
 

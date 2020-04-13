@@ -72,6 +72,8 @@ ProtocolGroup ProtocolGroup::ethertype("ethertype", {
     { 0x0800, &Protocol::ipv4 },
     { 0x0806, &Protocol::arp },
     { 0x2000, &Protocol::cdp },              // TODO remove it, it's a CISCO code for LLC, ANSAINET project use it currently
+    { 0x22EA, &Protocol::srp},
+    { 0x22F0, &Protocol::tsn},
     { 0x22F3, &Protocol::trill},
     { 0x22F4, &Protocol::l2isis},
     { 0x86DD, &Protocol::ipv6 },
@@ -81,10 +83,10 @@ ProtocolGroup ProtocolGroup::ethertype("ethertype", {
     { 0x86FF, &Protocol::nextHopForwarding },         // ETHERTYPE_INET_NEXTHOP
     { 0x8847, &Protocol::mpls },
     { 0x88CC, &Protocol::lldp },
-//color protocol tags
+    { 0x891d, &Protocol::tteth },
+
+    //color protocol tags
     {1024,&Protocol::color },
-    {0x0801, &Protocol::colorTwoInterface},
-    {0x0802, &Protocol::colorNoCluster},
     {666, &Protocol::simplecluster},
 });
 
@@ -148,10 +150,6 @@ ProtocolGroup ProtocolGroup::tcpprotocol("tcpprotocol", {
     { 23, &Protocol::telnet },
     { 80, &Protocol::http },
     { 554, &Protocol::rtsp },
-});
-
-ProtocolGroup ProtocolGroup::icn("icn", {
-        {1111, &Protocol::icntp},
 });
 
 } // namespace inet

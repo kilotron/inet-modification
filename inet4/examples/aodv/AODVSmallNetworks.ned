@@ -22,14 +22,13 @@ import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.networklayer.ipv4.RoutingTableRecorder;
 import inet.node.aodv.AodvRouter;
 import inet.physicallayer.unitdisk.UnitDiskRadioMedium;
-import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 
 
 network SimpleRREQ
 {
     parameters:
     submodules:
-        radioMedium: Ieee80211ScalarRadioMedium {
+        radioMedium: UnitDiskRadioMedium {
             parameters:
                 @display("p=100,200;is=s");
         }
@@ -69,7 +68,7 @@ network SimpleRREQ2
 {
     parameters:
     submodules:
-        radioMedium: Ieee80211ScalarRadioMedium {
+        radioMedium: UnitDiskRadioMedium {
             parameters:
                 @display("p=100,200;is=s");
         }
@@ -114,7 +113,7 @@ network ShortestPath
     parameters:
         @display("bgb=650,550");
     submodules:
-        radioMedium: Ieee80211ScalarRadioMedium {
+        radioMedium: UnitDiskRadioMedium {
             parameters:
                 @display("p=100,200;is=s");
         }

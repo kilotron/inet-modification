@@ -127,7 +127,7 @@ bool SimpleProvider::isEnabled()
 void SimpleProvider::finish()
 {
     ApplicationBase::finish();
-
+    delete start;
 }
 
 void SimpleProvider::handleStopOperation(LifecycleOperation *operation)

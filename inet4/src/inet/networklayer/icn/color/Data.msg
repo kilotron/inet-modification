@@ -62,4 +62,7 @@ class Data extends FieldsChunk
     path trace;
 
     bool cluster;
+
+    simtime_t routeLifetime;
+    int routeMetric;
 }

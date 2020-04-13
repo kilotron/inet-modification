@@ -25,16 +25,20 @@
 #include "inet/networklayer/common/HopLimitTag_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
 #include "inet/networklayer/common/L3Tools.h"
+#include "inet/networklayer/common/L3AddressResolver.h"
 #include "inet/networklayer/ipv4/IcmpHeader.h"
 #include "inet/networklayer/ipv4/Ipv4Header_m.h"
 #include "inet/networklayer/ipv4/Ipv4Route.h"
 #include "inet/routing/aodv/Aodv.h"
+#include "inet/transportlayer/common/L4PortTag_m.h"
 #include "inet/transportlayer/contract/udp/UdpControlInfo.h"
 
 namespace inet {
 namespace aodv {
 
 Define_Module(Aodv);
+
+const int KIND_DELAYEDSEND = 100;
 
 void Aodv::initialize(int stage)
 {
@@ -87,10 +91,9 @@ void Aodv::initialize(int stage)
             helloMsgTimer = new cMessage("HelloMsgTimer");
     }
     else if (stage == INITSTAGE_ROUTING_PROTOCOLS) {
-        registerService(Protocol::manet, nullptr, gate("ipIn"));
-        registerProtocol(Protocol::manet, gate("ipOut"), nullptr);
         networkProtocol->registerHook(0, this);
         host->subscribe(linkBrokenSignal, this);
+        usingIpv6 = (routingTable->getRouterIdAsGeneric().getType() == L3Address::IPv6);
     }
 }
 
@@ -111,54 +114,82 @@ void Aodv::handleMessageWhenUp(cMessage *msg)
             handleRREPACKTimer();
         else if (msg == blacklistTimer)
             handleBlackListTimer();
+        else if (msg->getKind() == KIND_DELAYEDSEND) {
+            auto timer = check_and_cast<PacketHolderMessage*>(msg);
+            socket.send(timer->dropOwnedPacket());
+            delete timer;
+        }
         else
             throw cRuntimeError("Unknown self message");
     }
-    else {
-        auto packet = check_and_cast<Packet *>(msg);
-        auto protocol = packet->getTag<PacketProtocolTag>()->getProtocol();
+    else
+        socket.processMessage(msg);
+}
 
-        if (protocol == &Protocol::icmpv4) {
-            IcmpHeader *icmpPacket = check_and_cast<IcmpHeader *>(msg);
-            // ICMP packet arrived, dropped
-            delete icmpPacket;
-        }
-        else if (protocol == &Protocol::icmpv6) {
-            IcmpHeader *icmpPacket = check_and_cast<IcmpHeader *>(msg);
-            // ICMP packet arrived, dropped
-            delete icmpPacket;
-        }
-        else if (true) {  //FIXME protocol == ???
-            Packet *udpPacket = check_and_cast<Packet *>(msg);
-            udpPacket->popAtFront<UdpHeader>();
-            L3Address sourceAddr = udpPacket->getTag<L3AddressInd>()->getSrcAddress();
-            // KLUDGE: I added this -1 after TTL decrement has been moved in Ipv4
-            unsigned int arrivalPacketTTL = udpPacket->getTag<HopLimitInd>()->getHopLimit() - 1;
-            const auto& ctrlPacket = udpPacket->popAtFront<AodvControlPacket>();
-//            ctrlPacket->copyTags(*msg);
+void Aodv::checkIpVersionAndPacketTypeCompatibility(AodvControlPacketType packetType)
+{
+    switch (packetType) {
+        case RREQ:
+        case RREP:
+        case RERR:
+        case RREPACK:
+            if (usingIpv6)
+                throw cRuntimeError("AODV Control Packet arrived with non-IPv6 packet type %d, but AODV configured for IPv6 routing", packetType);
+            break;
 
-            switch (ctrlPacket->getPacketType()) {
-                case RREQ:
-                    handleRREQ(dynamicPtrCast<Rreq>(ctrlPacket->dupShared()), sourceAddr, arrivalPacketTTL);
-                    break;
+        case RREQ_IPv6:
+        case RREP_IPv6:
+        case RERR_IPv6:
+        case RREPACK_IPv6:
+            if (!usingIpv6)
+                throw cRuntimeError("AODV Control Packet arrived with IPv6 packet type %d, but AODV configured for non-IPv6 routing", packetType);
+            break;
 
-                case RREP:
-                    handleRREP(dynamicPtrCast<Rrep>(ctrlPacket->dupShared()), sourceAddr);
-                    break;
+        default:
+            throw cRuntimeError("AODV Control Packet arrived with undefined packet type: %d", packetType);
+    }
+}
 
-                case RERR:
-                    handleRERR(dynamicPtrCast<const Rerr>(ctrlPacket), sourceAddr);
-                    break;
+void Aodv::processPacket(Packet *packet)
+{
+    L3Address sourceAddr = packet->getTag<L3AddressInd>()->getSrcAddress();
+    // KLUDGE: I added this -1 after TTL decrement has been moved in Ipv4
+    unsigned int arrivalPacketTTL = packet->getTag<HopLimitInd>()->getHopLimit() - 1;
+    const auto& aodvPacket = packet->popAtFront<AodvControlPacket>();
+    //TODO aodvPacket->copyTags(*udpPacket);
 
-                case RREPACK:
-                    handleRREPACK(dynamicPtrCast<const RrepAck>(ctrlPacket), sourceAddr);
-                    break;
+    auto packetType = aodvPacket->getPacketType();
+    switch (packetType) {
+        case RREQ:
+        case RREQ_IPv6:
+            checkIpVersionAndPacketTypeCompatibility(packetType);
+            handleRREQ(CHK(dynamicPtrCast<Rreq>(aodvPacket->dupShared())), sourceAddr, arrivalPacketTTL);
+            delete packet;
+            return;
 
-                default:
-                    throw cRuntimeError("AODV Control Packet arrived with undefined packet type: %d", ctrlPacket->getPacketType());
-            }
-            delete udpPacket;
-        }
+        case RREP:
+        case RREP_IPv6:
+            checkIpVersionAndPacketTypeCompatibility(packetType);
+            handleRREP(CHK(dynamicPtrCast<Rrep>(aodvPacket->dupShared())), sourceAddr);
+            delete packet;
+            return;
+
+        case RERR:
+        case RERR_IPv6:
+            checkIpVersionAndPacketTypeCompatibility(packetType);
+            handleRERR(CHK(dynamicPtrCast<const Rerr>(aodvPacket)), sourceAddr);
+            delete packet;
+            return;
+
+        case RREPACK:
+        case RREPACK_IPv6:
+            checkIpVersionAndPacketTypeCompatibility(packetType);
+            handleRREPACK(CHK(dynamicPtrCast<const RrepAck>(aodvPacket)), sourceAddr);
+            delete packet;
+            return;
+
+        default:
+            throw cRuntimeError("AODV Control Packet arrived with undefined packet type: %d", packetType);
     }
 }
 
@@ -259,7 +290,7 @@ void Aodv::sendRREQ(const Ptr<Rreq>& rreq, const L3Address& destAddr, unsigned i
     // again with the TTL incremented by TTL_INCREMENT.  This continues
     // until the TTL set in the RREQ reaches TTL_THRESHOLD, beyond which a
     // TTL = NET_DIAMETER is used for each attempt.
-    // std::cout<<destAddr<<endl;
+
     if (rreqCount >= rreqRatelimit) {
         EV_WARN << "A node should not originate more than RREQ_RATELIMIT RREQ messages per second. Canceling sending RREQ" << endl;
         return;
@@ -356,11 +387,11 @@ void Aodv::sendRREP(const Ptr<Rrep>& rrep, const L3Address& destAddr, unsigned i
 const Ptr<Rreq> Aodv::createRREQ(const L3Address& destAddr)
 {
     auto rreqPacket = makeShared<Rreq>(); // TODO: "AODV-RREQ");
+    rreqPacket->setPacketType(usingIpv6 ? RREQ_IPv6 : RREQ);
+    rreqPacket->setChunkLength(usingIpv6 ? B(48) : B(24));
 
     rreqPacket->setGratuitousRREPFlag(askGratuitousRREP);
     IRoute *lastKnownRoute = routingTable->findBestMatchingRoute(destAddr);
-
-    rreqPacket->setPacketType(RREQ);
 
     // The Originator Sequence Number in the RREQ message is the
     // node's own sequence number, which is incremented prior to
@@ -408,21 +439,20 @@ const Ptr<Rreq> Aodv::createRREQ(const L3Address& destAddr)
 
     RreqIdentifier rreqIdentifier(getSelfIPAddress(), rreqId);
     rreqsArrivalTime[rreqIdentifier] = simTime();
-    rreqPacket->setChunkLength(B(24));
     return rreqPacket;
 }
 
 const Ptr<Rrep> Aodv::createRREP(const Ptr<Rreq>& rreq, IRoute *destRoute, IRoute *originatorRoute, const L3Address& lastHopAddr)
 {
     auto rrep = makeShared<Rrep>(); // TODO: "AODV-RREP");
-    rrep->setPacketType(RREP);
+    rrep->setPacketType(usingIpv6 ? RREP_IPv6 : RREP);
+    rrep->setChunkLength(usingIpv6 ? B(44) : B(20));
 
     // When generating a RREP message, a node copies the Destination IP
     // Address and the Originator Sequence Number from the RREQ message into
     // the corresponding fields in the RREP message.
 
     rrep->setDestAddr(rreq->getDestAddr());
-    rrep->setOriginatorSeqNum(rreq->getOriginatorSeqNum());
 
     // OriginatorAddr = The IP address of the node which originated the RREQ
     // for which the route is supplied.
@@ -433,7 +463,9 @@ const Ptr<Rrep> Aodv::createRREP(const Ptr<Rreq>& rreq, IRoute *destRoute, IRout
     // if it is an intermediate node with an fresh enough route to the destination
     // (see section 6.6.2).
 
-    if (isSelfAdress(rreq->getDestAddr())) {    // node is itself the requested destination
+    if (rreq->getDestAddr() == getSelfIPAddress()) {    // node is itself the requested destination
+        // 6.6.1. Route Reply Generation by the Destination
+
         // If the generating node is the destination itself, it MUST increment
         // its own sequence number by one if the sequence number in the RREQ
         // packet is equal to that incremented value.
@@ -452,11 +484,13 @@ const Ptr<Rrep> Aodv::createRREP(const Ptr<Rreq>& rreq, IRoute *destRoute, IRout
 
         // The destination node copies the value MY_ROUTE_TIMEOUT
         // into the Lifetime field of the RREP.
-        rrep->setLifeTime(myRouteTimeout);
+        rrep->setLifeTime(myRouteTimeout.trunc(SIMTIME_MS));
     }
     else {    // intermediate node
-              // it copies its known sequence number for the destination into
-              // the Destination Sequence Number field in the RREP message.
+        // 6.6.2. Route Reply Generation by an Intermediate Node
+
+        // it copies its known sequence number for the destination into
+        // the Destination Sequence Number field in the RREP message.
         AodvRouteData *destRouteData = check_and_cast<AodvRouteData *>(destRoute->getProtocolData());
         AodvRouteData *originatorRouteData = check_and_cast<AodvRouteData *>(originatorRoute->getProtocolData());
         rrep->setDestSeqNum(destRouteData->getDestSeqNum());
@@ -485,10 +519,9 @@ const Ptr<Rrep> Aodv::createRREP(const Ptr<Rreq>& rreq, IRoute *destRoute, IRout
         // The Lifetime field of the RREP is calculated by subtracting the
         // current time from the expiration time in its route table entry.
 
-        rrep->setLifeTime(destRouteData->getLifeTime() - simTime());
+        rrep->setLifeTime((destRouteData->getLifeTime() - simTime()).trunc(SIMTIME_MS));
     }
 
-    rrep->setChunkLength(B(20));
     return rrep;
 }
 
@@ -496,6 +529,9 @@ const Ptr<Rrep> Aodv::createGratuitousRREP(const Ptr<Rreq>& rreq, IRoute *origin
 {
     ASSERT(originatorRoute != nullptr);
     auto grrep = makeShared<Rrep>(); // TODO: "AODV-GRREP");
+    grrep->setPacketType(usingIpv6 ? RREP_IPv6 : RREP);
+    grrep->setChunkLength(usingIpv6 ? B(44) : B(20));
+
     AodvRouteData *routeData = check_and_cast<AodvRouteData *>(originatorRoute->getProtocolData());
 
     // Hop Count                        The Hop Count as indicated in the
@@ -515,19 +551,18 @@ const Ptr<Rrep> Aodv::createGratuitousRREP(const Ptr<Rreq>& rreq, IRoute *origin
     //                                  towards the originator of the RREQ,
     //                                  as known by the intermediate node.
 
-    grrep->setPacketType(RREP);
     grrep->setHopCount(originatorRoute->getMetric());
     grrep->setDestAddr(rreq->getOriginatorAddr());
     grrep->setDestSeqNum(rreq->getOriginatorSeqNum());
     grrep->setOriginatorAddr(rreq->getDestAddr());
     grrep->setLifeTime(routeData->getLifeTime());
-
-    grrep->setChunkLength(B(20));
     return grrep;
 }
 
 void Aodv::handleRREP(const Ptr<Rrep>& rrep, const L3Address& sourceAddr)
 {
+    // 6.7. Receiving and Forwarding Route Replies
+
     EV_INFO << "AODV Route Reply arrived with source addr: " << sourceAddr << " originator addr: " << rrep->getOriginatorAddr()
             << " destination addr: " << rrep->getDestAddr() << endl;
 
@@ -546,10 +581,10 @@ void Aodv::handleRREP(const Ptr<Rrep>& rrep, const L3Address& sourceAddr)
 
     if (!previousHopRoute || previousHopRoute->getSource() != this) {
         // create without valid sequence number
-        previousHopRoute = createRoute(sourceAddr, sourceAddr, 1, false, rrep->getOriginatorSeqNum(), true, simTime() + activeRouteTimeout);
+        previousHopRoute = createRoute(sourceAddr, sourceAddr, 1, false, rrep->getDestSeqNum(), true, simTime() + activeRouteTimeout);
     }
     else
-        updateRoutingTable(previousHopRoute, sourceAddr, 1, false, rrep->getOriginatorSeqNum(), true, simTime() + activeRouteTimeout);
+        updateRoutingTable(previousHopRoute, sourceAddr, 1, false, rrep->getDestSeqNum(), true, simTime() + activeRouteTimeout);
 
     // Next, the node then increments the hop count value in the RREP by one,
     // to account for the new hop through the intermediate node
@@ -625,7 +660,7 @@ void Aodv::handleRREP(const Ptr<Rrep>& rrep, const L3Address& sourceAddr)
     // information in that route table entry.
 
     IRoute *originatorRoute = routingTable->findBestMatchingRoute(rrep->getOriginatorAddr());
-    if (isSelfAdress(rrep->getOriginatorAddr())) {
+    if (getSelfIPAddress() != rrep->getOriginatorAddr()) {
         // If a node forwards a RREP over a link that is likely to have errors or
         // be unidirectional, the node SHOULD set the 'A' flag to require that the
         // recipient of the RREP acknowledge receipt of the RREP by sending a RREP-ACK
@@ -704,43 +739,55 @@ void Aodv::updateRoutingTable(IRoute *route, const L3Address& nextHop, unsigned 
     scheduleExpungeRoutes();
 }
 
-void Aodv::sendAODVPacket(const Ptr<AodvControlPacket>& packet, const L3Address& destAddr, unsigned int timeToLive, double delay)
+void Aodv::sendAODVPacket(const Ptr<AodvControlPacket>& aodvPacket, const L3Address& destAddr, unsigned int timeToLive, double delay)
 {
     ASSERT(timeToLive != 0);
 
-    // TODO: Implement: support for multiple interfaces
-    InterfaceEntry *ifEntry = interfaceTable->getInterfaceByName("wlan0");
+    const char *className = aodvPacket->getClassName();
+    Packet *packet = new Packet(!strncmp("inet::", className, 6) ? className + 6 : className);
+    packet->insertAtBack(aodvPacket);
 
-    auto className = packet->getClassName();
-    Packet *udpPacket = new Packet(!strncmp("inet::", className, 6) ? className + 6 : className);
-    udpPacket->insertAtBack(packet);
-    auto udpHeader = makeShared<UdpHeader>();
-    udpHeader->setSourcePort(aodvUDPPort);
-    udpHeader->setDestinationPort(aodvUDPPort);
-    udpPacket->insertAtFront(udpHeader);
-    // TODO: was udpPacket->copyTags(*packet);
-    udpPacket->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::manet);
-    udpPacket->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(addressType->getNetworkProtocol());
-    udpPacket->addTagIfAbsent<InterfaceReq>()->setInterfaceId(ifEntry->getInterfaceId());
-    auto addresses = udpPacket->addTagIfAbsent<L3AddressReq>();
-    addresses->setSrcAddress(getSelfIPAddress());
-    addresses->setDestAddress(destAddr);
-    udpPacket->addTagIfAbsent<HopLimitReq>()->setHopLimit(timeToLive);
+    int interfaceId = CHK(interfaceTable->findInterfaceByName(par("interface")))->getInterfaceId(); // TODO: Implement: support for multiple interfaces
+    packet->addTag<InterfaceReq>()->setInterfaceId(interfaceId);
+    packet->addTag<HopLimitReq>()->setHopLimit(timeToLive);
+    packet->addTag<L3AddressReq>()->setDestAddress(destAddr);
+    packet->addTag<L4PortReq>()->setDestPort(aodvUDPPort);
 
     if (destAddr.isBroadcast())
         lastBroadcastTime = simTime();
 
     if (delay == 0)
-        send(udpPacket, "ipOut");
-    else
-        sendDelayed(udpPacket, delay, "ipOut");
+        socket.send(packet);
+    else {
+        auto *timer = new PacketHolderMessage("aodv-send-jitter", KIND_DELAYEDSEND);
+        timer->setOwnedPacket(packet);
+        scheduleAt(simTime()+delay, timer);
+    }
 }
+
+void Aodv::socketDataArrived(UdpSocket *socket, Packet *packet)
+{
+    // process incoming packet
+    processPacket(packet);
+}
+
+void Aodv::socketErrorArrived(UdpSocket *socket, Indication *indication)
+{
+    EV_WARN << "Ignoring UDP error report " << indication->getName() << endl;
+    delete indication;
+}
+
+void Aodv::socketClosed(UdpSocket *socket)
+{
+    if (operationalState == State::STOPPING_OPERATION)
+        startActiveOperationExtraTimeOrFinish(par("stopOperationExtraTime"));
+}
+
 
 void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsigned int timeToLive)
 {
     EV_INFO << "AODV Route Request arrived with source addr: " << sourceAddr << " originator addr: " << rreq->getOriginatorAddr()
             << " destination addr: " << rreq->getDestAddr() << endl;
-    // std::cout << sourceAddr <<endl;
 
     // A node ignores all RREQs received from any node in its blacklist set.
 
@@ -810,7 +857,7 @@ void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsign
     //   (ExistingLifetime, MinimalLifetime), where
     //
     //   MinimalLifetime = (current time + 2*NET_TRAVERSAL_TIME - 2*HopCount*NODE_TRAVERSAL_TIME).
-    // std::cout<< rreq->getOriginatorAddr() << endl;
+
     unsigned int hopCount = rreq->getHopCount();
     simtime_t minimalLifeTime = simTime() + 2 * netTraversalTime - 2 * hopCount * nodeTraversalTime;
     simtime_t newLifeTime = std::max(simTime(), minimalLifeTime);
@@ -818,7 +865,6 @@ void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsign
     if (!reverseRoute || reverseRoute->getSource() != this) {    // create
         // This reverse route will be needed if the node receives a RREP back to the
         // node that originated the RREQ (identified by the Originator IP Address).
-
         reverseRoute = createRoute(rreq->getOriginatorAddr(), sourceAddr, hopCount, true, rreqSeqNum, true, newLifeTime);
     }
     else {
@@ -866,7 +912,7 @@ void Aodv::handleRREQ(const Ptr<Rreq>& rreq, const L3Address& sourceAddr, unsign
     AodvRouteData *destRouteData = destRoute ? dynamic_cast<AodvRouteData *>(destRoute->getProtocolData()) : nullptr;
 
     // check (i)
-    if (isSelfAdress(rreq->getDestAddr())) {
+    if (rreq->getDestAddr() == getSelfIPAddress()) {
         EV_INFO << "I am the destination node for which the route was requested" << endl;
 
         // create RREP
@@ -955,7 +1001,7 @@ IRoute *Aodv::createRoute(const L3Address& destAddr, const L3Address& nextHop,
     newRoute->setNextHop(nextHop);
     newRoute->setPrefixLength(addressType->getMaxPrefixLength());    // TODO:
     newRoute->setMetric(hopCount);
-    InterfaceEntry *ifEntry = interfaceTable->getInterfaceByName("wlan0");    // TODO: IMPLEMENT: multiple interfaces
+    InterfaceEntry *ifEntry = interfaceTable->findInterfaceByName(par("interface"));    // TODO: IMPLEMENT: multiple interfaces
     if (ifEntry)
         newRoute->setInterface(ifEntry);
     newRoute->setSourceType(IRoute::AODV);
@@ -982,7 +1028,6 @@ IRoute *Aodv::createRoute(const L3Address& destAddr, const L3Address& nextHop,
 
 void Aodv::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *details)
 {
-    // std::cout << simTime() <<endl;
     Enter_Method("receiveChangeNotification");
     if (signalID == linkBrokenSignal) {
         EV_DETAIL << "Received link break signal" << endl;
@@ -1097,12 +1142,10 @@ void Aodv::handleLinkBreakSendRERR(const L3Address& unreachableAddr)
 
 const Ptr<Rerr> Aodv::createRERR(const std::vector<UnreachableNode>& unreachableNodes)
 {
-    // std::cout<< simTime() <<endl;
     auto rerr = makeShared<Rerr>(); // TODO: "AODV-RERR");
-    unsigned int destCount = unreachableNodes.size();
+    rerr->setPacketType(usingIpv6 ? RERR_IPv6 : RERR);
 
-    rerr->setPacketType(RERR);
-    rerr->setDestCount(destCount);
+    unsigned int destCount = unreachableNodes.size();
     rerr->setUnreachableNodesArraySize(destCount);
 
     for (unsigned int i = 0; i < destCount; i++) {
@@ -1112,14 +1155,15 @@ const Ptr<Rerr> Aodv::createRERR(const std::vector<UnreachableNode>& unreachable
         rerr->setUnreachableNodes(i, node);
     }
 
-    rerr->setChunkLength(B(4 + 4 * 2 * destCount));
+    rerr->setChunkLength(B(4 + destCount * (usingIpv6 ? (4 + 16) : (4 + 4))));
+
     return rerr;
 }
 
 void Aodv::handleRERR(const Ptr<const Rerr>& rerr, const L3Address& sourceAddr)
 {
     EV_INFO << "AODV Route Error arrived with source addr: " << sourceAddr << endl;
-    // std::cout << simTime() << endl;
+
     // A node initiates processing for a RERR message in three situations:
     // (iii)   if it receives a RERR from a neighbor for one or more
     //         active routes.
@@ -1181,6 +1225,11 @@ void Aodv::handleStartOperation(LifecycleOperation *operation)
 {
     rebootTime = simTime();
 
+    socket.setOutputGate(gate("socketOut"));
+    socket.setCallback(this);
+    socket.bind(L3Address(), aodvUDPPort);
+    socket.setBroadcast(true);
+
     // RFC 5148:
     // Jitter SHOULD be applied by reducing this delay by a random amount, so that
     // the delay between consecutive transmissions of messages of the same type is
@@ -1193,11 +1242,13 @@ void Aodv::handleStartOperation(LifecycleOperation *operation)
 
 void Aodv::handleStopOperation(LifecycleOperation *operation)
 {
+    socket.close();
     clearState();
 }
 
 void Aodv::handleCrashOperation(LifecycleOperation *operation)
 {
+    socket.destroy();
     clearState();
 }
 
@@ -1318,12 +1369,13 @@ const Ptr<Rrep> Aodv::createHelloMessage()
     //    Lifetime                       ALLOWED_HELLO_LOSS *HELLO_INTERVAL
 
     auto helloMessage = makeShared<Rrep>(); // TODO: "AODV-HelloMsg");
-    helloMessage->setPacketType(RREP);
+    helloMessage->setPacketType(usingIpv6 ? RREP_IPv6 : RREP);
+    helloMessage->setChunkLength(usingIpv6 ? B(44) : B(20));
+
     helloMessage->setDestAddr(getSelfIPAddress());
     helloMessage->setDestSeqNum(sequenceNum);
     helloMessage->setHopCount(0);
     helloMessage->setLifeTime(allowedHelloLoss * helloInterval);
-    helloMessage->setChunkLength(B(20));
 
     return helloMessage;
 }
@@ -1596,10 +1648,9 @@ bool Aodv::updateValidRouteLifeTime(const L3Address& destAddr, simtime_t lifetim
 
 const Ptr<RrepAck> Aodv::createRREPACK()
 {
-    auto rrepACK = makeShared<RrepAck>(); // TODO: "AODV-RREPACK");
-    rrepACK->setPacketType(RREPACK);
-    rrepACK->setChunkLength(B(2));
-    return rrepACK;
+    auto rrepAck = makeShared<RrepAck>(); // TODO: "AODV-RREPACK");
+    rrepAck->setPacketType(usingIpv6 ? RREPACK_IPv6 : RREPACK);
+    return rrepAck;
 }
 
 void Aodv::sendRREPACK(const Ptr<RrepAck>& rrepACK, const L3Address& destAddr)

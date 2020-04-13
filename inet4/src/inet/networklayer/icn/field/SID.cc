@@ -28,13 +28,13 @@ SID::SID(const SID& other):nidHeader(other.nidHeader), sidTail(other.sidTail),te
 
 bool operator<(const SID &lhs, const SID &rhs)
 {
-    // if (lhs.nidHeader == rhs.nidHeader)
-    // {
-    //     return ArrayCmp(lhs.sidTail, rhs.sidTail);
-    // }
-    // else
-    //     return lhs.nidHeader < rhs.nidHeader;
-    return ArrayCmp(lhs.sidTail, rhs.sidTail);
+    if (lhs.nidHeader == rhs.nidHeader)
+    {
+        return ArrayCmp(lhs.sidTail, rhs.sidTail);
+    }
+    else
+        return lhs.nidHeader < rhs.nidHeader;
+
 }
 
 bool operator==(const SID &lhs, const SID &rhs)

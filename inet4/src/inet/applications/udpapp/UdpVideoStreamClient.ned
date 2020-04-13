@@ -25,25 +25,16 @@ import inet.applications.contract.IApp;
 // This module sends one "video streaming request" to serverAddress:serverPort at time startTime
 // and receives stream from ~UdpVideoStreamServer server.
 //
-// Statistics:
-//
-// packetReceived: statistic of received packets and received bytes.
-// endToEndDelay: statistic of delays of incoming packets.
-//
 // @see ~UdpVideoStreamServer
 //
 simple UdpVideoStreamClient like IApp
 {
     parameters:
-        string RSTpath = default("");
-        double sendInterval = default(1s) @unit(s);
-        volatile int packetLen @unit(B);  // length of a video packet in bytes
-        volatile int videoSize @unit(B);  // length of full a video stream in bytes
-
         int localPort = default(-1);  // local port (-1: use ephemeral port)
         string serverAddress;  // server address
         int serverPort;  // server port
         double startTime @unit(s) = default(1s);
+        string RSTpath = default("./");
         @display("i=block/app");
         @lifecycleSupport;
         double stopOperationExtraTime @unit(s) = default(-1s);    // extra time after lifecycle stop operation finished

@@ -62,8 +62,6 @@ m FreeSpacePathLoss::computeRange(mps propagationSpeed, Hz frequency, double los
 {
     // distance = (waveLength ^ 2 / (16 * PI ^ 2 * systemLoss * loss)) ^ (1 / alpha)
     m waveLength = propagationSpeed / frequency;
-//    auto temp = waveLength * waveLength;
-//    auto denominator = 16.0 * M_PI * M_PI * systemLoss * loss;
     return m(pow((waveLength * waveLength).get() / (16.0 * M_PI * M_PI * systemLoss * loss), 1.0 / alpha));
 }
 

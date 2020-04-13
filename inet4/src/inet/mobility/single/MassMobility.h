@@ -51,6 +51,8 @@ class INET_API MassMobility : public LineSegmentsMobilityBase
     /** @brief Initializes mobility model parameters. */
     virtual void initialize(int stage) override;
 
+    virtual void initializePosition() override;
+
     /** @brief Move the host according to the current simulation time. */
     virtual void move() override;
     void orient() override;

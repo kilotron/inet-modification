@@ -57,6 +57,9 @@ simple MassMobility extends MovingMobilityBase
         double initialX @unit(m) = default(uniform(constraintAreaMinX, constraintAreaMaxX));
         double initialY @unit(m) = default(uniform(constraintAreaMinY, constraintAreaMaxY));
         double initialZ @unit(m) = default(nanToZero(uniform(constraintAreaMinZ, constraintAreaMaxZ)));
+        double consX @unit(m) = default(0m);
+        double consY @unit(m) = default(0m);
+        double consZ @unit(m) = default(0m);
         double initialMovementHeading @unit(deg) = default(uniform(0deg, 360deg)); // initial heading
         double initialMovementElevation @unit(deg) = default(0deg); // initial elevation
         bool initFromDisplayString = default(true); // enables one time initialization from the subject module's display string

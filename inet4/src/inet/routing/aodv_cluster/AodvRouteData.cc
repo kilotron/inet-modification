@@ -19,7 +19,7 @@
 #include "inet/routing/aodv_cluster/AodvRouteData_cluster.h"
 
 namespace inet {
-namespace aodv {
+namespace aodv_cluster {
 
 std::string AodvRouteData_cluster::str() const
 {
@@ -43,4 +43,5 @@ std::string AodvRouteData_cluster::str() const
 
 } // namespace aodv
 } // namespace inet
+
 

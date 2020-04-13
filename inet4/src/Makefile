@@ -29,12 +29,13 @@ OBJS = \
     $O/inet/applications/Fap/hash/MurmurHash3.o \
     $O/inet/applications/ICNapp/SimpleApp.o \
     $O/inet/applications/ICNapp/SimpleProvider.o \
-    $O/inet/applications/WCAcluster/WCAcluster.o \
     $O/inet/applications/base/ApplicationBase.o \
     $O/inet/applications/base/ApplicationPacketSerializer.o \
     $O/inet/applications/dhcp/DhcpClient.o \
+    $O/inet/applications/dhcp/DhcpMessageSerializer.o \
     $O/inet/applications/dhcp/DhcpServer.o \
     $O/inet/applications/ethernet/EtherAppClient.o \
+    $O/inet/applications/ethernet/EtherAppPacketSerializer.o \
     $O/inet/applications/ethernet/EtherAppServer.o \
     $O/inet/applications/ethernet/EtherTrafGen.o \
     $O/inet/applications/generic/IpvxTrafGen.o \
@@ -74,10 +75,13 @@ OBJS = \
     $O/inet/applications/tcpapp/GenericAppMsgSerializer.o \
     $O/inet/applications/tcpapp/TcpAppBase.o \
     $O/inet/applications/tcpapp/TcpBasicClientApp.o \
+    $O/inet/applications/tcpapp/TcpClientSocketIo.o \
     $O/inet/applications/tcpapp/TcpEchoApp.o \
     $O/inet/applications/tcpapp/TcpGenericServerApp.o \
     $O/inet/applications/tcpapp/TcpGenericServerThread.o \
     $O/inet/applications/tcpapp/TcpServerHostApp.o \
+    $O/inet/applications/tcpapp/TcpServerListener.o \
+    $O/inet/applications/tcpapp/TcpServerSocketIo.o \
     $O/inet/applications/tcpapp/TcpSessionApp.o \
     $O/inet/applications/tcpapp/TcpSinkApp.o \
     $O/inet/applications/tcpapp/TelnetApp.o \
@@ -87,13 +91,12 @@ OBJS = \
     $O/inet/applications/udpapp/UdpBasicBurst.o \
     $O/inet/applications/udpapp/UdpEchoApp.o \
     $O/inet/applications/udpapp/UdpSink.o \
+    $O/inet/applications/udpapp/UdpSocketIo.o \
     $O/inet/applications/udpapp/UdpVideoStreamClient.o \
     $O/inet/applications/udpapp/UdpVideoStreamServer.o \
     $O/inet/applications/voip/SimpleVoipReceiver.o \
     $O/inet/applications/voip/SimpleVoipSender.o \
     $O/inet/common/BitVector.o \
-    $O/inet/common/ByteArray.o \
-    $O/inet/common/ByteArrayBuffer.o \
     $O/inet/common/Compat.o \
     $O/inet/common/IInterfaceRegistrationListener.o \
     $O/inet/common/INETUtils.o \
@@ -103,13 +106,16 @@ OBJS = \
     $O/inet/common/IProtocolRegistrationListener.o \
     $O/inet/common/LayeredProtocolBase.o \
     $O/inet/common/Macho.o \
+    $O/inet/common/MatchableField.o \
     $O/inet/common/MatchableObject.o \
     $O/inet/common/MemoryInputStream.o \
     $O/inet/common/MemoryOutputStream.o \
     $O/inet/common/MessageDispatcher.o \
     $O/inet/common/ModuleAccess.o \
     $O/inet/common/NedFunctions.o \
+    $O/inet/common/NetworkCommunicationFingerprintCalculator.o \
     $O/inet/common/NetworkNamespaceContext.o \
+    $O/inet/common/ObjectPrinter.o \
     $O/inet/common/OsgScene.o \
     $O/inet/common/OsgUtils.o \
     $O/inet/common/PatternMatcher.o \
@@ -133,6 +139,7 @@ OBJS = \
     $O/inet/common/figures/FigureRecorder.o \
     $O/inet/common/figures/GaugeFigure.o \
     $O/inet/common/figures/HeatMapFigure.o \
+    $O/inet/common/figures/HeatMapPlotFigure.o \
     $O/inet/common/figures/IndexedImageFigure.o \
     $O/inet/common/figures/IndicatorLabelFigure.o \
     $O/inet/common/figures/IndicatorTextFigure.o \
@@ -176,8 +183,6 @@ OBJS = \
     $O/inet/common/lifecycle/ModuleOperations.o \
     $O/inet/common/lifecycle/NodeStatus.o \
     $O/inet/common/lifecycle/OperationalBase.o \
-    $O/inet/common/mapping/MappingBase.o \
-    $O/inet/common/mapping/MappingUtils.o \
     $O/inet/common/misc/MessageChecker.o \
     $O/inet/common/misc/NetAnimTrace.o \
     $O/inet/common/misc/SignalSource.o \
@@ -207,39 +212,25 @@ OBJS = \
     $O/inet/common/packet/printer/ProtocolPrinter.o \
     $O/inet/common/packet/printer/ProtocolPrinterRegistry.o \
     $O/inet/common/packet/recorder/PacketDump.o \
-    $O/inet/common/packet/recorder/PcapDump.o \
+    $O/inet/common/packet/recorder/PcapReader.o \
     $O/inet/common/packet/recorder/PcapRecorder.o \
+    $O/inet/common/packet/recorder/PcapWriter.o \
     $O/inet/common/packet/serializer/BitCountChunkSerializer.o \
     $O/inet/common/packet/serializer/BitsChunkSerializer.o \
     $O/inet/common/packet/serializer/ByteCountChunkSerializer.o \
     $O/inet/common/packet/serializer/BytesChunkSerializer.o \
     $O/inet/common/packet/serializer/ChunkSerializer.o \
     $O/inet/common/packet/serializer/ChunkSerializerRegistry.o \
+    $O/inet/common/packet/serializer/EmptyChunkSerializer.o \
     $O/inet/common/packet/serializer/FieldsChunkSerializer.o \
     $O/inet/common/packet/serializer/SequenceChunkSerializer.o \
     $O/inet/common/packet/serializer/SliceChunkSerializer.o \
     $O/inet/common/packet/tag/RegionTagSet.o \
     $O/inet/common/packet/tag/TagSet.o \
-    $O/inet/common/queue/AbstractQueue.o \
-    $O/inet/common/queue/AlgorithmicDropperBase.o \
-    $O/inet/common/queue/Delayer.o \
-    $O/inet/common/queue/DropTailQueue.o \
-    $O/inet/common/queue/FifoQueue.o \
-    $O/inet/common/queue/Join.o \
-    $O/inet/common/queue/OrdinalBasedDropper.o \
-    $O/inet/common/queue/OrdinalBasedDuplicator.o \
-    $O/inet/common/queue/PacketQueue.o \
-    $O/inet/common/queue/PassiveQueueBase.o \
-    $O/inet/common/queue/PriorityScheduler.o \
-    $O/inet/common/queue/QueueBase.o \
-    $O/inet/common/queue/RedDropper.o \
-    $O/inet/common/queue/SchedulerBase.o \
-    $O/inet/common/queue/Sink.o \
-    $O/inet/common/queue/ThresholdDropper.o \
-    $O/inet/common/queue/WrrScheduler.o \
     $O/inet/common/scenario/ScenarioManager.o \
     $O/inet/common/scheduler/RealTimeScheduler.o \
     $O/inet/common/socket/SocketMap.o \
+    $O/inet/common/streetmap/OpenStreetMap.o \
     $O/inet/environment/common/Material.o \
     $O/inet/environment/common/MaterialRegistry.o \
     $O/inet/environment/common/PhysicalEnvironment.o \
@@ -252,9 +243,9 @@ OBJS = \
     $O/inet/linklayer/acking/AckingMacHeaderSerializer.o \
     $O/inet/linklayer/acking/AckingMacProtocolDissector.o \
     $O/inet/linklayer/acking/AckingMacProtocolPrinter.o \
-    $O/inet/linklayer/base/MacBase.o \
     $O/inet/linklayer/base/MacProtocolBase.o \
     $O/inet/linklayer/bmac/BMac.o \
+    $O/inet/linklayer/bmac/BMacHeaderSerializer.o \
     $O/inet/linklayer/bmac/BMacProtocolDissector.o \
     $O/inet/linklayer/bmac/BMacProtocolPrinter.o \
     $O/inet/linklayer/common/ExampleQosClassifier.o \
@@ -263,13 +254,14 @@ OBJS = \
     $O/inet/linklayer/common/MacAddressType.o \
     $O/inet/linklayer/common/QosClassifier.o \
     $O/inet/linklayer/common/RandomQosClassifier.o \
+    $O/inet/linklayer/common/UserPriorityPacketComparatorFunction.o \
     $O/inet/linklayer/configurator/Ieee8021dInterfaceData.o \
     $O/inet/linklayer/configurator/L2NetworkConfigurator.o \
     $O/inet/linklayer/configurator/L2NodeConfigurator.o \
     $O/inet/linklayer/csmaca/CsmaCaMac.o \
+    $O/inet/linklayer/csmaca/CsmaCaMacHeaderSerializer.o \
     $O/inet/linklayer/csmaca/CsmaCaMacProtocolDissector.o \
     $O/inet/linklayer/csmaca/CsmaCaMacProtocolPrinter.o \
-    $O/inet/linklayer/csmaca/CsmaCaMacSerializer.o \
     $O/inet/linklayer/ethernet/EtherBus.o \
     $O/inet/linklayer/ethernet/EtherEncap.o \
     $O/inet/linklayer/ethernet/EtherFrameClassifier.o \
@@ -316,9 +308,18 @@ OBJS = \
     $O/inet/linklayer/ieee80211/mac/channelaccess/Edcaf.o \
     $O/inet/linklayer/ieee80211/mac/channelaccess/Hcca.o \
     $O/inet/linklayer/ieee80211/mac/common/ModeSetListener.o \
+    $O/inet/linklayer/ieee80211/mac/common/ResultFilters.o \
     $O/inet/linklayer/ieee80211/mac/common/SequenceControlField.o \
     $O/inet/linklayer/ieee80211/mac/contention/Contention.o \
     $O/inet/linklayer/ieee80211/mac/contention/EdcaCollisionController.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IChannelAccess.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IContention.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IFrameSequenceHandler.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IOriginatorMacDataService.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IRateSelection.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IRecipientMacDataService.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IRecipientQosMacDataService.o \
+    $O/inet/linklayer/ieee80211/mac/contract/IRecoveryProcedure.o \
     $O/inet/linklayer/ieee80211/mac/coordinationfunction/Dcf.o \
     $O/inet/linklayer/ieee80211/mac/coordinationfunction/Hcf.o \
     $O/inet/linklayer/ieee80211/mac/coordinationfunction/Mcf.o \
@@ -356,8 +357,8 @@ OBJS = \
     $O/inet/linklayer/ieee80211/mac/originator/TxopProcedure.o \
     $O/inet/linklayer/ieee80211/mac/protectionmechanism/OriginatorProtectionMechanism.o \
     $O/inet/linklayer/ieee80211/mac/protectionmechanism/SingleProtectionMechanism.o \
-    $O/inet/linklayer/ieee80211/mac/queue/Ieee80211Queue.o \
     $O/inet/linklayer/ieee80211/mac/queue/InProgressFrames.o \
+    $O/inet/linklayer/ieee80211/mac/queue/PendingQueue.o \
     $O/inet/linklayer/ieee80211/mac/ratecontrol/AarfRateControl.o \
     $O/inet/linklayer/ieee80211/mac/ratecontrol/OnoeRateControl.o \
     $O/inet/linklayer/ieee80211/mac/ratecontrol/RateControlBase.o \
@@ -374,7 +375,6 @@ OBJS = \
     $O/inet/linklayer/ieee80211/mac/sequencenumberassignment/LegacySequenceNumberAssigment.o \
     $O/inet/linklayer/ieee80211/mac/sequencenumberassignment/NonQoSSequenceNumberAssignment.o \
     $O/inet/linklayer/ieee80211/mac/sequencenumberassignment/QoSSequenceNumberAssignment.o \
-    $O/inet/linklayer/ieee80211/mac/statistics/BasicStatistics.o \
     $O/inet/linklayer/ieee80211/mgmt/Ieee80211AgentSta.o \
     $O/inet/linklayer/ieee80211/mgmt/Ieee80211MgmtAdhoc.o \
     $O/inet/linklayer/ieee80211/mgmt/Ieee80211MgmtAp.o \
@@ -390,6 +390,7 @@ OBJS = \
     $O/inet/linklayer/ieee80211/portal/Ieee80211Portal.o \
     $O/inet/linklayer/ieee802154/Ieee802154Mac.o \
     $O/inet/linklayer/ieee802154/Ieee802154ProtocolDissector.o \
+    $O/inet/linklayer/ieee8021d/common/Ieee8021dBpduSerializer.o \
     $O/inet/linklayer/ieee8021d/common/StpBase.o \
     $O/inet/linklayer/ieee8021d/relay/Ieee8021dRelay.o \
     $O/inet/linklayer/ieee8021d/rstp/Rstp.o \
@@ -416,6 +417,7 @@ OBJS = \
     $O/inet/linklayer/tun/TunSocket.o \
     $O/inet/linklayer/vlan/VlanTunnel.o \
     $O/inet/linklayer/xmac/XMac.o \
+    $O/inet/linklayer/xmac/XMacHeaderSerializer.o \
     $O/inet/linklayer/xmac/XMacProtocolDissector.o \
     $O/inet/linklayer/xmac/XMacProtocolPrinter.o \
     $O/inet/mobility/base/LinearRotatingMobilityBase.o \
@@ -459,6 +461,7 @@ OBJS = \
     $O/inet/networklayer/arp/ipv4/ArpProtocolPrinter.o \
     $O/inet/networklayer/arp/ipv4/GlobalArp.o \
     $O/inet/networklayer/base/NetworkProtocolBase.o \
+    $O/inet/networklayer/common/EchoPacketSerializer.o \
     $O/inet/networklayer/common/EchoProtocol.o \
     $O/inet/networklayer/common/EchoProtocolDissector.o \
     $O/inet/networklayer/common/EchoProtocolPrinter.o \
@@ -497,6 +500,7 @@ OBJS = \
     $O/inet/networklayer/diffserv/DiffservUtil.o \
     $O/inet/networklayer/diffserv/DscpMarker.o \
     $O/inet/networklayer/diffserv/MultiFieldClassifier.o \
+    $O/inet/networklayer/diffserv/PacketMeterBase.o \
     $O/inet/networklayer/diffserv/SingleRateThreeColorMeter.o \
     $O/inet/networklayer/diffserv/TokenBucketMeter.o \
     $O/inet/networklayer/diffserv/TwoRateThreeColorMeter.o \
@@ -507,6 +511,7 @@ OBJS = \
     $O/inet/networklayer/icmpv6/Icmpv6HeaderSerializer.o \
     $O/inet/networklayer/icmpv6/Icmpv6ProtocolDissector.o \
     $O/inet/networklayer/icmpv6/Icmpv6ProtocolPrinter.o \
+    $O/inet/networklayer/icmpv6/Ipv6NdMessage.o \
     $O/inet/networklayer/icmpv6/Ipv6NeighbourCache.o \
     $O/inet/networklayer/icmpv6/Ipv6NeighbourDiscovery.o \
     $O/inet/networklayer/icn/cacheTable/colorCacheTable.o \
@@ -516,6 +521,7 @@ OBJS = \
     $O/inet/networklayer/icn/cluster/TwoNicCluster.o \
     $O/inet/networklayer/icn/color/color.o \
     $O/inet/networklayer/icn/color/ColorFragBuf.o \
+    $O/inet/networklayer/icn/color/ColorNoCluster.o \
     $O/inet/networklayer/icn/color/colorTwoInterface.o \
     $O/inet/networklayer/icn/delayQueue/delayQueue.o \
     $O/inet/networklayer/icn/field/NID.o \
@@ -562,6 +568,7 @@ OBJS = \
     $O/inet/networklayer/mpls/LibTable.o \
     $O/inet/networklayer/mpls/Mpls.o \
     $O/inet/networklayer/mpls/MplsPacket.o \
+    $O/inet/networklayer/mpls/MplsPacketSerializer.o \
     $O/inet/networklayer/mpls/MplsProtocolDissector.o \
     $O/inet/networklayer/nexthop/NextHopForwarding.o \
     $O/inet/networklayer/nexthop/NextHopInterfaceData.o \
@@ -626,6 +633,7 @@ OBJS = \
     $O/inet/physicallayer/apskradio/packetlevel/ApskScalarTransmission.o \
     $O/inet/physicallayer/apskradio/packetlevel/ApskScalarTransmitter.o \
     $O/inet/physicallayer/apskradio/packetlevel/errormodel/ApskErrorModel.o \
+    $O/inet/physicallayer/backgroundnoise/DimensionalBackgroundNoise.o \
     $O/inet/physicallayer/backgroundnoise/IsotropicDimensionalBackgroundNoise.o \
     $O/inet/physicallayer/backgroundnoise/IsotropicScalarBackgroundNoise.o \
     $O/inet/physicallayer/base/bitlevel/LayeredErrorModelBase.o \
@@ -687,6 +695,8 @@ OBJS = \
     $O/inet/physicallayer/common/packetlevel/Interference.o \
     $O/inet/physicallayer/common/packetlevel/ListeningDecision.o \
     $O/inet/physicallayer/common/packetlevel/MediumLimitCache.o \
+    $O/inet/physicallayer/common/packetlevel/NoiseDimensionalTransmitter.o \
+    $O/inet/physicallayer/common/packetlevel/NoiseSource.o \
     $O/inet/physicallayer/common/packetlevel/Radio.o \
     $O/inet/physicallayer/common/packetlevel/RadioMedium.o \
     $O/inet/physicallayer/common/packetlevel/ReceptionDecision.o \
@@ -813,6 +823,7 @@ OBJS = \
     $O/inet/physicallayer/unitdisk/UnitDiskAnalogModel.o \
     $O/inet/physicallayer/unitdisk/UnitDiskListening.o \
     $O/inet/physicallayer/unitdisk/UnitDiskNoise.o \
+    $O/inet/physicallayer/unitdisk/UnitDiskPhyHeaderSerializer.o \
     $O/inet/physicallayer/unitdisk/UnitDiskProtocolDissector.o \
     $O/inet/physicallayer/unitdisk/UnitDiskRadio.o \
     $O/inet/physicallayer/unitdisk/UnitDiskReceiver.o \
@@ -845,7 +856,78 @@ OBJS = \
     $O/inet/power/storage/IdealEpEnergyStorage.o \
     $O/inet/power/storage/SimpleCcBattery.o \
     $O/inet/power/storage/SimpleEpEnergyStorage.o \
+    $O/inet/queueing/base/PacketBufferBase.o \
+    $O/inet/queueing/base/PacketClassifierBase.o \
+    $O/inet/queueing/base/PacketDuplicatorBase.o \
+    $O/inet/queueing/base/PacketFilterBase.o \
+    $O/inet/queueing/base/PacketLabelerBase.o \
+    $O/inet/queueing/base/PacketMarkerBase.o \
+    $O/inet/queueing/base/PacketMeterBase.o \
+    $O/inet/queueing/base/PacketProcessorBase.o \
+    $O/inet/queueing/base/PacketQueueBase.o \
+    $O/inet/queueing/base/PacketQueueingElementBase.o \
+    $O/inet/queueing/base/PacketSchedulerBase.o \
+    $O/inet/queueing/base/PacketServerBase.o \
+    $O/inet/queueing/base/PacketSinkBase.o \
+    $O/inet/queueing/base/PacketSourceBase.o \
+    $O/inet/queueing/base/PacketTaggerBase.o \
+    $O/inet/queueing/base/PassivePacketSinkBase.o \
+    $O/inet/queueing/base/TokenGeneratorBase.o \
+    $O/inet/queueing/buffer/PacketBuffer.o \
+    $O/inet/queueing/classifier/ContentBasedClassifier.o \
+    $O/inet/queueing/classifier/LabelClassifier.o \
+    $O/inet/queueing/classifier/MarkovClassifier.o \
+    $O/inet/queueing/classifier/PacketClassifier.o \
+    $O/inet/queueing/classifier/PriorityClassifier.o \
+    $O/inet/queueing/classifier/WrrClassifier.o \
+    $O/inet/queueing/common/OrdinalBasedDuplicator.o \
+    $O/inet/queueing/common/PacketCloner.o \
+    $O/inet/queueing/common/PacketDelayer.o \
+    $O/inet/queueing/common/PacketDemultiplexer.o \
+    $O/inet/queueing/common/PacketDuplicator.o \
+    $O/inet/queueing/common/PacketGate.o \
+    $O/inet/queueing/common/PacketMultiplexer.o \
+    $O/inet/queueing/compat/cpacketqueue.o \
+    $O/inet/queueing/compat/cqueue.o \
+    $O/inet/queueing/filter/ContentBasedFilter.o \
+    $O/inet/queueing/filter/OrdinalBasedDropper.o \
+    $O/inet/queueing/filter/PacketFilter.o \
+    $O/inet/queueing/filter/RateLimiter.o \
+    $O/inet/queueing/filter/RedDropper.o \
+    $O/inet/queueing/function/PacketClassifierFunction.o \
+    $O/inet/queueing/function/PacketComparatorFunction.o \
+    $O/inet/queueing/function/PacketDropperFunction.o \
+    $O/inet/queueing/function/PacketFilterFunction.o \
+    $O/inet/queueing/function/PacketSchedulerFunction.o \
+    $O/inet/queueing/marker/ContentBasedLabeler.o \
+    $O/inet/queueing/marker/ContentBasedTagger.o \
+    $O/inet/queueing/marker/EcnMarker.o \
+    $O/inet/queueing/marker/PacketLabeler.o \
+    $O/inet/queueing/marker/PacketTagger.o \
+    $O/inet/queueing/meter/RateMeter.o \
+    $O/inet/queueing/queue/CompoundPacketQueue.o \
+    $O/inet/queueing/queue/PacketQueue.o \
+    $O/inet/queueing/scheduler/ContentBasedScheduler.o \
+    $O/inet/queueing/scheduler/LabelScheduler.o \
+    $O/inet/queueing/scheduler/MarkovScheduler.o \
+    $O/inet/queueing/scheduler/PacketScheduler.o \
+    $O/inet/queueing/scheduler/PriorityScheduler.o \
+    $O/inet/queueing/scheduler/WrrScheduler.o \
+    $O/inet/queueing/server/PacketServer.o \
+    $O/inet/queueing/server/TokenBasedServer.o \
+    $O/inet/queueing/sink/ActivePacketSink.o \
+    $O/inet/queueing/sink/PassivePacketSink.o \
+    $O/inet/queueing/sink/PcapFilePacketConsumer.o \
+    $O/inet/queueing/source/ActivePacketSource.o \
+    $O/inet/queueing/source/EmptyPacketSource.o \
+    $O/inet/queueing/source/PassivePacketSource.o \
+    $O/inet/queueing/source/PcapFilePacketProducer.o \
+    $O/inet/queueing/tokengenerator/PacketBasedTokenGenerator.o \
+    $O/inet/queueing/tokengenerator/QueueBasedTokenGenerator.o \
+    $O/inet/queueing/tokengenerator/SignalBasedTokenGenerator.o \
+    $O/inet/queueing/tokengenerator/TimeBasedTokenGenerator.o \
     $O/inet/routing/aodv/Aodv.o \
+    $O/inet/routing/aodv/AodvControlPacketsSerializer.o \
     $O/inet/routing/aodv/AodvRouteData.o \
     $O/inet/routing/aodv_cluster/Aodv_cluster.o \
     $O/inet/routing/aodv_cluster/AodvRouteData.o \
@@ -854,6 +936,7 @@ OBJS = \
     $O/inet/routing/bgpv4/BgpFsm.o \
     $O/inet/routing/bgpv4/BgpRouter.o \
     $O/inet/routing/bgpv4/BgpSession.o \
+    $O/inet/routing/bgpv4/bgpmessage/BgpHeaderSerializer.o \
     $O/inet/routing/bgpv4/bgpmessage/BgpUpdate.o \
     $O/inet/routing/common/ManetProtocolDissector.o \
     $O/inet/routing/dsdv/Dsdv.o \
@@ -861,43 +944,73 @@ OBJS = \
     $O/inet/routing/dymo/DymoRouteData.o \
     $O/inet/routing/gpsr/Gpsr.o \
     $O/inet/routing/gpsr/PositionTable.o \
-    $O/inet/routing/ospfv2/Ospf.o \
-    $O/inet/routing/ospfv2/OspfConfigReader.o \
-    $O/inet/routing/ospfv2/OspfPacketSerializer.o \
-    $O/inet/routing/ospfv2/OspfProtocolDissector.o \
-    $O/inet/routing/ospfv2/interface/OspfInterface.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceState.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceStateBackup.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceStateDesignatedRouter.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceStateDown.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceStateLoopback.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceStateNotDesignatedRouter.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceStatePointToPoint.o \
-    $O/inet/routing/ospfv2/interface/OspfInterfaceStateWaiting.o \
+    $O/inet/routing/ospf_common/OspfPacketSerializer.o \
+    $O/inet/routing/ospf_common/OspfProtocolDissector.o \
+    $O/inet/routing/ospfv2/Ospfv2.o \
+    $O/inet/routing/ospfv2/Ospfv2ConfigReader.o \
+    $O/inet/routing/ospfv2/Ospfv2Crc.o \
+    $O/inet/routing/ospfv2/Ospfv2PacketSerializer.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2Interface.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceState.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceStateBackup.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceStateDesignatedRouter.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceStateDown.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceStateLoopback.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceStateNotDesignatedRouter.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceStatePointToPoint.o \
+    $O/inet/routing/ospfv2/interface/Ospfv2InterfaceStateWaiting.o \
     $O/inet/routing/ospfv2/messagehandler/DatabaseDescriptionHandler.o \
     $O/inet/routing/ospfv2/messagehandler/HelloHandler.o \
     $O/inet/routing/ospfv2/messagehandler/LinkStateAcknowledgementHandler.o \
     $O/inet/routing/ospfv2/messagehandler/LinkStateRequestHandler.o \
     $O/inet/routing/ospfv2/messagehandler/LinkStateUpdateHandler.o \
     $O/inet/routing/ospfv2/messagehandler/MessageHandler.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighbor.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborState.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateAttempt.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateDown.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateExchange.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateExchangeStart.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateFull.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateInit.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateLoading.o \
-    $O/inet/routing/ospfv2/neighbor/OspfNeighborStateTwoWay.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2Neighbor.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborState.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateAttempt.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateDown.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateExchange.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateExchangeStart.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateFull.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateInit.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateLoading.o \
+    $O/inet/routing/ospfv2/neighbor/Ospfv2NeighborStateTwoWay.o \
     $O/inet/routing/ospfv2/router/AsExternalLsa.o \
     $O/inet/routing/ospfv2/router/Lsa.o \
     $O/inet/routing/ospfv2/router/NetworkLsa.o \
-    $O/inet/routing/ospfv2/router/OspfArea.o \
-    $O/inet/routing/ospfv2/router/OspfRouter.o \
-    $O/inet/routing/ospfv2/router/OspfRoutingTableEntry.o \
+    $O/inet/routing/ospfv2/router/Ospfv2Area.o \
+    $O/inet/routing/ospfv2/router/Ospfv2Router.o \
+    $O/inet/routing/ospfv2/router/Ospfv2RoutingTableEntry.o \
     $O/inet/routing/ospfv2/router/RouterLsa.o \
     $O/inet/routing/ospfv2/router/SummaryLsa.o \
+    $O/inet/routing/ospfv3/Ospfv3Splitter.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3Interface.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfacePassive.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceState.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceStateBackup.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceStateDown.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceStateDr.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceStateDrOther.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceStateLoopback.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceStatePointToPoint.o \
+    $O/inet/routing/ospfv3/interface/Ospfv3InterfaceStateWaiting.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3Neighbor.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborState.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborState2Way.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborStateAttempt.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborStateDown.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborStateExchange.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborStateExStart.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborStateFull.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborStateInit.o \
+    $O/inet/routing/ospfv3/neighbor/Ospfv3NeighborStateLoading.o \
+    $O/inet/routing/ospfv3/process/Ospfv3Area.o \
+    $O/inet/routing/ospfv3/process/Ospfv3Instance.o \
+    $O/inet/routing/ospfv3/process/Ospfv3Lsa.o \
+    $O/inet/routing/ospfv3/process/Ospfv3Process.o \
+    $O/inet/routing/ospfv3/process/Ospfv3RoutingTableEntry.o \
+    $O/inet/routing/pim/Pim.o \
+    $O/inet/routing/pim/PimPacketSerializer.o \
     $O/inet/routing/pim/PimProtocolDissector.o \
     $O/inet/routing/pim/PimSplitter.o \
     $O/inet/routing/pim/modes/PimBase.o \
@@ -917,13 +1030,14 @@ OBJS = \
     $O/inet/transportlayer/contract/sctp/SctpSocket.o \
     $O/inet/transportlayer/contract/tcp/TcpSocket.o \
     $O/inet/transportlayer/contract/udp/UdpSocket.o \
-    $O/inet/transportlayer/icntp/IcnTp.o \
     $O/inet/transportlayer/rtp/Reports.o \
     $O/inet/transportlayer/rtp/Rtcp.o \
     $O/inet/transportlayer/rtp/RtcpPacket.o \
+    $O/inet/transportlayer/rtp/RtcpPacketSerializer.o \
     $O/inet/transportlayer/rtp/Rtp.o \
     $O/inet/transportlayer/rtp/RtpInnerPacket.o \
     $O/inet/transportlayer/rtp/RtpPacket.o \
+    $O/inet/transportlayer/rtp/RtpPacketSerializer.o \
     $O/inet/transportlayer/rtp/RtpParticipantInfo.o \
     $O/inet/transportlayer/rtp/RtpPayloadReceiver.o \
     $O/inet/transportlayer/rtp/RtpPayloadSender.o \
@@ -934,6 +1048,7 @@ OBJS = \
     $O/inet/transportlayer/rtp/profiles/avprofile/RtpAvProfile.o \
     $O/inet/transportlayer/rtp/profiles/avprofile/RtpAvProfilePayload32Receiver.o \
     $O/inet/transportlayer/rtp/profiles/avprofile/RtpAvProfilePayload32Sender.o \
+    $O/inet/transportlayer/rtp/profiles/avprofile/RtpMpegPacketSerializer.o \
     $O/inet/transportlayer/sctp/Sctp.o \
     $O/inet/transportlayer/sctp/SctpAlg.o \
     $O/inet/transportlayer/sctp/SctpAssociationAddIp.o \
@@ -1054,6 +1169,7 @@ OBJS = \
     $O/inet/visualizer/scene/NetworkNodeCanvasVisualizer.o \
     $O/inet/visualizer/scene/NetworkNodeOsgVisualization.o \
     $O/inet/visualizer/scene/NetworkNodeOsgVisualizer.o \
+    $O/inet/visualizer/scene/OpenStreetMapSceneCanvasVisualizer.o \
     $O/inet/visualizer/scene/SceneCanvasVisualizer.o \
     $O/inet/visualizer/scene/SceneOsgEarthVisualizer.o \
     $O/inet/visualizer/scene/SceneOsgVisualizer.o \
@@ -1072,7 +1188,6 @@ OBJS = \
     $O/inet/visualizer/util/PortFilter.o \
     $O/inet/visualizer/util/QueueFilter.o \
     $O/inet/applications/Fap/FAPmessage_m.o \
-    $O/inet/applications/WCAcluster/WcaMessage_m.o \
     $O/inet/applications/base/ApplicationPacket_m.o \
     $O/inet/applications/common/SocketTag_m.o \
     $O/inet/applications/dhcp/DhcpMessage_m.o \
@@ -1081,10 +1196,10 @@ OBJS = \
     $O/inet/applications/httptools/common/HttpMessages_m.o \
     $O/inet/applications/netperfmeter/NetPerfMeter_m.o \
     $O/inet/applications/packetdrill/PacketDrillInfo_m.o \
+    $O/inet/applications/pingapp/PingApp_m.o \
+    $O/inet/applications/rtpapp/RtpApplication_m.o \
     $O/inet/applications/tcpapp/GenericAppMsg_m.o \
-    $O/inet/applications/udpapp/stastics_m.o \
     $O/inet/applications/voip/SimpleVoipPacket_m.o \
-    $O/inet/common/ByteArray_m.o \
     $O/inet/common/INETDefs_m.o \
     $O/inet/common/Protocol_m.o \
     $O/inet/common/ProtocolTag_m.o \
@@ -1099,11 +1214,10 @@ OBJS = \
     $O/inet/common/packet/Message_m.o \
     $O/inet/common/packet/Packet_m.o \
     $O/inet/common/packet/chunk/Chunk_m.o \
-    $O/inet/common/queue/PacketQueue_m.o \
+    $O/inet/common/scenario/ScenarioTimer_m.o \
     $O/inet/environment/common/Material_m.o \
     $O/inet/environment/common/PhysicalObject_m.o \
     $O/inet/linklayer/acking/AckingMacHeader_m.o \
-    $O/inet/linklayer/base/MacHeaderBase_m.o \
     $O/inet/linklayer/bmac/BMacHeader_m.o \
     $O/inet/linklayer/common/EtherType_m.o \
     $O/inet/linklayer/common/FcsMode_m.o \
@@ -1113,6 +1227,7 @@ OBJS = \
     $O/inet/linklayer/common/MacAddress_m.o \
     $O/inet/linklayer/common/MacAddressTag_m.o \
     $O/inet/linklayer/common/UserPriorityTag_m.o \
+    $O/inet/linklayer/common/VlanTag_m.o \
     $O/inet/linklayer/csmaca/CsmaCaMacHeader_m.o \
     $O/inet/linklayer/ethernet/EtherFrame_m.o \
     $O/inet/linklayer/ethernet/EthernetCommand_m.o \
@@ -1121,6 +1236,8 @@ OBJS = \
     $O/inet/linklayer/ieee80211/llc/LlcProtocolTag_m.o \
     $O/inet/linklayer/ieee80211/mac/Ieee80211Frame_m.o \
     $O/inet/linklayer/ieee80211/mac/Ieee80211SubtypeTag_m.o \
+    $O/inet/linklayer/ieee80211/mac/framesequence/FrameSequence_m.o \
+    $O/inet/linklayer/ieee80211/mac/queue/InProgressFrames_m.o \
     $O/inet/linklayer/ieee80211/mgmt/Ieee80211MgmtFrame_m.o \
     $O/inet/linklayer/ieee80211/mgmt/Ieee80211Primitives_m.o \
     $O/inet/linklayer/ieee802154/Ieee802154MacHeader_m.o \
@@ -1132,7 +1249,6 @@ OBJS = \
     $O/inet/linklayer/ppp/PppFrame_m.o \
     $O/inet/linklayer/shortcut/ShortcutMacHeader_m.o \
     $O/inet/linklayer/tun/TunControlInfo_m.o \
-    $O/inet/linklayer/vlan/VlanTag_m.o \
     $O/inet/linklayer/xmac/XMacHeader_m.o \
     $O/inet/networklayer/arp/ipv4/ArpPacket_m.o \
     $O/inet/networklayer/common/DscpTag_m.o \
@@ -1146,7 +1262,11 @@ OBJS = \
     $O/inet/networklayer/common/L3AddressTag_m.o \
     $O/inet/networklayer/common/MulticastTag_m.o \
     $O/inet/networklayer/common/NextHopAddressTag_m.o \
+<<<<<<< HEAD
     $O/inet/networklayer/common/SidTag_m.o \
+=======
+    $O/inet/networklayer/common/TosTag_m.o \
+>>>>>>> upstream/master
     $O/inet/networklayer/contract/L3SocketCommand_m.o \
     $O/inet/networklayer/contract/NetworkHeaderBase_m.o \
     $O/inet/networklayer/contract/clns/ClnsAddress_m.o \
@@ -1170,6 +1290,7 @@ OBJS = \
     $O/inet/networklayer/ipv4/IgmpMessage_m.o \
     $O/inet/networklayer/ipv4/Ipv4Header_m.o \
     $O/inet/networklayer/ipv4/Ipv4NatEntry_m.o \
+    $O/inet/networklayer/ipv4/Ipv4OptionsTag_m.o \
     $O/inet/networklayer/ipv4/Ipv4Route_m.o \
     $O/inet/networklayer/ipv6/Ipv6ExtensionHeaders_m.o \
     $O/inet/networklayer/ipv6/Ipv6ExtHeaderTag_m.o \
@@ -1200,9 +1321,9 @@ OBJS = \
     $O/inet/physicallayer/common/packetlevel/Arrival_m.o \
     $O/inet/physicallayer/common/packetlevel/BandListening_m.o \
     $O/inet/physicallayer/common/packetlevel/Signal_m.o \
-    $O/inet/physicallayer/common/packetlevel/SignalTag_m.o \
     $O/inet/physicallayer/contract/packetlevel/IModulation_m.o \
     $O/inet/physicallayer/contract/packetlevel/RadioControlInfo_m.o \
+    $O/inet/physicallayer/contract/packetlevel/SignalTag_m.o \
     $O/inet/physicallayer/ieee80211/mode/Ieee80211Channel_m.o \
     $O/inet/physicallayer/ieee80211/mode/IIeee80211Mode_m.o \
     $O/inet/physicallayer/ieee80211/packetlevel/Ieee80211ControlInfo_m.o \
@@ -1213,13 +1334,18 @@ OBJS = \
     $O/inet/physicallayer/shortcut/ShortcutPhyHeader_m.o \
     $O/inet/physicallayer/unitdisk/UnitDiskPhyHeader_m.o \
     $O/inet/physicallayer/unitdisk/UnitDiskTransmission_m.o \
+    $O/inet/queueing/common/LabelsTag_m.o \
+    $O/inet/queueing/common/RateTag_m.o \
     $O/inet/routing/aodv/AodvControlPackets_m.o \
+    $O/inet/routing/aodv_cluster/AodvControlPackets_m.o \
     $O/inet/routing/bgpv4/BgpCommon_m.o \
     $O/inet/routing/bgpv4/bgpmessage/BgpHeader_m.o \
     $O/inet/routing/dsdv/DsdvHello_m.o \
     $O/inet/routing/dymo/Dymo_m.o \
     $O/inet/routing/gpsr/Gpsr_m.o \
-    $O/inet/routing/ospfv2/OspfPacket_m.o \
+    $O/inet/routing/ospf_common/OspfPacketBase_m.o \
+    $O/inet/routing/ospfv2/Ospfv2Packet_m.o \
+    $O/inet/routing/ospfv3/Ospfv3Packet_m.o \
     $O/inet/routing/pim/PimPacket_m.o \
     $O/inet/routing/rip/RipPacket_m.o \
     $O/inet/transportlayer/common/CrcMode_m.o \
@@ -1247,7 +1373,6 @@ OBJS = \
 # Message files
 MSGFILES = \
     inet/applications/Fap/FAPmessage.msg \
-    inet/applications/WCAcluster/WcaMessage.msg \
     inet/applications/base/ApplicationPacket.msg \
     inet/applications/common/SocketTag.msg \
     inet/applications/dhcp/DhcpMessage.msg \
@@ -1256,10 +1381,10 @@ MSGFILES = \
     inet/applications/httptools/common/HttpMessages.msg \
     inet/applications/netperfmeter/NetPerfMeter.msg \
     inet/applications/packetdrill/PacketDrillInfo.msg \
+    inet/applications/pingapp/PingApp.msg \
+    inet/applications/rtpapp/RtpApplication.msg \
     inet/applications/tcpapp/GenericAppMsg.msg \
-    inet/applications/udpapp/stastics.msg \
     inet/applications/voip/SimpleVoipPacket.msg \
-    inet/common/ByteArray.msg \
     inet/common/INETDefs.msg \
     inet/common/Protocol.msg \
     inet/common/ProtocolTag.msg \
@@ -1274,11 +1399,10 @@ MSGFILES = \
     inet/common/packet/Message.msg \
     inet/common/packet/Packet.msg \
     inet/common/packet/chunk/Chunk.msg \
-    inet/common/queue/PacketQueue.msg \
+    inet/common/scenario/ScenarioTimer.msg \
     inet/environment/common/Material.msg \
     inet/environment/common/PhysicalObject.msg \
     inet/linklayer/acking/AckingMacHeader.msg \
-    inet/linklayer/base/MacHeaderBase.msg \
     inet/linklayer/bmac/BMacHeader.msg \
     inet/linklayer/common/EtherType.msg \
     inet/linklayer/common/FcsMode.msg \
@@ -1288,6 +1412,7 @@ MSGFILES = \
     inet/linklayer/common/MacAddress.msg \
     inet/linklayer/common/MacAddressTag.msg \
     inet/linklayer/common/UserPriorityTag.msg \
+    inet/linklayer/common/VlanTag.msg \
     inet/linklayer/csmaca/CsmaCaMacHeader.msg \
     inet/linklayer/ethernet/EtherFrame.msg \
     inet/linklayer/ethernet/EthernetCommand.msg \
@@ -1296,6 +1421,8 @@ MSGFILES = \
     inet/linklayer/ieee80211/llc/LlcProtocolTag.msg \
     inet/linklayer/ieee80211/mac/Ieee80211Frame.msg \
     inet/linklayer/ieee80211/mac/Ieee80211SubtypeTag.msg \
+    inet/linklayer/ieee80211/mac/framesequence/FrameSequence.msg \
+    inet/linklayer/ieee80211/mac/queue/InProgressFrames.msg \
     inet/linklayer/ieee80211/mgmt/Ieee80211MgmtFrame.msg \
     inet/linklayer/ieee80211/mgmt/Ieee80211Primitives.msg \
     inet/linklayer/ieee802154/Ieee802154MacHeader.msg \
@@ -1307,7 +1434,6 @@ MSGFILES = \
     inet/linklayer/ppp/PppFrame.msg \
     inet/linklayer/shortcut/ShortcutMacHeader.msg \
     inet/linklayer/tun/TunControlInfo.msg \
-    inet/linklayer/vlan/VlanTag.msg \
     inet/linklayer/xmac/XMacHeader.msg \
     inet/networklayer/arp/ipv4/ArpPacket.msg \
     inet/networklayer/common/DscpTag.msg \
@@ -1322,6 +1448,7 @@ MSGFILES = \
     inet/networklayer/common/MulticastTag.msg \
     inet/networklayer/common/NextHopAddressTag.msg \
     inet/networklayer/common/SidTag.msg \
+    inet/networklayer/common/TosTag.msg \
     inet/networklayer/contract/L3SocketCommand.msg \
     inet/networklayer/contract/NetworkHeaderBase.msg \
     inet/networklayer/contract/clns/ClnsAddress.msg \
@@ -1345,6 +1472,7 @@ MSGFILES = \
     inet/networklayer/ipv4/IgmpMessage.msg \
     inet/networklayer/ipv4/Ipv4Header.msg \
     inet/networklayer/ipv4/Ipv4NatEntry.msg \
+    inet/networklayer/ipv4/Ipv4OptionsTag.msg \
     inet/networklayer/ipv4/Ipv4Route.msg \
     inet/networklayer/ipv6/Ipv6ExtensionHeaders.msg \
     inet/networklayer/ipv6/Ipv6ExtHeaderTag.msg \
@@ -1375,9 +1503,9 @@ MSGFILES = \
     inet/physicallayer/common/packetlevel/Arrival.msg \
     inet/physicallayer/common/packetlevel/BandListening.msg \
     inet/physicallayer/common/packetlevel/Signal.msg \
-    inet/physicallayer/common/packetlevel/SignalTag.msg \
     inet/physicallayer/contract/packetlevel/IModulation.msg \
     inet/physicallayer/contract/packetlevel/RadioControlInfo.msg \
+    inet/physicallayer/contract/packetlevel/SignalTag.msg \
     inet/physicallayer/ieee80211/mode/Ieee80211Channel.msg \
     inet/physicallayer/ieee80211/mode/IIeee80211Mode.msg \
     inet/physicallayer/ieee80211/packetlevel/Ieee80211ControlInfo.msg \
@@ -1388,13 +1516,18 @@ MSGFILES = \
     inet/physicallayer/shortcut/ShortcutPhyHeader.msg \
     inet/physicallayer/unitdisk/UnitDiskPhyHeader.msg \
     inet/physicallayer/unitdisk/UnitDiskTransmission.msg \
+    inet/queueing/common/LabelsTag.msg \
+    inet/queueing/common/RateTag.msg \
     inet/routing/aodv/AodvControlPackets.msg \
+    inet/routing/aodv_cluster/AodvControlPackets.msg \
     inet/routing/bgpv4/BgpCommon.msg \
     inet/routing/bgpv4/bgpmessage/BgpHeader.msg \
     inet/routing/dsdv/DsdvHello.msg \
     inet/routing/dymo/Dymo.msg \
     inet/routing/gpsr/Gpsr.msg \
-    inet/routing/ospfv2/OspfPacket.msg \
+    inet/routing/ospf_common/OspfPacketBase.msg \
+    inet/routing/ospfv2/Ospfv2Packet.msg \
+    inet/routing/ospfv3/Ospfv3Packet.msg \
     inet/routing/pim/PimPacket.msg \
     inet/routing/rip/RipPacket.msg \
     inet/transportlayer/common/CrcMode.msg \
@@ -1461,31 +1594,48 @@ endif
 # User-supplied makefile fragment(s)
 # >>>
 # inserted from file 'makefrag':
+.DEFAULT_GOAL := all-pch
+
 #
 # Use the new message compiler introduced in OMNeT++ 5.3
 #
 MSGC:=$(MSGC) --msg6
+
+FEATURETOOL := opp_featuretool
 
 #
 # compiler warning for c-style cast
 #
 #CFLAGS += -Wold-style-cast
 
-#
-# on windows we have to link with the ws2_32 (winsock2) library as it is no longer added
-# to the omnetpp system libraries by default (as of OMNeT++ 5.1)
-#
 ifeq ($(PLATFORM),win32.x86_64)
+  #
+  # on windows we have to link with the ws2_32 (winsock2) library as it is no longer added
+  # to the omnetpp system libraries by default (as of OMNeT++ 5.1)
+  #
   LIBS += -lws2_32
   DEFINES += -DINET_EXPORT
   ENABLE_AUTO_IMPORT=-Wl,--enable-auto-import
   LDFLAGS := $(filter-out $(ENABLE_AUTO_IMPORT), $(LDFLAGS))
+
+  # FIX for clang not exporting typinfo and other thunks on Windows
+  ifeq ($(CC),clang)
+    DEFFILE = $O/typeinfo.def
+    LDFLAGS += $(DEFFILE)
+
+$(DEFFILE): $(OBJS)  $(wildcard $(EXTRA_OBJS)) Makefile $(CONFIGFILE)
+	@echo Creating .DEF file for $(TARGET) - needed to fix an issue where clang is not exporting typinfo for classes on Windows
+	$(Q)echo >.tmp$$$$ $(OBJS) $(EXTRA_OBJS) && $(DLLTOOL) --export-all-symbols --kill-at -z all$$$$.def @.tmp$$$$ && grep -E '( *_ZTI)|( *_ZThn)|EXPORTS' all$$$$.def | sed 's/ @.*//' >$(DEFFILE) && rm .tmp$$$$ all$$$$.def
+
+$O/$(TARGET): $(DEFFILE)
+
+  endif
 endif
 
 #
 # TCP implementaion using the Network Simulation Cradle (TCP_NSC feature)
 #
-WITH_TCP_NSC := $(shell (cd .. && ./bin/inet_featuretool -q isenabled TCP_NSC && echo enabled) )
+WITH_TCP_NSC := $(shell (cd .. && $(FEATURETOOL) -q isenabled TCP_NSC && echo enabled) )
 ifeq ($(WITH_TCP_NSC), enabled)
   NSC_VERSION= $(shell ls -d ../3rdparty/nsc* 2>/dev/null | sed 's/^.*-//')
   ifneq ($(NSC_VERSION),)
@@ -1499,7 +1649,7 @@ endif
 #
 # TCP implementation using the lwIP stack
 #
-WITH_TCP_LWIP := $(shell (cd .. && ./bin/inet_featuretool -q isenabled TCP_lwIP && echo enabled) )
+WITH_TCP_LWIP := $(shell (cd .. && $(FEATURETOOL) -q isenabled TCP_lwIP && echo enabled) )
 ifeq ($(WITH_TCP_LWIP), enabled)
   INCLUDE_PATH += -Iinet/transportlayer/tcp_lwip/lwip/include -Iinet/transportlayer/tcp_lwip/lwip/include/ipv4 -Iinet/transportlayer/tcp_lwip/lwip/include/ipv6
 endif
@@ -1518,7 +1668,7 @@ endif
 #
 # VoipStream feature:
 #
-WITH_VOIPSTREAM := $(shell (cd .. && ./bin/inet_featuretool -q isenabled VoIPStream && echo enabled) )
+WITH_VOIPSTREAM := $(shell (cd .. && $(FEATURETOOL) -q isenabled VoIPStream && echo enabled) )
 ifeq ($(WITH_VOIPSTREAM), enabled)
   ifeq ($(HAVE_PKGCFG), yes)
     HAVE_FFMPEG := $(shell $(PKGCFG) --exists libavcodec libavformat libavutil && echo yes || echo no)
@@ -1537,7 +1687,7 @@ endif
 #
 # visualization feature requires (optionally) some extra osg and osgEarth libraries
 #
-WITH_VISUALIZERS := $(shell (cd .. && ./bin/inet_featuretool -q isenabled visualization && echo enabled) )
+WITH_VISUALIZERS := $(shell (cd .. && $(FEATURETOOL) -q isenabled visualization && echo enabled) )
 ifeq ($(WITH_VISUALIZERS), enabled)
   ifeq ($(WITH_OSG), yes)
     OMNETPP_LIBS += -losg -losgText -losgDB -losgGA -losgViewer -losgUtil -lOpenThreads # TODO: use $(OSG_LIBS) from Makefile.inc? Does that include -losgText? Why not?

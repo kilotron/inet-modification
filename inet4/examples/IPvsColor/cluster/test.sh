@@ -1,0 +1,3 @@
+opp_run -r 0 -m -u Cmdenv -c random_static_single_color_1 -n ../../../src:../..:../../../tutorials:../../../showcases --image-path=../../../images -l ../../../src/INET --record-eventlog=false --scalar-recording=false --vector-recording=false omnetpp.ini
+opp_run -r 1 -m -u Cmdenv -c random_static_single_color_1 -n ../../../src:../..:../../../tutorials:../../../showcases --image-path=../../../images -l ../../../src/INET --record-eventlog=false --scalar-recording=false --vector-recording=false omnetpp.ini
+opp_run -r 2 -m -u Cmdenv -c random_static_single_color_1 -n ../../../src:../..:../../../tutorials:../../../showcases --image-path=../../../images -l ../../../src/INET --record-eventlog=false --scalar-recording=false --vector-recording=false omnetpp.ini

@@ -23,7 +23,6 @@
 #include "inet/linklayer/ieee80211/mac/Ieee80211Mac.h"
 #include "inet/linklayer/ieee80211/mac/Tx.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRx.h"
-#include "inet/linklayer/ieee80211/mac/contract/IStatistics.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -43,11 +42,7 @@ void Tx::initialize(int stage)
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this)->getSubmodule("mac"));
         endIfsTimer = new cMessage("endIFS");
         rx = dynamic_cast<IRx *>(getModuleByPath(par("rxModule")));
-        // statistics = check_and_cast<IStatistics*>(getModuleByPath(par("statisticsModule")));
         WATCH(transmitting);
-    }
-    else if (stage == INITSTAGE_LINK_LAYER) {
-        refreshDisplay();
     }
 }
 
@@ -58,9 +53,9 @@ void Tx::transmitFrame(Packet *packet, const Ptr<const Ieee80211MacHeader>& head
 
 void Tx::transmitFrame(Packet *packet, const Ptr<const Ieee80211MacHeader>& header, simtime_t ifs, ITx::ICallback *txCallback)
 {
+    Enter_Method_Silent("transmitFrame(\"%s\")", packet->getName());
     ASSERT(this->txCallback == nullptr);
     this->txCallback = txCallback;
-    Enter_Method("transmitFrame(\"%s\")", packet->getName());
     take(packet);
     auto macAddressInd = packet->addTagIfAbsent<MacAddressInd>();
     const auto& updatedHeader = packet->removeAtFront<Ieee80211MacHeader>();
@@ -72,7 +67,7 @@ void Tx::transmitFrame(Packet *packet, const Ptr<const Ieee80211MacHeader>& head
         macAddressInd->setSrcAddress(twoAddressHeader->getTransmitterAddress());
     }
     packet->insertAtFront(updatedHeader);
-    const auto& updatedTrailer = packet->removeAtBack<Ieee80211MacTrailer>();
+    const auto& updatedTrailer = packet->removeAtBack<Ieee80211MacTrailer>(B(4));
     updatedTrailer->setFcsMode(mac->getFcsMode());
     if (mac->getFcsMode() == FCS_COMPUTED) {
         const auto& fcsBytes = packet->peekAllAsBytes();
@@ -86,9 +81,13 @@ void Tx::transmitFrame(Packet *packet, const Ptr<const Ieee80211MacHeader>& head
     packet->insertAtBack(updatedTrailer);
     this->frame = packet->dup();
     ASSERT(!endIfsTimer->isScheduled() && !transmitting);    // we are idle
-    scheduleAt(simTime() + ifs, endIfsTimer);
-    if (hasGUI())
-        refreshDisplay();
+    if (ifs == 0) {
+        // do directly what handleMessage() would do
+        transmitting = true;
+        mac->sendDownFrame(frame->dup());
+    }
+    else
+        scheduleAt(simTime() + ifs, endIfsTimer);
 }
 
 void Tx::radioTransmissionFinished()
@@ -99,15 +98,13 @@ void Tx::radioTransmissionFinished()
         transmitting = false;
         ASSERT(txCallback != nullptr);
         const auto& header = frame->peekAtFront<Ieee80211MacHeader>();
-        auto duration = header->getDuration();
+        auto duration = header->getDurationField();
         auto tmpFrame = frame;
         auto tmpTxCallback = txCallback;
         frame = nullptr;
         txCallback = nullptr;
         tmpTxCallback->transmissionComplete(tmpFrame, tmpFrame->peekAtFront<Ieee80211MacHeader>());
         rx->frameTransmitted(duration);
-        if (hasGUI())
-            refreshDisplay();
     }
 }
 
@@ -117,8 +114,6 @@ void Tx::handleMessage(cMessage *msg)
         EV_DETAIL << "Tx: endIfsTimer expired\n";
         transmitting = true;
         mac->sendDownFrame(frame->dup());
-        if (hasGUI())
-            refreshDisplay();
     }
     else
         ASSERT(false);
