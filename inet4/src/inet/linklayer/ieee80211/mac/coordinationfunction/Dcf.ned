@@ -20,11 +20,14 @@ package inet.linklayer.ieee80211.mac.coordinationfunction;
 import inet.linklayer.ieee80211.mac.channelaccess.Dcaf;
 import inet.linklayer.ieee80211.mac.contract.IDcf;
 import inet.linklayer.ieee80211.mac.contract.IRateControl;
+import inet.linklayer.ieee80211.mac.originator.AckHandler;
 import inet.linklayer.ieee80211.mac.originator.NonQosRecoveryProcedure;
 import inet.linklayer.ieee80211.mac.originator.OriginatorAckPolicy;
 import inet.linklayer.ieee80211.mac.originator.OriginatorMacDataService;
 import inet.linklayer.ieee80211.mac.originator.RtsPolicy;
 import inet.linklayer.ieee80211.mac.protectionmechanism.OriginatorProtectionMechanism;
+import inet.linklayer.ieee80211.mac.queue.InProgressFrames;
+import inet.linklayer.ieee80211.mac.queue.PendingQueue;
 import inet.linklayer.ieee80211.mac.rateselection.RateSelection;
 import inet.linklayer.ieee80211.mac.recipient.CtsPolicy;
 import inet.linklayer.ieee80211.mac.recipient.RecipientAckPolicy;
@@ -36,21 +39,47 @@ import inet.linklayer.ieee80211.mac.recipient.RecipientMacDataService;
 module Dcf like IDcf
 {
     parameters:
-        int maxQueueSize = default(1000); // -1 means unlimited
-
         string rxModule;
         string txModule;
-        bool prioritizeMulticast = default(false); // if true, prioritize multicast frames (9.3.2.1 Fundamental access)
 
         *.rateSelectionModule = "^.rateSelection";
         *.rxModule = "^." + rxModule;
 
         @class(Dcf);
-        @display("i=block/queue");
+        @display("i=block/layer");
+        @signal[packetSentToPeer](type=inet::Packet);
+        @signal[packetReceivedFromPeer](type=inet::Packet);
         @signal[linkBroken](type=inet::Packet);
         @signal[packetDropped](type=inet::Packet);
+        @signal[frameSequenceStarted];
+        @signal[frameSequenceFinished];
+        @signal[datarateSelected](type=double);
+        @statistic[packetSentToPeer](title="packets sent"; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetSentToPeerUnicast](title="packets sent: unicast"; source=ieee80211Unicast(packetSentToPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetSentToPeerMulticast](title="packets sent: multicast"; source=ieee80211Multicast(packetSentToPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetSentToPeerBroadcast](title="packets sent: broadcast "; source=ieee80211Broadcast(packetSentToPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetSentToPeerWithRetry](title="packets sent: with retry"; source=ieee80211Retry(packetSentToPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetSentToPeerWithoutRetry](title="packets sent: without retry"; source=ieee80211NotRetry(packetSentToPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromPeer](title="packets received"; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromPeerUnicast](title="packets received: unicast"; source=ieee80211Unicast(packetReceivedFromPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromPeerMulticast](title="packets received: multicast"; source=ieee80211Multicast(packetReceivedFromPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromPeerBroadcast](title="packets received: broadcast"; source=ieee80211Broadcast(packetReceivedFromPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromPeerWithRetry](title="packets received: with retry"; source=ieee80211Retry(packetReceivedFromPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetReceivedFromPeerWithoutRetry](title="packets received: without retry"; source=ieee80211NotRetry(packetReceivedFromPeer); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[linkBroken](title="link breaks"; record=count,vector?; interpolationmode=none);
+        @statistic[packetDrop](title="packet drops"; source=packetDropped; record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropNotAddressedToUs](title="packet drops: not addressed to us"; source=packetDropReasonIsNotAddressedToUs(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropQueueOverflow](title="packet drops: queue overflow"; source=packetDropReasonIsQueueOverflow(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[packetDropRetryLimitReached](title="packet drops: retry limit reached"; source=packetDropReasonIsRetryLimitReached(packetDropped); record=count,sum(packetBytes),vector(packetBytes); interpolationmode=none);
+        @statistic[frameSequenceFinished](title="finished frame sequences"; record=count);
+        @statistic[frameSequenceDuration](title="frame sequence durations"; source=frameSequenceDuration(frameSequenceFinished); record=histogram,vector?);
+        @statistic[frameSequenceNumPackets](title="frame sequences: number of packets"; source=frameSequenceNumPackets(frameSequenceFinished); record=histogram,vector?);
+        @statistic[frameSequenceActive](title="frame sequence active"; source=count(frameSequenceStarted)-count(frameSequenceFinished); record=vector; interpolationmode=sample-hold);
+        @statistic[datarateSelected](title="datarates selected"; record=vector; interpolationmode=none);
 
     submodules:
+        // TODO: consider merging Dcaf into Dcf, because its not like the relationship between Hcf and Edcaf or
+        // TODO: maybe move PendingQueue and InProgressFrames in Edcaf?
         channelAccess: Dcaf {
             parameters:
                 @display("p=150,100");
@@ -79,6 +108,10 @@ module Dcf like IDcf
                 @display("p=350,300");
         }
         originatorProtectionMechanism: OriginatorProtectionMechanism {
+            parameters:
+                @display("p=150,400");
+        }
+        ackHandler: AckHandler {
             parameters:
                 @display("p=350,400");
         }

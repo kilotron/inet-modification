@@ -65,6 +65,7 @@ class INET_API UdpVideoStreamClient : public ApplicationBase, public UdpSocket::
     // state
     UdpSocket socket;
     cMessage *selfMsg = nullptr;
+    cMessage *timer = nullptr;
 
   protected:
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }

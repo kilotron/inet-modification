@@ -21,34 +21,31 @@
 
 #include <map>
 
-#include "AodvRouteData_cluster.h"
 #include "inet/common/INETDefs.h"
 #include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/networklayer/contract/IL3AddressType.h"
 #include "inet/networklayer/contract/INetfilter.h"
 #include "inet/networklayer/contract/IRoutingTable.h"
-#include "inet/routing/aodv/AodvControlPackets_m.h"
+#include "inet/routing/aodv_cluster/AodvControlPackets_m.h"
+#include "inet/routing/aodv_cluster/AodvRouteData_cluster.h"
 #include "inet/routing/base/RoutingProtocolBase.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "inet/transportlayer/udp/UdpHeader_m.h"
 #include "inet/networklayer/icn/cluster/ICluster.h"
 
 namespace inet {
-namespace aodv {
+namespace aodv_cluster {
 
 /*
  * This class implements AODV routing protocol and Netfilter hooks
  * in the IP-layer required by this protocol.
  */
 
-class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::HookBase, public cListener
+class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::HookBase, public UdpSocket::ICallback, public cListener
 {
   protected:
-    //分簇协议模块
+        //分簇协议模块
     ICluster* clusterModule;
-
-    std::set<L3Address> selfAdress;
-    
     /*
      * It implements a unique identifier for an arbitrary RREQ message
      * in the network. See: rreqsArrivalTime.
@@ -87,6 +84,8 @@ class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::
     IRoutingTable *routingTable = nullptr;
     IInterfaceTable *interfaceTable = nullptr;
     INetfilter *networkProtocol = nullptr;
+    UdpSocket socket;
+    bool usingIpv6 = false;
 
     // AODV parameters: the following parameters are configurable, see the NED file for more info.
     unsigned int rerrRatelimit = 0;
@@ -158,7 +157,6 @@ class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::
     /* Routing Table management */
     void updateRoutingTable(IRoute *route, const L3Address& nextHop, unsigned int hopCount, bool hasValidDestNum, unsigned int destSeqNum, bool isActive, simtime_t lifeTime);
     IRoute *createRoute(const L3Address& destAddr, const L3Address& nextHop, unsigned int hopCount, bool hasValidDestNum, unsigned int destSeqNum, bool isActive, simtime_t lifeTime);
-    IRoute *createRoute(const L3Address& destAddr, const L3Address& nextHop, unsigned int hopCount, bool hasValidDestNum, unsigned int destSeqNum, bool isActive, simtime_t lifeTime, InterfaceEntry *ie);
     bool updateValidRouteLifeTime(const L3Address& destAddr, simtime_t lifetime);
     void scheduleExpungeRoutes();
     void expungeRoutes();
@@ -211,7 +209,14 @@ class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::
     /* Helper functions */
     L3Address getSelfIPAddress() const;
     void sendAODVPacket(const Ptr<AodvControlPacket>& packet, const L3Address& destAddr, unsigned int timeToLive, double delay);
+    void processPacket(Packet *pk);
     void clearState();
+    void checkIpVersionAndPacketTypeCompatibility(AodvControlPacketType packetType);
+
+    /* UDP callback interface */
+    virtual void socketDataArrived(UdpSocket *socket, Packet *packet) override;
+    virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
+    virtual void socketClosed(UdpSocket *socket) override;
 
     /* Lifecycle */
     virtual void handleStartOperation(LifecycleOperation *operation) override;
@@ -236,4 +241,5 @@ class INET_API Aodv_cluster : public RoutingProtocolBase, public NetfilterBase::
 } // namespace inet
 
 #endif // ifndef __INET_AODV_H
+
 

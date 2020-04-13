@@ -2,19 +2,20 @@ Wireless
 ========
 
 These showcases demonstrate various aspects of performing wireless network
-simulations with INET.
+simulations.
 
 General Wireless:
 
 .. toctree::
    :maxdepth: 1
 
-   power/doc/index
    pathloss/doc/index
+   directionalantennas/doc/index
    sensornetwork/doc/index
+   ieee802154/doc/index
+   power/doc/index
 .. levelofdetail/doc/index
 .. scaling/doc/index
-.. ieee802154/doc/index
 
 IEEE 802.11:
 
@@ -22,12 +23,15 @@ IEEE 802.11:
    :maxdepth: 1
 
    throughput/doc/index
-   errorrate/doc/index
-   hiddennode/doc/index
    handover/doc/index
    ratecontrol/doc/index
+   fragmentation/doc/index
+   qos/doc/index
+   blockack/doc/index
+   aggregation/doc/index
+   txop/doc/index
+   errorrate/doc/index
+   hiddennode/doc/index
    multiradio/doc/index
 .. crosstalk/doc/index
 .. infrastructure/doc/index
-.. directionalselectivity/doc/index
-

@@ -85,6 +85,8 @@ public:
     //检查此数据包是否已经在缓存中
     bool hasThisPacket(Packet *packet, const SID &sid);
 
+    void clear();
+
 protected:
     void finish() override;
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }

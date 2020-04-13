@@ -32,8 +32,21 @@ void ColorCacheTable::finish()
         entry.second->flush();
     });
 
-//    delete table;
+
     delete timers;
+}
+
+void ColorCacheTable::clear()
+{
+    for (auto iter = timers->begin(); iter != timers->end(); iter++)
+    {
+        delete iter->first;
+    }
+    timers->clear();
+    //清理所有缓存
+    for_each(table.begin(), table.end(), [](std::pair<SID, shared_ptr<ContentBlock>> entry) {
+        entry.second->flush();
+    });
 }
 
 void ColorCacheTable::initialize(int stage)

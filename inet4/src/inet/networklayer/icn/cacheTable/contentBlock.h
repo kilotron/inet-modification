@@ -55,8 +55,8 @@ namespace inet{
         public:
             std::list<Packet *> packets;
 
-            ContentBlock(SID S, unsigned mtu=1500):sid(S),mtu(mtu){};
-            ContentBlock():mtu(1500){};
+            ContentBlock(SID S, unsigned mtu=2304):sid(S),mtu(mtu){};
+            ContentBlock():mtu(2304){};
             ~ContentBlock();
 
             //创建新的chunk

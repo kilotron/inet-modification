@@ -23,7 +23,6 @@
 #include "inet/networklayer/common/L3AddressTag_m.h"
 #include "inet/transportlayer/common/L4PortTag_m.h"
 #include "inet/transportlayer/contract/udp/UdpControlInfo_m.h"
-#include "inet/applications/udpapp/stastics_m.h"
 
 namespace inet {
 
@@ -50,6 +49,7 @@ void UdpVideoStreamServer::initialize(int stage)
 
     if (stage == INITSTAGE_LOCAL) {
         sendInterval = &cSimulation::getActiveSimulation()->getSystemModule()->par("sendInterval");
+        rngNum = cSimulation::getActiveSimulation()->getSystemModule()->par("rngNum").intValue();
         packetLen = &par("packetLen");
         videoSize = &par("videoSize");
         localPort = par("localPort");
@@ -127,19 +127,13 @@ void UdpVideoStreamServer::sendStreamData(cMessage *timer)
     Packet *pkt = new Packet("VideoStrmPk");
     long pktLen = *packetLen;
 
-    //statics information
     pkt->setTimestamp(simTime());
-//    auto data = new statics();
-//    data->setTotalNum(ceil(double(d->videoSize) / double(pktLen)));
-//    data->setStart(simTime());
-//    pkt->setControlInfo(data);
 
     if (pktLen > d->bytesLeft)
         pktLen = d->bytesLeft;
     const auto& payload = makeShared<ByteCountChunk>(B(pktLen));
     payload->addTag<CreationTimeTag>()->setCreationTime(simTime());
     pkt->insertAtBack(payload);
-    
 
     emit(packetSentSignal, pkt);
     socket.sendTo(pkt, d->clientAddr, d->clientPort);
@@ -151,13 +145,12 @@ void UdpVideoStreamServer::sendStreamData(cMessage *timer)
     // reschedule timer if there's bytes left to send
     if (d->bytesLeft > 0) {
         simtime_t interval = (*sendInterval);
-        scheduleAt(simTime() + interval, timer);
+        scheduleAt(simTime() + exponential(interval, rngNum), timer);
     }
     else {
         streams.erase(it);
         delete timer;
     }
-//    std::cout << *d << endl;
 }
 
 void UdpVideoStreamServer::clearStreams()
@@ -170,8 +163,20 @@ void UdpVideoStreamServer::clearStreams()
 void UdpVideoStreamServer::handleStartOperation(LifecycleOperation *operation)
 {
     socket.setOutputGate(gate("socketOut"));
-    socket.bind(localPort);
     socket.setCallback(this);
+    socket.bind(localPort);
+
+    int timeToLive = par("timeToLive");
+    if (timeToLive != -1)
+        socket.setTimeToLive(timeToLive);
+
+    int dscp = par("dscp");
+    if (dscp != -1)
+        socket.setDscp(dscp);
+
+    int tos = par("tos");
+    if (tos != -1)
+        socket.setTos(tos);
 }
 
 void UdpVideoStreamServer::handleStopOperation(LifecycleOperation *operation)

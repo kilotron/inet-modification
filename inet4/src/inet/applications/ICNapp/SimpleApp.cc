@@ -71,6 +71,7 @@ void SimpleApp::initialize(int stage)
         path=par("RSTpath").stdstringValue();
         Recorder.owner = this;
         start = new cMessage("start");
+        rngNum = cSimulation::getActiveSimulation()->getSystemModule()->par("rngNum").intValue();
 
         int nodeIndex = getParentModule()->getIndex();
         std::array<uint64_t, 2> hashValue;
@@ -104,7 +105,7 @@ void SimpleApp::handleSelfMessage(cMessage *msg)
         {
             content++;
             sendRequest({destIndex,content});
-            scheduleAt(simTime()+sendInterval, timer);
+            scheduleAt(simTime() + exponential(sendInterval, rngNum), timer);
         }
         else cancelEvent(timer);
     }
@@ -125,6 +126,7 @@ void SimpleApp::socketDataArrived(ColorSocket *socket, Packet *packet)
 
     //统计吞吐量
     Recorder.throughput += B(packet->getByteLength());
+    delete packet;
 }
 
 void SimpleApp::socketClosed(ColorSocket *socket)
@@ -166,6 +168,7 @@ bool SimpleApp::isEnabled()
 void SimpleApp::finish()
 {
     ApplicationBase::finish();
+    delete start;
     // std::ofstream outfile;
     // auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + std::string("_Consumer.txt");
     // outfile.open(path + fileName, std::ofstream::app);

@@ -39,8 +39,8 @@ void StaticGridMobility::setInitialPosition()
 
     int row = index / columns;
     int col = index % columns;
-    lastPosition.x = 0 + marginX + (col + 0.5) * separationX;
-    lastPosition.y = 0 + marginY + (row + 0.5) * separationY;
+    lastPosition.x = constraintAreaMin.x + marginX + (col + 0.5) * separationX;
+    lastPosition.y = constraintAreaMin.y + marginY + (row + 0.5) * separationY;
     lastPosition.z = par("initialZ");
     recordScalar("x", lastPosition.x);
     recordScalar("y", lastPosition.y);

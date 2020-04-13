@@ -85,6 +85,10 @@
 #define WITH_OSPFv2
 #endif
 
+#ifndef WITH_OSPFv3
+#define WITH_OSPFv3
+#endif
+
 #ifndef WITH_PACKETDRILL
 #define WITH_PACKETDRILL
 #endif

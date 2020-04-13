@@ -2,8 +2,8 @@
 #ifndef __INET_STATICTRIMOBILITY_H
 #define __INET_STATICTRIMOBILITY_H
 
-#include "inet/common/INETDefs.h"
-#include "inet/mobility/static/StationaryMobility.h"
+
+#include "inet/mobility/base/StationaryMobilityBase.h"
 
 
 namespace inet {
@@ -14,11 +14,12 @@ namespace inet {
  * @ingroup mobility
  * @author li
  */
-class INET_API StaticTriMobility : public inet::StationaryMobility
+class INET_API StaticTriMobility : public inet::StationaryMobilityBase
 {
   protected:
     /** @brief Initializes the position according to the mobility model. */
     virtual void setInitialPosition() override;
+
     
   public:
     StaticTriMobility() {};

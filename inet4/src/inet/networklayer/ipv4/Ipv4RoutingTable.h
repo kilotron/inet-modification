@@ -207,10 +207,6 @@ class INET_API Ipv4RoutingTable : public cSimpleModule, public IIpv4RoutingTable
      * Returns routerId.
      */
     virtual Ipv4Address getRouterId() const override { return routerId; }
-    /*
-     * set forwarding.
-     */
-    virtual void setForwarding(bool v){forwarding=v;}
 
     /**
      * Sets routerId.

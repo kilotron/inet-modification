@@ -18,11 +18,6 @@ using namespace units::values;
 
 class b    { @existingClass; @primitive; @fromString(b(string2long($)));      @toString(unit2string($));   @defaultValue(b(-1)); }
 class B    { @existingClass; @primitive; @fromString(B(string2long($)));      @toString(unit2string($));   @defaultValue(B(-1)); }
-
-class KB    { @existingClass; @primitive; @fromString(KB(string2long($)));      @toString(unit2string($));   @defaultValue(KB(-1)); }
-class MB    { @existingClass; @primitive; @fromString(MB(string2long($)));      @toString(unit2string($));   @defaultValue(MB(-1)); }
-class GB    { @existingClass; @primitive; @fromString(GB(string2long($)));      @toString(unit2string($));   @defaultValue(GB(-1)); }
-
 class bps  { @existingClass; @primitive; @fromString(bps(string2double($)));  @toString(unit2string($)); @defaultValue(bps(NaN)); }
 class Hz   { @existingClass; @primitive; @fromString(Hz(string2double($)));   @toString(unit2string($)); @defaultValue(Hz(NaN)); }
 class m    { @existingClass; @primitive; @fromString(m(string2double($)));    @toString(unit2string($)); @defaultValue(m(NaN)); }

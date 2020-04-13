@@ -26,13 +26,13 @@ import inet.mobility.base.MobilityBase;
 //
 // Places all hosts on concentric circles
 //
-// TODO: rename to StaticConcentricCircleMobility?
+//# TODO: rename to StaticConcentricCircleMobility?
 simple StaticConcentricMobility extends MobilityBase
 {
     parameters:
         int numHosts;
         double initialZ @unit(m) = default(0m);
-        double distance @unit(m) = default(15m);
+        double distance @unit(m) = default(100m);
 
         @class(StaticConcentricMobility);
 }

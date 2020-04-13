@@ -30,6 +30,7 @@ module color like INetworkLayer
 {
     parameters:
         string nid = default("xxx");
+        string colorType = default("colorCluster");
     gates:
         input ifIn @labels(INetworkHeader);
         output ifOut @labels(INetworkHeader);
@@ -60,7 +61,7 @@ module color like INetworkLayer
             parameters:
                 @display("p=550,300;b=600,5");
         }
-        colorNet: <default("colorCluster")> like icn {
+        colorNet: <colorType> like icn {
             parameters:
                 @display("p=400,200;q=queue");
         }

@@ -16,12 +16,10 @@
 package inet.examples.IPvsColor.cluster;
 
 import inet.common.scenario.ScenarioManager;
-//import inet.node.inet.AdhocHost;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 import inet.visualizer.contract.IIntegratedVisualizer;
 import inet.visualizer.integrated.IntegratedVisualizer;
-import inet.networklayer.configurator.color.ColorConfigurator;
-import inet.node.icnAdhoc.icnHost;
+import inet.node.icnAdhoc.clusterNode;
 import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.networklayer.ipv4.RoutingTableRecorder;
 
@@ -29,11 +27,8 @@ import inet.networklayer.ipv4.RoutingTableRecorder;
 network smallNETwork
 {
     int numHosts = default(4);
-    int move= default(0);
-    int group1Num= default(0);
-    int group2Num = default(0);
-	int Cindex = default(0);
-    int Pindex = default(8);
+    int rngNum = default(1);
+
     double sendInterval = default(0.1) ;
     
     submodules:
@@ -52,7 +47,7 @@ network smallNETwork
             @display("p=580,275");
         }
         
-        host[numHosts]: icnHost {
+        host[numHosts]: clusterNode {
             parameters:
                 @display("r=,,#707070;p=300,200");
 

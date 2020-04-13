@@ -19,7 +19,7 @@
 #include "inet/networklayer/icn/color/Get_m.h"
 #include "inet/networklayer/icn/color/AppData_m.h"
 #include "inet/networklayer/common/L3Tools.h"
-#include "inet/physicallayer/common/packetlevel/SignalTag_m.h"
+
 
 namespace inet
 {
@@ -164,7 +164,7 @@ InterfaceEntry *colorTwoInterface::chooseInterface(const char *interfaceName)
     InterfaceEntry *ie = nullptr;
     if (strlen(interfaceName) > 0)
     {
-        ie = ift->getInterfaceByName(interfaceName);
+        ie = ift->findInterfaceByName(interfaceName);
         if (ie == nullptr)
             throw cRuntimeError("Interface \"%s\" does not exist", interfaceName);
     }
@@ -547,7 +547,7 @@ void colorTwoInterface::handleGetPacket(Packet *packet)
     const auto &head = packet->removeAtFront<Get>();
     auto ie = getSourceInterface(packet);
     //信号强度，之后用作设置延时定时器
-    auto signalPower = packet->findTag<SignalPowerInd>();
+
     auto headSID = head->getSid();
 
     //检查ttl，ttl小于等于1丢弃

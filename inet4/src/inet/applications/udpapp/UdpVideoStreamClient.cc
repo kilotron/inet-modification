@@ -24,7 +24,7 @@
 #include "inet/common/packet/chunk/ByteCountChunk.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "inet/transportlayer/contract/udp/UdpControlInfo_m.h"
-#include "inet/applications/udpapp/stastics_m.h"
+
 
 namespace inet {
 
@@ -41,7 +41,7 @@ void UdpVideoStreamClient::SimRecorder::ConsumerPrint(std::ostream &os)
     if (GetSendNum != 0)
         os << "trans ratio: " << 100 * DataRecvNum / owner->pktNum << "%" << endl;
     os << "send Interval: " << owner->sendInterval << "s" << endl;
-    os << "Throughput: " << throughput.get() * 8 / ((last.dbl() - owner->startTime )* 1000 * 1000) << " Mbps" << endl;
+    os << "Throughput: " << throughput.get() * 8 / ((simTime().dbl() - owner->startTime )* 1000 * 1000) << " Mbps" << endl;
     os << "Average delay: ";
     double sum = 0;
     if(delayArray.size()>0)
@@ -69,13 +69,12 @@ void UdpVideoStreamClient::initialize(int stage)
 
     if (stage == INITSTAGE_LOCAL) {
         selfMsg = new cMessage("UDPVideoStreamStart");
+        timer = new cMessage("timer");
         Recorder.index = getParentModule()->getIndex();
         Recorder.owner = this;
         startTime = par("startTime").doubleValue();
         sendInterval = cSimulation::getActiveSimulation()->getSystemModule()->par("sendInterval").doubleValue();
-        int size = par("videoSize").intValue();
-        int len = par("packetLen").intValue();
-        pktNum = ceil(double(size) / double(len));
+
         path = par("RSTpath").stdstringValue();
     }
 }
@@ -93,7 +92,24 @@ void UdpVideoStreamClient::finish()
 void UdpVideoStreamClient::handleMessageWhenUp(cMessage *msg)
 {
     if (msg->isSelfMessage()) {
-        requestStream();
+
+        if(msg == selfMsg)
+        {
+            requestStream();
+            scheduleAt(simTime() + 2, timer);
+        }
+        else
+        {
+            int svrPort = par("serverPort");
+            int localPort = par("localPort");
+            const char *address = par("serverAddress");
+            L3Address svrAddr = L3AddressResolver().resolve(address);
+            Packet *pk = new Packet("VideoStrmReq");
+            const auto& payload = makeShared<ByteCountChunk>(B(20));    //FIXME set packet length
+            pk->insertAtBack(payload);
+            socket.sendTo(pk, svrAddr, svrPort);
+        }
+
     }
     else
         socket.processMessage(msg);
@@ -136,7 +152,7 @@ void UdpVideoStreamClient::requestStream()
     socket.setCallback(this);
 
     Packet *pk = new Packet("VideoStrmReq");
-    const auto& payload = makeShared<ByteCountChunk>(B(1));    //FIXME set packet length
+    const auto& payload = makeShared<ByteCountChunk>(B(20));    //FIXME set packet length
     pk->insertAtBack(payload);
     socket.sendTo(pk, svrAddr, svrPort);
 }
@@ -152,6 +168,13 @@ void UdpVideoStreamClient::receiveStream(Packet *pk)
      std::cout << "Video stream packet: " << UdpSocket::getReceivedPacketInfo(pk) << endl;
     emit(packetReceivedSignal, pk);
     delete pk;
+
+    if(timer != nullptr)
+    {
+        cancelAndDelete(timer);
+        timer = nullptr;
+    }
+        
 }
 
 void UdpVideoStreamClient::handleStartOperation(LifecycleOperation *operation)

@@ -27,7 +27,7 @@ module AntennaBase like IAntenna
 {
     parameters:
         string mobilityModule; // the path to the mobility module relative to this module, only used if no mobility submodule is present
-        int numAntennas = default(5); // the number of antennas in the antenna array
+        int numAntennas = default(1); // the number of antennas in the antenna array
         mobility.subjectModule = default(""); // disable subject module of mobility submodule by default 
         @display("i=device/antennatower");
     submodules:

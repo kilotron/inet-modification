@@ -1,4 +1,3 @@
-//
 // Copyright (C) 2016 OpenSim Ltd.
 //
 // This program is free software; you can redistribute it and/or
@@ -43,8 +42,6 @@ using namespace inet::physicallayer;
 
 Define_Module(Ieee80211Mac);
 
-simsignal_t Ieee80211Mac::stateSignal = SIMSIGNAL_NULL;
-simsignal_t Ieee80211Mac::radioStateSignal = SIMSIGNAL_NULL;
 
 Ieee80211Mac::Ieee80211Mac()
 {
@@ -83,7 +80,9 @@ void Ieee80211Mac::initialize(int stage)
         rx = check_and_cast<IRx *>(getSubmodule("rx"));
         tx = check_and_cast<ITx *>(getSubmodule("tx"));
         dcf = check_and_cast<Dcf *>(getSubmodule("dcf"));
-        hcf = check_and_cast<Hcf *>(getSubmodule("hcf"));
+        hcf = check_and_cast_nullable<Hcf *>(getSubmodule("hcf"));
+        if (mib->qos && !hcf)
+            throw cRuntimeError("Missing hcf module, required for QoS");
     }
 }
 
@@ -114,7 +113,7 @@ const MacAddress& Ieee80211Mac::isInterfaceRegistered()
     if (!interfaceModule)
         throw cRuntimeError("NIC module not found in the host");
     std::string interfaceName = utils::stripnonalnum(interfaceModule->getFullName());
-    InterfaceEntry *e = ift->getInterfaceByName(interfaceName.c_str());
+    InterfaceEntry *e = ift->findInterfaceByName(interfaceName.c_str());
     if (e)
         return e->getMacAddress();
     return MacAddress::UNSPECIFIED_ADDRESS;
@@ -164,6 +163,9 @@ void Ieee80211Mac::handleUpperPacket(Packet *packet)
 {
     if (mib->mode == Ieee80211Mib::INFRASTRUCTURE && mib->bssStationData.stationType == Ieee80211Mib::STATION && !mib->bssStationData.isAssociated) {
         EV << "STA is not associated with an access point, discarding packet " << packet << "\n";
+        PacketDropDetails details;
+        details.setReason(OTHER_PACKET_DROP);
+        emit(packetDroppedSignal, packet, &details);
         delete packet;
         return;
     }
@@ -175,6 +177,9 @@ void Ieee80211Mac::handleUpperPacket(Packet *packet)
             auto it = mib->bssAccessPointData.stations.find(receiverAddress);
             if (it == mib->bssAccessPointData.stations.end() || it->second != Ieee80211Mib::ASSOCIATED) {
                 EV << "STA with MAC address " << receiverAddress << " not associated with this AP, dropping frame\n";
+                PacketDropDetails details;
+                details.setReason(OTHER_PACKET_DROP);
+                emit(packetDroppedSignal, packet, &details);
                 delete packet;
                 return;
             }
@@ -259,7 +264,7 @@ void Ieee80211Mac::encapsulate(Packet *packet)
     if (auto userPriorityReq = packet->findTag<UserPriorityReq>()) {
         // make it a QoS frame, and set TID
         header->setType(ST_DATA_WITH_QOS);
-        header->setChunkLength(header->getChunkLength() + QOSCONTROL_PART_LENGTH);
+        header->addChunkLength(QOSCONTROL_PART_LENGTH);
         header->setTid(userPriorityReq->getUserPriority());
     }
     packet->insertAtFront(header);
@@ -305,9 +310,9 @@ void Ieee80211Mac::decapsulate(Packet *packet)
     packet->popAtBack<Ieee80211MacTrailer>(B(4));
 }
 
-void Ieee80211Mac::receiveSignal(cComponent *source, simsignal_t signalID, long value, cObject *details)
+void Ieee80211Mac::receiveSignal(cComponent *source, simsignal_t signalID, intval_t value, cObject *details)
 {
-    Enter_Method_Silent("receiveSignal()");
+    Enter_Method_Silent("receiveSignal");
     if (signalID == IRadio::receptionStateChangedSignal) {
         rx->receptionStateChanged(static_cast<IRadio::ReceptionState>(value));
     }
@@ -340,14 +345,14 @@ void Ieee80211Mac::configureRadioMode(IRadio::RadioMode radioMode)
 
 void Ieee80211Mac::sendUp(cMessage *msg)
 {
-    Enter_Method("sendUp(\"%s\")", msg->getName());
+    Enter_Method_Silent("sendUp(\"%s\")", msg->getName());
     take(msg);
     MacProtocolBase::sendUp(msg);
 }
 
 void Ieee80211Mac::sendUpFrame(Packet *frame)
 {
-    Enter_Method("sendUpFrame(\"%s\")", frame->getName());
+    Enter_Method_Silent("sendUpFrame(\"%s\")", frame->getName());
     const auto& header = frame->peekAtFront<Ieee80211DataOrMgmtHeader>();
     decapsulate(frame);
     if (!(header->getType() & 0x30))
@@ -358,7 +363,7 @@ void Ieee80211Mac::sendUpFrame(Packet *frame)
 
 void Ieee80211Mac::sendDownFrame(Packet *frame)
 {
-    Enter_Method("sendDownFrame(\"%s\")", frame->getName());
+    Enter_Method_Silent("sendDownFrame(\"%s\")", frame->getName());
     take(frame);
     configureRadioMode(IRadio::RADIO_MODE_TRANSMITTER);
     frame->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::ieee80211Mac);
@@ -375,7 +380,7 @@ void Ieee80211Mac::sendDownPendingRadioConfigMsg()
 
 void Ieee80211Mac::processUpperFrame(Packet *packet, const Ptr<const Ieee80211DataOrMgmtHeader>& header)
 {
-    Enter_Method("processUpperFrame(\"%s\")", packet->getName());
+    Enter_Method_Silent("processUpperFrame(\"%s\")", packet->getName());
     take(packet);
     EV_INFO << "Frame " << packet << " received from higher layer, receiver = " << header->getReceiverAddress() << "\n";
     ASSERT(!header->getReceiverAddress().isUnspecified());
@@ -387,7 +392,7 @@ void Ieee80211Mac::processUpperFrame(Packet *packet, const Ptr<const Ieee80211Da
 
 void Ieee80211Mac::processLowerFrame(Packet *packet, const Ptr<const Ieee80211MacHeader>& header)
 {
-    Enter_Method("processLowerFrame(\"%s\")", packet->getName());
+    Enter_Method_Silent("processLowerFrame(\"%s\")", packet->getName());
     take(packet);
     if (mib->qos)
         hcf->processLowerFrame(packet, header);

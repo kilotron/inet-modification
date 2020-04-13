@@ -50,6 +50,7 @@ class INET_API UdpVideoStreamServer : public ApplicationBase, public UdpSocket::
     };
 
   protected:
+    int rngNum;
     typedef std::map<long int, VideoStreamData> VideoStreamMap;
 
     // state

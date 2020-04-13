@@ -20,7 +20,6 @@
 #include "inet/common/ProtocolTag_m.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 
-
 namespace inet {
 
 Define_Module(MessageDispatcher);
@@ -46,18 +45,6 @@ void MessageDispatcher::arrived(cMessage *message, cGate *inGate, simtime_t t)
 
 cGate *MessageDispatcher::handlePacket(Packet *packet, cGate *inGate)
 {
-/*调试*/
-//        if(packet->getByteLength()>70)
-//        {
-//            const auto& head = packet->peekAtFront<Chunk>(B(78),0);
-//            auto pointer = head.get();
-//            Chunk* chunk = const_cast<Chunk*>(pointer);
-//            if(dynamic_cast<Data*>(chunk))
-//            {
-//                std::cout<<"test index is : "<<getParentModule()->getParentModule()->getIndex()<<endl;
-//            }
-//        }
-        /*调试*/
     auto socketInd = packet->findTag<SocketInd>();
     if (socketInd != nullptr) {
         int socketId = socketInd->getSocketId();
@@ -67,9 +54,9 @@ cGate *MessageDispatcher::handlePacket(Packet *packet, cGate *inGate)
         else
             throw cRuntimeError("handlePacket(): Unknown socket, id = %d", socketId);
     }
-    auto dispatchProtocolReq = packet->findTag<DispatchProtocolReq>();
+    auto dispatchProtocolReq = packet->findTag<DispatchProtocolReq>();;
     if (dispatchProtocolReq != nullptr) {
-        auto packetProtocolTag = packet->findTag<PacketProtocolTag>();
+        auto packetProtocolTag = packet->findTag<PacketProtocolTag>();;
         auto servicePrimitive = dispatchProtocolReq->getServicePrimitive();
         // TODO: KLUDGE: eliminate this by adding ServicePrimitive to every DispatchProtocolReq
         if (servicePrimitive == static_cast<ServicePrimitive>(-1)) {
@@ -89,9 +76,6 @@ cGate *MessageDispatcher::handlePacket(Packet *packet, cGate *inGate)
     if (interfaceReq != nullptr) {
         int interfaceId = interfaceReq->getInterfaceId();
         auto it = interfaceIdToGateIndex.find(interfaceId);
-
-
-
         if (it != interfaceIdToGateIndex.end())
             return gate("out", it->second);
         else

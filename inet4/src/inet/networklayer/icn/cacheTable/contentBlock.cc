@@ -95,5 +95,6 @@ void ContentBlock::flush()
         delete temp;
         p = nullptr;
     });
+    packets.clear();
 }
 } // namespace inet
