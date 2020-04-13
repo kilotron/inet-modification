@@ -6,6 +6,7 @@
  */
 
 #include "inet/applications/pccpapp/PccpAlg.h"
+#include "inet/networklayer/common/SidTag_m.h"
 
 namespace inet {
 namespace pccp {
@@ -86,7 +87,7 @@ void PccpAlg::requestSent(const SID& sid)
     }
 }
 
-void PccpAlg::dataReceived(const SID& sid)
+void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 {
     if ( state.rtsid_sendtime != 0 && *(state.rtsid) == sid ) {
         EV << "Round-trip time measured on sid=" << sid.str() << ": "
@@ -105,6 +106,9 @@ void PccpAlg::dataReceived(const SID& sid)
 
     // remove the request from sendQueue
     sendQueue.discard(sid);
+
+    // notify app
+    pccpApp->dataArrived(packet);
 
     // TODO 调整拥塞窗口，发送新请求（如果可以的话）
     sendRequestsToSocket();
@@ -138,7 +142,9 @@ void PccpAlg::rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived)
 // socket bind is set by PccpApp
 void PccpAlg::socketDataArrived(ColorSocket *socket, Packet *packet)
 {
-    // TODO
+    auto sidInd = packet->getTag<SidInd>();
+    SID sid = sidInd->getSid();
+    dataReceived(sid, packet);
 }
 
 void PccpAlg::socketClosed(ColorSocket *socket)

@@ -22,6 +22,7 @@
 #include "inet/networklayer/common/L3Tools.h"
 #include "inet/networklayer/contract/color/ColorSocketCommand_m.h"
 #include "inet/physicallayer/common/packetlevel/SignalTag_m.h"
+#include "inet/networklayer/common/SidTag_m.h"
 
 namespace inet
 {
@@ -366,6 +367,11 @@ void colorCluster::handleDataPacket(Packet *packet)
             auto localPort = dataHead->getPortNumber2();
                
             decapsulate(fullPacket, headSid);
+
+            // 该数据包对应的SID
+            auto sidInd = fullPacket->addTag<SidInd>();
+            sidInd->setSid(headSid);
+
             auto sd = socketsByPortMap.find(localPort);
             if(sd == socketsByPortMap.end())
             {

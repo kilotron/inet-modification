@@ -1146,6 +1146,7 @@ OBJS = \
     $O/inet/networklayer/common/L3AddressTag_m.o \
     $O/inet/networklayer/common/MulticastTag_m.o \
     $O/inet/networklayer/common/NextHopAddressTag_m.o \
+    $O/inet/networklayer/common/SidTag_m.o \
     $O/inet/networklayer/contract/L3SocketCommand_m.o \
     $O/inet/networklayer/contract/NetworkHeaderBase_m.o \
     $O/inet/networklayer/contract/clns/ClnsAddress_m.o \
@@ -1320,6 +1321,7 @@ MSGFILES = \
     inet/networklayer/common/L3AddressTag.msg \
     inet/networklayer/common/MulticastTag.msg \
     inet/networklayer/common/NextHopAddressTag.msg \
+    inet/networklayer/common/SidTag.msg \
     inet/networklayer/contract/L3SocketCommand.msg \
     inet/networklayer/contract/NetworkHeaderBase.msg \
     inet/networklayer/contract/clns/ClnsAddress.msg \

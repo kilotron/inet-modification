@@ -50,7 +50,7 @@ private:
      * Finishes round-trip time measurement, cancel retransmission timer and adjust
      * the congestion window.
      */
-    void dataReceived(const SID& sid);
+    void dataReceived(const SID& sid, Packet *packet);
 
     /**
      * Update state vars with new measured RTT value. Passing two simtime_t's
