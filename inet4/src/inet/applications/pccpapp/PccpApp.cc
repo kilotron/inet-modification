@@ -20,8 +20,6 @@ namespace pccp {
 
 Define_Module(PccpApp);
 
-// TODO 完成provider
-
 PccpApp::PccpApp() {
     pccpAlg = new PccpAlg();
     pccpAlg->pccpApp = this;
