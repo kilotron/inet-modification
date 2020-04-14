@@ -26,7 +26,6 @@
 #include "inet/applications/pccpapp/PccpAlg.h"
 
 namespace inet {
-namespace pccp {
 
 class PccpAlg;
 
@@ -78,7 +77,6 @@ class INET_API PccpApp : public ApplicationBase
     virtual void handleCrashOperation(LifecycleOperation *operation) override;
 };
 
-} // namespace pccp
 } //namespace inet
 
 #endif /* __INET_MODIFICATION_PCCPAPP_H_ */

@@ -12,7 +12,6 @@
 #include "inet/networklayer/icn/field/SID.h"
 
 namespace inet{
-namespace pccp {
 
 /**
  * State Variables for Pccp
@@ -23,7 +22,7 @@ public:
     PccpStateVariables();
 
     // round-trip time measurements
-    const SID *rtsid;    // SID for RTT measurement(null if RTT measurement is not running)
+    SID rtsid;    // SID for RTT measurement(meaningless if RTT measurement is not running)
     simtime_t rtsid_sendtime;    // time when rtsid was sent(0 if RTT measurement is not running)
 
     // round-trip time estimation
@@ -35,9 +34,6 @@ public:
     uint32 window;    // congestion window
 };
 
-} // namespace pccpnet
 } // namespace inet
-
-
 
 #endif /* INET_APPLICATIONS_PCCPAPP_PCCPSTATEVARIABLES_H_ */

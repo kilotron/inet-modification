@@ -26,7 +26,6 @@
 #include "inet/common/packet/chunk/ByteCountChunk.h"
 
 namespace inet {
-namespace pccp {
 
 class INET_API PccpProvider : public ApplicationBase, public ColorSocket::ICallback
 {
@@ -72,7 +71,6 @@ class INET_API PccpProvider : public ApplicationBase, public ColorSocket::ICallb
 
 };
 
-} // namespace pccp
 } // namespace inet
 
 #endif

@@ -16,7 +16,6 @@
 #include "PccpApp.h"
 
 namespace inet {
-namespace pccp {
 
 Define_Module(PccpApp);
 
@@ -142,5 +141,4 @@ void PccpApp::handleCrashOperation(LifecycleOperation *operation)
 {
 }
 
-} // namespace pccp
 } //namespace inet

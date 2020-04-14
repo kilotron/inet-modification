@@ -7,9 +7,8 @@
 
 #include "inet/applications/pccpapp/PccpAlg.h"
 #include "inet/networklayer/common/SidTag_m.h"
-
+#include <iostream>
 namespace inet {
-namespace pccp {
 
 #define MAX_REXMIT_COUNT 12
 #define MAX_REXMIT_TIMEOUT 240
@@ -25,6 +24,7 @@ PccpAlg::~PccpAlg()
 
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
+    std::cout << "retrans...";
     // Abort retransmission after max 12 retries.
     SID sid = sendQueue.findSID(timer);
     sendQueue.increaseRexmitCount(sid);
@@ -48,7 +48,6 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
     EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
 
     // cancel round-trip time measurement
-    state.rtsid = nullptr;
     state.rtsid_sendtime = 0;
 
     retransmitRequest(sid);
@@ -81,7 +80,7 @@ void PccpAlg::requestSent(const SID& sid)
     // start round-trip time measurement (if not already running)
     if (state.rtsid_sendtime == 0) {
         // remember this sid and when it was sent
-        state.rtsid = &sid;
+        state.rtsid = sid;
         state.rtsid_sendtime = simTime();
         EV << "Starting rtt measurement on sid=" << sid.str() << "\n";
     }
@@ -89,14 +88,13 @@ void PccpAlg::requestSent(const SID& sid)
 
 void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 {
-    if ( state.rtsid_sendtime != 0 && *(state.rtsid) == sid ) {
+    if ( state.rtsid_sendtime != 0 && state.rtsid == sid ) {
         EV << "Round-trip time measured on sid=" << sid.str() << ": "
            << floor((simTime() - state.rtsid_sendtime) * 1000 + 0.5) << "ms\n";
         // update RTT variables with new value
         rttMeasurementComplete(state.rtsid_sendtime, simTime());
 
         // measurement finished
-        state.rtsid = nullptr;
         state.rtsid_sendtime = 0;
     }
 
@@ -156,9 +154,9 @@ void PccpAlg::socketClosed(ColorSocket *socket)
 // interface between PccpApp and PccpAlg
 void PccpAlg::sendRequest(const SID &sid, int localPort, double sendInterval)
 {
-    pccpApp->currentSocket->sendGET(sid, localPort, sendInterval);
+    //pccpApp->currentSocket->sendGET(sid, localPort, sendInterval);
+    sendQueue.enqueueRequest(sid);
     sendRequestsToSocket();
 }
 
-} // namespace pccp
 } // namespace inet

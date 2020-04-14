@@ -14,7 +14,6 @@
 #include "inet/applications/pccpapp/PccpApp.h"
 
 namespace inet {
-namespace pccp {
 
 class PccpApp;
 
@@ -76,7 +75,6 @@ public:
     virtual void socketClosed(ColorSocket *socket) override;
 };
 
-} // namespace pccp
 } // namespace inet
 
 #endif /* INET_APPLICATIONS_PCCPAPP_PCCPALG_H_ */

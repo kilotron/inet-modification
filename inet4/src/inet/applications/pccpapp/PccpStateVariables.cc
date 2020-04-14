@@ -8,11 +8,9 @@
 #include "inet/applications/pccpapp/PccpStateVariables.h"
 
 namespace inet {
-namespace pccp {
 
 PccpStateVariables::PccpStateVariables()
 {
-    rtsid = nullptr;
     rtsid_sendtime = 0;
 
     // Jacobson's alg: srtt must be initialized to 0, rttvar to a value which
@@ -26,5 +24,4 @@ PccpStateVariables::PccpStateVariables()
     window = 100;
 }
 
-} // namespace pccp
 } // namespace inet

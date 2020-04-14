@@ -6,9 +6,8 @@
  */
 
 #include "inet/applications/pccpapp/PccpSendQueue.h"
-
+#include <iostream>
 namespace inet {
-namespace pccp {
 
 Register_Class(PccpSendQueue);
 
@@ -80,8 +79,6 @@ int PccpSendQueue::getSentRequestCount()
     return sidToTimerMap.size();
 }
 
-
-} // namespace pccp
 } // namespace inet
 
 

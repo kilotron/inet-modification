@@ -14,7 +14,6 @@
 #include <queue>
 
 namespace inet {
-namespace pccp {
 
 /**
  * Send queue that manages app request.
@@ -88,7 +87,6 @@ public:
 
 };
 
-} // namespace pccp
 } // namespace inet
 
 

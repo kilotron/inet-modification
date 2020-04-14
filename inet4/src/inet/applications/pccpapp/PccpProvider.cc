@@ -16,7 +16,6 @@
 #include "PccpProvider.h"
 
 namespace inet {
-namespace pccp {
 
 Define_Module(PccpProvider);
 
@@ -110,5 +109,4 @@ void PccpProvider::socketClosed(ColorSocket *socket)
    currentSocket = nullptr;
 }
 
-} // namespace pccp
 } //namespace inet
