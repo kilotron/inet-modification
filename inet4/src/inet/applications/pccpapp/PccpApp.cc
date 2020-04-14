@@ -14,6 +14,7 @@
 // 
 
 #include "PccpApp.h"
+#include <iostream>
 
 namespace inet {
 
@@ -53,10 +54,7 @@ void PccpApp::initialize(int stage)
 
 void PccpApp::handleMessageWhenUp(cMessage *msg){
     if (msg->isSelfMessage()) {
-        handleSelfMessage(msg);
-    }
-    else if (strcmp(msg->getName(), "REXMIT") == 0) {
-        pccpAlg->processRexmitTimer(msg);
+        handleSelfMessage(msg);  // including rexmit timer
     }
     else {
         currentSocket->processMessage(msg);
@@ -71,6 +69,8 @@ void PccpApp::handleSelfMessage(cMessage *msg)
     {
         sendRequest({destIndex,content});
         scheduleAt(simTime()+sendInterval, timer);
+        delete start;
+        start = nullptr;
     }
     else if(msg == timer)
     {
@@ -81,6 +81,9 @@ void PccpApp::handleSelfMessage(cMessage *msg)
             scheduleAt(simTime()+sendInterval, timer);
         }
         else cancelEvent(timer);
+    }
+    else if (strcmp(msg->getName(), "REXMIT") == 0) {
+        pccpAlg->processRexmitTimer(msg);
     }
 }
 
@@ -108,6 +111,8 @@ void PccpApp::maxRexmit(const SID& sid)
 void PccpApp::dataArrived(Packet *packet)
 {
     // TODO 在这里统计
+    std::cout << "data arrived\n";
+    delete packet;
 }
 
 void PccpApp::scheduleTimeout(cMessage *timer, simtime_t timeout)

@@ -54,6 +54,8 @@ void PccpProvider::handleSelfMessage(cMessage *msg)
             generateAndCacheData({nodeIndex, content});
             content++;
         }
+        delete start;
+        start = nullptr;
     }
 }
 

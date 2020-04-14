@@ -18,7 +18,7 @@ PccpStateVariables::PccpStateVariables()
     srtt = 0;
     rttvar = 3.0 / 4.0;
 
-    rexmit_timeout = 3.0;
+    rexmit_timeout = 3;
 
     // TODO 目前是固定窗口。需要改为随拥塞状态改变的窗口
     window = 100;

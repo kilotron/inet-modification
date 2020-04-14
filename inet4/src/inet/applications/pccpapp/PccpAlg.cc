@@ -8,6 +8,8 @@
 #include "inet/applications/pccpapp/PccpAlg.h"
 #include "inet/networklayer/common/SidTag_m.h"
 #include <iostream>
+#include <vector>
+
 namespace inet {
 
 #define MAX_REXMIT_COUNT 12
@@ -20,6 +22,14 @@ PccpAlg::PccpAlg()
 
 PccpAlg::~PccpAlg()
 {
+    std::vector<cMessage *> v;
+    sendQueue.getAllTimers(v);
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        cMessage *timer = *it;
+        if (timer->isScheduled()) {
+            pccpApp->cancelEvent(timer);
+        }
+    }
 }
 
 void PccpAlg::processRexmitTimer(cMessage *timer)
@@ -44,6 +54,7 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
     if (state.rexmit_timeout > MAX_REXMIT_TIMEOUT) {
         state.rexmit_timeout = MAX_REXMIT_TIMEOUT;
     }
+    std::cout << "timeout=" << state.rexmit_timeout << endl;
 
     EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
 
@@ -82,14 +93,14 @@ void PccpAlg::requestSent(const SID& sid)
         // remember this sid and when it was sent
         state.rtsid = sid;
         state.rtsid_sendtime = simTime();
-        EV << "Starting rtt measurement on sid=" << sid.str() << "\n";
+        EV << "Starting rtt measurement.\n";
     }
 }
 
 void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 {
     if ( state.rtsid_sendtime != 0 && state.rtsid == sid ) {
-        EV << "Round-trip time measured on sid=" << sid.str() << ": "
+        EV << "Round-trip time measured: "
            << floor((simTime() - state.rtsid_sendtime) * 1000 + 0.5) << "ms\n";
         // update RTT variables with new value
         rttMeasurementComplete(state.rtsid_sendtime, simTime());

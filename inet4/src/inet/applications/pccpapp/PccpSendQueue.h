@@ -12,6 +12,7 @@
 #include "inet/networklayer/icn/field/SID.h"
 #include <map>
 #include <queue>
+#include <vector>
 
 namespace inet {
 
@@ -85,6 +86,10 @@ public:
      */
     int getSentRequestCount();
 
+    /**
+     * Returns all the timers in this queue.
+     */
+     void getAllTimers(std::vector<cMessage *>& v);
 };
 
 } // namespace inet

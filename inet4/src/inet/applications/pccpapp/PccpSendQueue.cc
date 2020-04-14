@@ -18,7 +18,7 @@ PccpSendQueue::PccpSendQueue()
 PccpSendQueue::~PccpSendQueue()
 {
     for (auto it = sidToTimerMap.begin(); it != sidToTimerMap.end(); ++it) {
-        delete it->second;  // delete timers.
+        delete it->second;  // delete timers. timers are canceled by PccpAlg
     }
 }
 
@@ -77,6 +77,13 @@ void PccpSendQueue::increaseRexmitCount(const SID& sid)
 int PccpSendQueue::getSentRequestCount()
 {
     return sidToTimerMap.size();
+}
+
+void PccpSendQueue::getAllTimers(std::vector<cMessage *>& v)
+{
+    for (auto it = sidToTimerMap.begin(); it != sidToTimerMap.end(); ++it) {
+        v.push_back(it->second);
+    }
 }
 
 } // namespace inet
