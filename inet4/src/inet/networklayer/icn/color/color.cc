@@ -21,7 +21,6 @@
 #include "inet/networklayer/icn/color/AppData_m.h"
 #include "inet/networklayer/common/L3Tools.h"
 #include "inet/networklayer/contract/color/ColorSocketCommand_m.h"
-#include "inet/physicallayer/common/packetlevel/SignalTag_m.h"
 #include "inet/networklayer/common/SidTag_m.h"
 
 namespace inet

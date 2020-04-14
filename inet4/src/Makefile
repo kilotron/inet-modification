@@ -1262,11 +1262,8 @@ OBJS = \
     $O/inet/networklayer/common/L3AddressTag_m.o \
     $O/inet/networklayer/common/MulticastTag_m.o \
     $O/inet/networklayer/common/NextHopAddressTag_m.o \
-<<<<<<< HEAD
     $O/inet/networklayer/common/SidTag_m.o \
-=======
     $O/inet/networklayer/common/TosTag_m.o \
->>>>>>> upstream/master
     $O/inet/networklayer/contract/L3SocketCommand_m.o \
     $O/inet/networklayer/contract/NetworkHeaderBase_m.o \
     $O/inet/networklayer/contract/clns/ClnsAddress_m.o \
