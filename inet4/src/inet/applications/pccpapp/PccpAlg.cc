@@ -34,6 +34,7 @@ PccpAlg::~PccpAlg()
 
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
+    pccpApp->emit(PccpApp::rexmitSignal, 1); // the second parameter can be any value
     std::cout << "retrans...";
     // Abort retransmission after max 12 retries.
     SID sid = sendQueue.findSID(timer);
@@ -55,6 +56,7 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
         state.rexmit_timeout = MAX_REXMIT_TIMEOUT;
     }
     std::cout << "timeout=" << state.rexmit_timeout << endl;
+    pccpApp->emit(PccpApp::rtoSignal, state.rexmit_timeout);
 
     EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
 
@@ -70,6 +72,7 @@ void PccpAlg::retransmitRequest(const SID& sid)
     pccpApp->currentSocket->sendGET(sid, pccpApp->localPort, pccpApp->sendInterval);
     pccpApp->scheduleTimeout(timer, state.rexmit_timeout);
     sendQueue.increaseRexmitCount(sid);
+    pccpApp->emit(PccpApp::getSentSignal, 1);
 }
 
 void PccpAlg::sendRequestsToSocket()
@@ -80,10 +83,12 @@ void PccpAlg::sendRequestsToSocket()
         pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
         requestSent(sidToSend);
     }
+    pccpApp->emit(PccpApp::effectiveWindowSignal, effectiveWindow + 1);
 }
 
 void PccpAlg::requestSent(const SID& sid)
 {
+    pccpApp->emit(PccpApp::getSentSignal, 1);
     // if retransmission timer not running, schedule it
     cMessage *timer = sendQueue.findRexmitTimer(sid);
     pccpApp->scheduleTimeout(timer, state.rexmit_timeout);
@@ -99,6 +104,7 @@ void PccpAlg::requestSent(const SID& sid)
 
 void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 {
+    pccpApp->emit(PccpApp::dataRcvdSignal, 1);
     if ( state.rtsid_sendtime != 0 && state.rtsid == sid ) {
         EV << "Round-trip time measured: "
            << floor((simTime() - state.rtsid_sendtime) * 1000 + 0.5) << "ms\n";
@@ -143,6 +149,8 @@ void PccpAlg::rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived)
         rto = MIN_REXMIT_TIMEOUT;
     state.rexmit_timeout = rto;
 
+    pccpApp->emit(PccpApp::srttSignal, state.srtt);
+    pccpApp->emit(PccpApp::rtoSignal, state.rexmit_timeout);
     EV << "Measured RTT=" << (newRTT * 1000) << "ms, updated SRTT=" << (state.srtt * 1000)
        << "ms, new RTO=" << (rto * 1000) << "ms\n";
 }

@@ -33,6 +33,24 @@ simple PccpApp like IApp
         @lifecycleSupport;
         double stopOperationExtraTime @unit(s) = default(-1s);    // extra time after lifecycle stop operation finished
         double stopOperationTimeout @unit(s) = default(2s);    // timeout value for lifecycle stop operation
+		
+		// TODO 增加窗口调节算法后，需要在相应位置发射下面的信号
+		// 增加新的信号后，也需要在ini文件中修改
+		@signal[rto](type=simtime_t);
+		@signal[srtt](type=simtime_t);
+		@signal[window](type=long);
+		@signal[effectiveWindow](type=long);
+		@signal[rexmit](type=long);		// type is indifferent, count # of retransmissions
+		@signal[dataRcvd](type=long);	// type is indifferent, count # of received Data
+		@signal[getSent](type=long);	// type is indifferent, count # of sent Get
+		
+		@statistic[rto](title="retransmission timeout"; unit=s; record=vector);
+		@statistic[srtt](title="smoothed round-trip time"; unit=s; record=vector);
+		@statistic[window](title="congestion window";record=vector);
+		@statistic[effectiveWindow](title="effective window"; record=vector);
+		@statistic[rexmit](source=count(rexmit);title="retransmission"; record=last,vector);
+		@statistic[dataRcvd](source=count(dataRcvd);title="data received"; record=last,vector);
+		@statistic[getSent](source=count(getSent);title="get sent";record=last,vector);
 	gates:
 	    input in;
 	    input socketIn @labels(ITransportPacket/up);

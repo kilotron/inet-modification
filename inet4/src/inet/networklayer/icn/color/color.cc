@@ -388,10 +388,10 @@ void colorCluster::handleDataPacket(Packet *packet)
             
 
     }
-    if( head->getRouteMetric() !=0 )
-    {
-        createRoute(head->getSid().getNidHead(), head->getLastHop(), macInfo->getSrcAddress(), head->getRouteLifetime(), 24, head->getRouteMetric());
-    }
+//    if( head->getRouteMetric() !=0 )
+//    {
+//        createRoute(head->getSid().getNidHead(), head->getLastHop(), macInfo->getSrcAddress(), head->getRouteLifetime(), 24, head->getRouteMetric());
+//    }
 
     //查看PIT表是否有此SID记录
     if (pit->hasThisSid(headSid))

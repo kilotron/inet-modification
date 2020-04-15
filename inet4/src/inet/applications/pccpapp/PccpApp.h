@@ -52,6 +52,16 @@ class INET_API PccpApp : public ApplicationBase
     cMessage *start = nullptr;
 
     PccpAlg *pccpAlg;
+
+    // statistics, see PccpApp.ned for more details
+    static simsignal_t rtoSignal;
+    static simsignal_t srttSignal;
+    static simsignal_t windowSignal;
+    static simsignal_t effectiveWindowSignal;
+    static simsignal_t rexmitSignal;
+    static simsignal_t dataRcvdSignal;
+    static simsignal_t getSentSignal;
+
   public:
     PccpApp();
     ~PccpApp();

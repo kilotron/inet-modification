@@ -20,6 +20,14 @@ namespace inet {
 
 Define_Module(PccpApp);
 
+simsignal_t PccpApp::rtoSignal = registerSignal("rto");
+simsignal_t PccpApp::srttSignal = registerSignal("srtt");
+simsignal_t PccpApp::windowSignal = registerSignal("window");
+simsignal_t PccpApp::effectiveWindowSignal = registerSignal("effectiveWindow");
+simsignal_t PccpApp::rexmitSignal = registerSignal("rexmit");
+simsignal_t PccpApp::dataRcvdSignal = registerSignal("dataRcvd");
+simsignal_t PccpApp::getSentSignal = registerSignal("getSent");
+
 PccpApp::PccpApp() {
     pccpAlg = new PccpAlg();
     pccpAlg->pccpApp = this;
@@ -90,6 +98,10 @@ void PccpApp::handleSelfMessage(cMessage *msg)
 void PccpApp::finish()
 {
     ApplicationBase::finish();
+    if (timer->isScheduled()) {
+        cancelEvent(timer);
+    }
+    delete timer;
 }
 
 void PccpApp::refreshDisplay() const
@@ -111,7 +123,7 @@ void PccpApp::maxRexmit(const SID& sid)
 void PccpApp::dataArrived(Packet *packet)
 {
     // TODO 在这里统计
-    std::cout << "data arrived\n";
+    std::cout << "data arrived, time=" << simTime() << endl;
     delete packet;
 }
 
