@@ -56,6 +56,7 @@ class INET_API PccpApp : public ApplicationBase
     // statistics, see PccpApp.ned for more details
     static simsignal_t rtoSignal;
     static simsignal_t srttSignal;
+    static simsignal_t rttvarSignal;
     static simsignal_t windowSignal;
     static simsignal_t effectiveWindowSignal;
     static simsignal_t rexmitSignal;

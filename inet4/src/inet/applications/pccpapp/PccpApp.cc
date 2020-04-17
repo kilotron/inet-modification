@@ -22,6 +22,7 @@ Define_Module(PccpApp);
 
 simsignal_t PccpApp::rtoSignal = registerSignal("rto");
 simsignal_t PccpApp::srttSignal = registerSignal("srtt");
+simsignal_t PccpApp::rttvarSignal = registerSignal("rttvar");
 simsignal_t PccpApp::windowSignal = registerSignal("window");
 simsignal_t PccpApp::effectiveWindowSignal = registerSignal("effectiveWindow");
 simsignal_t PccpApp::rexmitSignal = registerSignal("rexmit");

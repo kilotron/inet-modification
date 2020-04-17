@@ -38,6 +38,7 @@ simple PccpApp like IApp
 		// 增加新的信号后，也需要在ini文件中修改
 		@signal[rto](type=simtime_t);
 		@signal[srtt](type=simtime_t);
+		@signal[rttvar](type=simtime_t);
 		@signal[window](type=long);
 		@signal[effectiveWindow](type=long);
 		@signal[rexmit](type=long);		// type is indifferent, count # of retransmissions
@@ -46,6 +47,7 @@ simple PccpApp like IApp
 		
 		@statistic[rto](title="retransmission timeout"; unit=s; record=vector);
 		@statistic[srtt](title="smoothed round-trip time"; unit=s; record=vector);
+		@statistic[rttvar](title="rtt variance"; unit=s; record=vector);
 		@statistic[window](title="congestion window";record=vector);
 		@statistic[effectiveWindow](title="effective window"; record=vector);
 		@statistic[rexmit](source=count(rexmit);title="retransmission"; record=last,vector);

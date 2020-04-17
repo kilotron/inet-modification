@@ -892,6 +892,7 @@ OBJS = \
     $O/inet/queueing/filter/ContentBasedFilter.o \
     $O/inet/queueing/filter/OrdinalBasedDropper.o \
     $O/inet/queueing/filter/PacketFilter.o \
+    $O/inet/queueing/filter/PccpIndicator.o \
     $O/inet/queueing/filter/RateLimiter.o \
     $O/inet/queueing/filter/RedDropper.o \
     $O/inet/queueing/function/PacketClassifierFunction.o \
@@ -1226,6 +1227,7 @@ OBJS = \
     $O/inet/linklayer/common/InterfaceTag_m.o \
     $O/inet/linklayer/common/MacAddress_m.o \
     $O/inet/linklayer/common/MacAddressTag_m.o \
+    $O/inet/linklayer/common/PccpDataQueueTag_m.o \
     $O/inet/linklayer/common/UserPriorityTag_m.o \
     $O/inet/linklayer/common/VlanTag_m.o \
     $O/inet/linklayer/csmaca/CsmaCaMacHeader_m.o \
@@ -1408,6 +1410,7 @@ MSGFILES = \
     inet/linklayer/common/InterfaceTag.msg \
     inet/linklayer/common/MacAddress.msg \
     inet/linklayer/common/MacAddressTag.msg \
+    inet/linklayer/common/PccpDataQueueTag.msg \
     inet/linklayer/common/UserPriorityTag.msg \
     inet/linklayer/common/VlanTag.msg \
     inet/linklayer/csmaca/CsmaCaMacHeader.msg \

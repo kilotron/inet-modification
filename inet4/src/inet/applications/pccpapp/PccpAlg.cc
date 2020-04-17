@@ -150,6 +150,7 @@ void PccpAlg::rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived)
     state.rexmit_timeout = rto;
 
     pccpApp->emit(PccpApp::srttSignal, state.srtt);
+    pccpApp->emit(PccpApp::rttvarSignal, state.rttvar);
     pccpApp->emit(PccpApp::rtoSignal, state.rexmit_timeout);
     EV << "Measured RTT=" << (newRTT * 1000) << "ms, updated SRTT=" << (state.srtt * 1000)
        << "ms, new RTO=" << (rto * 1000) << "ms\n";
