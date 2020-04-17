@@ -68,10 +68,10 @@ void colorCluster::finish()
 {
 
     record();
-//    ct->clear();
+
     cancelAndDelete(testGet);
     cancelAndDelete(testData);
-    cancelAndDelete(delayer24);
+    cancelAndDelete(delayer);
 
 }
 
@@ -144,8 +144,8 @@ void colorCluster::initialize(int stage)
         getProdelay = par("GetProcDelay").doubleValue();
         dataProdelay = par("DataProcDelay").doubleValue();
 
-        delayer24 = new cMessage("delayer24");
-        delay_queue24.setTimerAndOwner(delayer24, this);
+        delayer = new cMessage("delayer");
+        delay_queue.setTimerAndOwner(delayer, this);
 
 
         flood = par("flood").boolValue();
@@ -269,10 +269,10 @@ void colorCluster::handleMessageWhenUp(cMessage *msg)
     else if (msg->isSelfMessage())
     {
         
-        if (msg == delayer24)
+        if (msg == delayer)
         {
             //表明延迟发送的报文计时器计时完成
-            auto packet = delay_queue24.popAtFront();
+            auto packet = delay_queue.popAtFront();
             if (packet != nullptr)
             {
                 // std::cout << nodeIndex << "  delay forward(intercluster) at  " << simTime() << "     " << endl;
@@ -320,7 +320,7 @@ void colorCluster::handleDataPacket(Packet *packet)
     auto ie = getSourceInterface(packet);
 
 
-
+    delay_queue.check_and_delete(headSid);
     //mac信息
     auto macInfo = packet->getTag<MacAddressInd>();
 
@@ -383,10 +383,14 @@ void colorCluster::handleDataPacket(Packet *packet)
             
 
     }
-    if( head->getRouteMetric() !=0 )
-    {
-        createRoute(head->getSid().getNidHead(), head->getLastHop(), macInfo->getSrcAddress(), head->getRouteLifetime(), 24, head->getRouteMetric());
-    }
+//    if( head->getRouteMetric() !=0 )
+//    {
+//        if(nodeIndex == 1)
+//        {
+//            std::cout << "cache route" << endl;
+//        }
+//        createRoute(head->getSid().getNidHead(), head->getLastHop(), macInfo->getSrcAddress(), head->getRouteLifetime(), 24, head->getRouteMetric());
+//    }
 
     //查看PIT表是否有此SID记录
     if (pit->hasThisSid(headSid))
@@ -478,15 +482,15 @@ void colorCluster::handleDataPacket(Packet *packet)
             {
                 //数据包发往2.4GHz端口
                 //                if(nodeIndex!=43)
-                // if (delay_queue24.check_and_decrease(packet) == false)
-                //     delay_queue24.insert(newPacket->dup(), DATA, simTime() + uniform(0, dataDelayTime), TC);
+                // if (delay_queue.check_and_decrease(packet) == false)
+                //     delay_queue.insert(newPacket->dup(), DATA, simTime() + uniform(0, dataDelayTime), TC);
                 sendDatagramToOutput(newPacket->dup(),24,nexthop);
             }
 
 
             //在一个get包就对应一个data包的情况中，缓存转发后移除PIT条目
             pit->RemoveEntry(headSid);
-//            delay_queue24.cancelDelayeForwarding(headSid);
+//            delay_queue.cancelDelayeForwarding(headSid);
         }
     }
     else
@@ -526,17 +530,8 @@ void colorCluster::handleGetPacket(Packet *packet)
     //检查
     if (isForwarder())
     {
-        //测试信息
-         std::cout << nodeIndex << "  " << simTime() << "     ";
-         std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-         std::cout << endl;
-
-
-      
         createRoute(head->getSource(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
         createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
-
-
     }
 
     auto route = rt->findRoute(headSID.getNidHead());
@@ -547,30 +542,32 @@ void colorCluster::handleGetPacket(Packet *packet)
         simtime_t ttl = 1;
         //先查看路由表中,是否有对应表项，若有设置下一跳后直接转发，pit增加相应表项
         //只有簇头才进行转发，添加PIT等操作
-        if(nodeIndex == 28)
-        {
-            std::cout<<28<<endl;
-        }
 
         bool forward =  isLastHopHead && isGateway() || isHead();
         
 
-        if (forward || route != nullptr)
+        if (!pit->hasThisSid(headSID) && (forward || route != nullptr))
         {
             
             head->setCluster(isHead());
-            if (route != nullptr && flood == false && !pit->hasThisSid(headSID))
+            if (route != nullptr && flood == false)
             {
-                // std::cout << nodeIndex << "  " << simTime() << "     ";
-                // std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-                // std::cout << endl;
+                std::cout << nodeIndex << "  " << simTime() << "     ";
+                std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+                std::cout << endl;
+
+                auto test = head->getNexthop();
+                if(nodeIndex == 61)
+                {
+                    std::cout<< "head" <<endl;
+
+                }
 
                 if(head->getNexthop() == nid || head->getNexthop().isDefault())
                 {
-                    if (ie == ie)
-                        pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 24, head->getNonce());
-                    else
-                        pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 5, head->getNonce());
+                   
+                    pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 24, head->getNonce());
+
 
                     packet->clearTags();
 
@@ -587,9 +584,10 @@ void colorCluster::handleGetPacket(Packet *packet)
                     delete packet;
                     return;
                 }
+ 
             }
             //没有路由表项，需要广播探测路径
-            if ((head->getNexthop().isDefault() && route == nullptr) || flood == true)
+            else if ((head->getNexthop().isDefault() && route == nullptr) || flood == true)
             {
                 head->setTimeToLive(head->getTimeToLive() - 1);
                 head.get()->getTraceForUpdate().push_back(nodeIndex);
@@ -602,26 +600,21 @@ void colorCluster::handleGetPacket(Packet *packet)
                 // std::cout<<nodeIndex<<endl;
                 if (!pit->hasThisSid(headSID))
                 {
-                    if (delay_queue24.check_and_decrease(newPacket) == false)
-                        delay_queue24.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
+                    if (delay_queue.check_and_decrease(newPacket) == false)
+                        delay_queue.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
                     // delay_queue5.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
                 }
                 else
                 {
-                    delay_queue24.check_and_decrease(newPacket);
-                    if(nodeIndex == 28)
-                    {
-                        std::cout<<28<<endl;
-                    }
+                    delay_queue.check_and_decrease(newPacket);
                 }
 
                 delete newPacket;
                 //添加新条目
 
-                if (ie == ie)
-                    pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 24, head->getNonce());
-                else
-                    pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 5, head->getNonce());
+
+                pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 24, head->getNonce());
+
             }
         }
     }
@@ -638,7 +631,7 @@ void colorCluster::handleGetPacket(Packet *packet)
                   << "at " << simTime() << endl;
 
         auto lists = findContentInCache(headSID)->GetList();
-        int nic = (ie == ie) ? 24 : 5;
+
 
 
         for (const auto &P : lists)
@@ -648,15 +641,18 @@ void colorCluster::handleGetPacket(Packet *packet)
                 if (!pit->servedForThisGet(headSID, head->getNonce()))
                     testModule.GetRecvNum++;
                 pit->SetServed(headSID);
-                pit->createEntry(headSID, head->getSource(), head->getMAC(), simtime_t(1), nic, head->getNonce());
+                pit->createEntry(headSID, head->getSource(), head->getMAC(), simtime_t(1), 24, head->getNonce());
 
                 testModule.DataSendNum++;
                 auto newP = P->dup();
 
+                GETidentifier identifer(headSID, head->getSource());
+                getTable[identifer] = simTime();
                 
                 auto forwardHead = newP->removeAtFront<Data>();
                 forwardHead->setPortNumber2(port);
-                if(route != nullptr)
+                forwardHead->setLastHop(nid);
+                if(route != nullptr && isHead())
                 {
                     forwardHead->setRouteMetric(static_cast<int>(route->getLinkQlt()));
                     forwardHead->setRouteLifetime(route->getLifeTime());
@@ -921,22 +917,7 @@ void colorCluster::FragmentAndSend(Packet *packet)
 {
 }
 
-void colorCluster::testSend(const SID &sid)
-{
-    Packet *packet = new Packet("getPacket");
 
-    encapsulate(packet, 0, sid);
-    auto mac = ie->getMacAddress();
-    pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
-    sendDatagramToOutput(packet, 24);
-    testModule.Delays[sid] = simTime();
-
-
-    testModule.GetSendNum++;
-
-    std::cout << endl;
-    delete packet;
-}
 
 void colorCluster::sendGET(const SID &sid, int port)
 {
@@ -950,17 +931,6 @@ void colorCluster::sendGET(const SID &sid, int port)
     testModule.GetSendNum++;
 }
 
-void colorCluster::testProvide(const SID &sid, const B &dataSize)
-{
-    auto playload = makeShared<AppData>();
-    playload->setChunkLength(dataSize);
-    Packet *packet = new Packet("DATA");
-
-    packet->insertAtBack(playload);
-    FragmentAndStore(packet, sid);
-
-    //    ct->CachePacket(1024, packet);
-}
 void colorCluster::cacheData(const SID &sid, Packet *packet)
 {
     FragmentAndStore(packet, sid);
@@ -1014,12 +984,14 @@ void colorCluster::record()
         outfile.open("./simu/" + fileName, std::ofstream::app);
         testModule.ConsumerPrint(outfile);
         outfile.close();
-        // outfile.open(cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_") + std::to_string(getDelayTime) + "_" + std::to_string(dataDelayTime) + "_" + std::to_string(flood) + string("_delays.txt"), std::ofstream::app);
-        // outfile << nodeIndex << ": ";
-        // std::for_each(testModule.delayArray.begin(), testModule.delayArray.end(), [&outfile](double time) { outfile << time << ","; });
-        // outfile << endl;
-        // outfile << endl;
     }
+    // if (nodeIndex == Pindex)
+    // {
+    //     auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Provider.txt");
+    //     outfile.open("./simu/" + fileName, std::ofstream::app);
+    //     outfile << nodeIndex << ":  "<<getTable.size() << endl;
+    //     outfile.close();
+    // }
 
 }
 
@@ -1050,6 +1022,7 @@ void  colorCluster::handleRequest(Request *request)
     }
     else if(ColorSocketCacheDataCommand *command = dynamic_cast<ColorSocketCacheDataCommand *>(ctrl))
     {
+        Pindex = nodeIndex;
         auto msg = const_cast<cMessage *>(command->getPkt());
         auto pkt = dynamic_cast<Packet *>(msg);
         cacheData(command->getSid(), pkt);

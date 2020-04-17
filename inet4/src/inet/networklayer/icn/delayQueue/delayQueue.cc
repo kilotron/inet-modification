@@ -9,10 +9,12 @@
 #include "inet/networklayer/icn/color/Data_m.h"
 #include "inet/networklayer/icn/color/Get_m.h"
 
-namespace inet{
+namespace inet
+{
 void delayQueue::insert(Packet *pkt, TYPE type, simtime_t time, int forwardTimes, MacAddress mac)
 {
-    if(priQueue.size()==0)
+
+    if (priQueue.size() == 0)
     {
         owner->cancelEvent(timer);
         owner->scheduleAt(time, timer);
@@ -43,16 +45,15 @@ void delayQueue::insert(Packet *pkt, TYPE type, simtime_t time, int forwardTimes
             }
         }
     }
-    
 }
 
-Packet* delayQueue::popAtFront()
+Packet *delayQueue::popAtFront()
 {
     auto begin = priQueue.begin();
     Packet *packet = begin->pkt;
 
     //如果收到的转发次数已经超过临界值，把packet资源释放返回空指针
-    if (begin->tc<1)
+    if (begin->tc < 1 && packet != nullptr)
     {
         begin->releasePkt();
         packet = nullptr;
@@ -62,8 +63,8 @@ Packet* delayQueue::popAtFront()
     priQueue.erase(begin);
 
     //重新启动计时器
-    if(priQueue.size()>0)
-        owner->scheduleAt(priQueue.begin()->sendtime,timer);
+    if (priQueue.size() > 0)
+        owner->scheduleAt(priQueue.begin()->sendtime, timer);
     return packet;
 }
 
@@ -79,7 +80,7 @@ list<delayQueue::pendPkt>::iterator delayQueue::have(Packet *pkt)
     //转换为raw pointer
     Chunk *chunk = const_cast<Chunk *>(pointer);
 
-    if ((getPkt = dynamic_cast<Get *>(chunk))!=nullptr)
+    if ((getPkt = dynamic_cast<Get *>(chunk)) != nullptr)
     {
         type = 0;
     }
@@ -88,16 +89,14 @@ list<delayQueue::pendPkt>::iterator delayQueue::have(Packet *pkt)
         dataPkt = dynamic_cast<Data *>(chunk);
         type = 1;
     }
-   
 
     for (auto iter = priQueue.begin(); iter != priQueue.end(); iter++)
     {
         auto packet = iter->pkt;
         if (iter->type == GET && type == 0)
         {
-            const auto & packetHead = packet->peekAtFront<Get>();
-            if(getPkt->getSid() == packetHead->getSid() && getPkt->getSource() == packetHead->getSource()\
-            && getPkt->getNonce() == packetHead->getNonce())
+            const auto &packetHead = packet->peekAtFront<Get>();
+            if (getPkt->getSid() == packetHead->getSid() && getPkt->getSource() == packetHead->getSource() && getPkt->getNonce() == packetHead->getNonce())
             {
                 return iter;
             }
@@ -110,10 +109,28 @@ list<delayQueue::pendPkt>::iterator delayQueue::have(Packet *pkt)
                 return iter;
             }
         }
-        
     }
 
     return priQueue.end();
+}
+
+bool delayQueue::check_and_delete(const SID &sid)
+{
+    for (auto iter = priQueue.begin(); iter != priQueue.end(); iter++)
+    {
+        auto packet = iter->pkt;
+        if (iter->type == GET)
+        {
+            const auto &packetHead = packet->peekAtFront<Get>();
+            if (sid == packetHead->getSid())
+            {
+                iter->releasePkt();
+                iter->pkt = nullptr;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool delayQueue::check_and_decrease(Packet *pkt)
@@ -123,7 +140,8 @@ bool delayQueue::check_and_decrease(Packet *pkt)
     {
         return false;
     }
-    else{
+    else
+    {
         iter->tc--;
         return true;
     }
@@ -136,10 +154,10 @@ void delayQueue::cancelDelayeForwarding(const SID &sid)
         if (iter->type == GET)
         {
             const auto &packetHead = iter->pkt->peekAtFront<Get>();
-            if(packetHead->getSid() == sid)
+            if (packetHead->getSid() == sid)
             {
                 priQueue.erase(iter);
-            }   
+            }
         }
     }
 }

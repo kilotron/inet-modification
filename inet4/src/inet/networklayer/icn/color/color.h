@@ -83,8 +83,8 @@ namespace inet{
                 public:
                     SID sid;
                     NID requester;
-                    simtime_t servedTime;
-                    GETidentifier(const SID& sid, const NID& nid, simtime_t ST) : sid(sid), requester(nid), servedTime(ST){}
+
+                    GETidentifier(const SID& sid, const NID& nid) : sid(sid), requester(nid){}
                     bool operator == (const GETidentifier& other) const
                     {
                         return sid == other.sid && requester == other.requester;
@@ -93,12 +93,13 @@ namespace inet{
             
             class GETidentifierComparor
             {
-                bool operator ()(const GETidentifier& lhs, const GETidentifier& rhs)
-                {
-                    if (lhs.sid == rhs.sid)
-                        return lhs.requester < rhs.requester;
-                    else return lhs.sid < rhs.sid;
-                }
+                public:
+                    bool operator ()(const GETidentifier& lhs, const GETidentifier& rhs)
+                    {
+                        if (lhs.sid == rhs.sid)
+                            return lhs.requester < rhs.requester;
+                        else return lhs.sid < rhs.sid;
+                    }
             };
 
             enum class SendMode
@@ -164,14 +165,14 @@ namespace inet{
             //测试变量
             simtime_t startTime;
             int Cindex = 10000;
-
+            int Pindex = -1;
 
             double sentInterval;
    
             SimRecorder testModule;
 
-            delayQueue delay_queue24;
-            cMessage* delayer24;
+            delayQueue delay_queue;
+            cMessage* delayer;
 
 
             double getDelayTime;
@@ -317,13 +318,7 @@ namespace inet{
             //得到数据包到达的接口
             const InterfaceEntry *getSourceInterface(Packet *packet);
 
-            //节点作为consumer测试发包，转发路由机制，直接在网络层产生GET包发送
-            void testSend(const SID &sid);
-
             void sendGET(const SID &sid, int port);
-
-            //节点作为provider创建内容包，测试中一个GET包对应一个DATA包
-            void testProvide(const SID &sid, const B& dataSize);
 
             //通过T控制发送get包的时间间隔， mode选择时间间隔的具体分布形式，0均匀分布，1指数分布
             void scheduleGet(simtime_t t, SendMode mode);
