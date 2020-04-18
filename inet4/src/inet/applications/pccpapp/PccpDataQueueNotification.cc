@@ -13,17 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package inet.queueing.filter;
+#include "PccpDataQueueNotification.h"
 
-import inet.queueing.base.PacketFilterBase;
+namespace inet {
 
-// This module add PccpDataQueueInd to packet.
-
-simple PccpIndicator extends PacketFilterBase
+PccpDataQueueNotification::PccpDataQueueNotification(int queueLength, int queueCapacity)
 {
-    parameters:
-        // TODO 在配置文件里改变wq默认值
-        double wq = default(0.002); // weight of the current queue length in the averaged queue length
-        @class(PccpIndicator);
-        @signal(PccpDataQueueSignal);        
+   this->queueLength = queueLength;
+   this->queueCapacity = queueCapacity;
 }
+
+PccpDataQueueNotification::~PccpDataQueueNotification() {
+
+}
+
+} /* namespace inet */

@@ -23,7 +23,7 @@ protected:
     double wq;
     double avg = 0.0;
     IPacketCollection *collection = nullptr; // linklayer queu
-
+    simsignal_t pccpDataQueueSignal;
 protected:
     virtual void initialize(int stage) override;
     virtual bool matchesPacket(Packet *packet) override;

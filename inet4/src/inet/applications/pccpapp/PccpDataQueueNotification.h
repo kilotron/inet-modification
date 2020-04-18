@@ -13,17 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package inet.queueing.filter;
+#ifndef INET_APPLICATIONS_PCCPAPP_PCCPDATAQUEUENOTIFICATION_H_
+#define INET_APPLICATIONS_PCCPAPP_PCCPDATAQUEUENOTIFICATION_H_
 
-import inet.queueing.base.PacketFilterBase;
+#include <omnetpp/cobject.h>
 
-// This module add PccpDataQueueInd to packet.
+namespace inet {
 
-simple PccpIndicator extends PacketFilterBase
-{
-    parameters:
-        // TODO 在配置文件里改变wq默认值
-        double wq = default(0.002); // weight of the current queue length in the averaged queue length
-        @class(PccpIndicator);
-        @signal(PccpDataQueueSignal);        
-}
+class PccpDataQueueNotification: public omnetpp::cObject, public omnetpp::noncopyable {
+public:
+    int queueLength;
+    int queueCapacity;
+public:
+    PccpDataQueueNotification(int queueLength, int queueCapacity);
+    ~PccpDataQueueNotification();
+};
+
+} /* namespace inet */
+
+#endif /* INET_APPLICATIONS_PCCPAPP_PCCPDATAQUEUENOTIFICATION_H_ */

@@ -354,6 +354,7 @@ void colorCluster::handleDataPacket(Packet *packet)
             // 该数据包对应的SID
             auto sidInd = fullPacket->addTag<SidInd>();
             sidInd->setSid(headSid);
+            std::cout << "in HandleData:CI=" << (head->getCongestionIndication()) << endl;
 
             auto sd = socketsByPortMap.find(localPort);
             if(sd == socketsByPortMap.end())

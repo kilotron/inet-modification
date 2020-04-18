@@ -11,10 +11,12 @@
 #include "inet/networklayer/common/L3Tools.h"
 #include "inet/networklayer/common/PitTag_m.h"
 #include "inet/networklayer/icn/color/Data_m.h"
+#include "inet/applications/pccpapp/PccpDataQueueNotification.h"
 #include <iostream>
 
 #ifdef WITH_IEEE80211
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee8022/Ieee8022LlcHeader_m.h"
 //#include "inet/linklayer/ethernet/Ethernet.h"
 #endif // #ifdef WITH_ETHERNET
 
@@ -45,15 +47,18 @@ void PccpIndicator::setPccpCi(Packet *packet, PccpCiCode ci)
     if (protocol == &Protocol::ieee80211Mac) {
 #if defined(WITH_IEEE80211)
         packet->trim();
-        auto header = packet->removeAtFront<ieee80211::Ieee80211MacHeader>();
+        auto macHeader = packet->removeAtFront<ieee80211::Ieee80211MacHeader>();
+        auto llcHeader = packet->removeAtFront<Ieee8022LlcHeader>();
         auto fcs = packet->removeAtBack<ieee80211::Ieee80211MacTrailer>(B(4));
         auto data = removeNetworkProtocolHeader<Data>(packet);
         data->setCongestionIndication(ci);
-        // TODO: recalculate IP header checksum
-        //insertNetworkProtocolHeader(packet, Protocol::color, data);
-        packet->insertAtFront(header);
-        packet->insertAtBack(fcs);
+        // 下面的操作与removeNetworkProtocolHeader相反，但省略了NetworkProtocolInd
+        // 因为icn里没有用NetworkProtocolInd
         packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(protocol);
+        packet->insertAtFront(data);
+        packet->insertAtFront(llcHeader);
+        packet->insertAtFront(macHeader);
+        packet->insertAtBack(fcs);
     }
 #else
         throw cRuntimeError("IEEE 802.11 feature is disabled");
