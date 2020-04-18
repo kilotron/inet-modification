@@ -22,6 +22,7 @@
 #include "inet/networklayer/common/L3Tools.h"
 #include "inet/networklayer/contract/color/ColorSocketCommand_m.h"
 #include "inet/networklayer/common/SidTag_m.h"
+#include "inet/networklayer/common/PitTag_m.h"
 
 namespace inet
 {
@@ -849,6 +850,15 @@ void colorCluster::sendDatagramToOutput(Packet *packet, int nic, const MacAddres
         packet->removeTagIfPresent<DispatchProtocolInd>();
         packet->addTagIfAbsent<DispatchProtocolInd>()->setProtocol(&Protocol::color);
 
+        //通过动态类型转换判断数据包的类型
+        const auto &head = packet->peekAtFront<Chunk>(B(78), 0);
+        auto pointer = head.get();
+        Chunk *chunk = const_cast<Chunk *>(pointer);
+        if (dynamic_cast<Data *>(chunk)) {
+            auto pitInd = packet->addTag<PitInd>();
+            pitInd->setPitLength(pit->getLength());
+            pitInd->setPitCapacity(pit->getCapacity());
+        }
         send(packet, "queueOut");
     }
 }

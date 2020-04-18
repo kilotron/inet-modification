@@ -12,6 +12,7 @@
 #include "inet/queueing/base/PacketFilterBase.h"
 #include "inet/queueing/contract/IPacketCollection.h"
 #include "inet/linklayer/common/PccpDataQueueTag_m.h"
+#include "inet/networklayer/common/CiTag_m.h"
 
 namespace inet {
 namespace queueing {
@@ -26,6 +27,7 @@ protected:
 protected:
     virtual void initialize(int stage) override;
     virtual bool matchesPacket(Packet *packet) override;
+    static void setPccpCi(Packet *packet, PccpCiCode ci);
 };
 
 } // namespace queueing

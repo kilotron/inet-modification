@@ -1253,6 +1253,7 @@ OBJS = \
     $O/inet/linklayer/tun/TunControlInfo_m.o \
     $O/inet/linklayer/xmac/XMacHeader_m.o \
     $O/inet/networklayer/arp/ipv4/ArpPacket_m.o \
+    $O/inet/networklayer/common/CiTag_m.o \
     $O/inet/networklayer/common/DscpTag_m.o \
     $O/inet/networklayer/common/EchoPacket_m.o \
     $O/inet/networklayer/common/EcnTag_m.o \
@@ -1264,6 +1265,7 @@ OBJS = \
     $O/inet/networklayer/common/L3AddressTag_m.o \
     $O/inet/networklayer/common/MulticastTag_m.o \
     $O/inet/networklayer/common/NextHopAddressTag_m.o \
+    $O/inet/networklayer/common/PitTag_m.o \
     $O/inet/networklayer/common/SidTag_m.o \
     $O/inet/networklayer/common/TosTag_m.o \
     $O/inet/networklayer/contract/L3SocketCommand_m.o \
@@ -1436,6 +1438,7 @@ MSGFILES = \
     inet/linklayer/tun/TunControlInfo.msg \
     inet/linklayer/xmac/XMacHeader.msg \
     inet/networklayer/arp/ipv4/ArpPacket.msg \
+    inet/networklayer/common/CiTag.msg \
     inet/networklayer/common/DscpTag.msg \
     inet/networklayer/common/EchoPacket.msg \
     inet/networklayer/common/EcnTag.msg \
@@ -1447,6 +1450,7 @@ MSGFILES = \
     inet/networklayer/common/L3AddressTag.msg \
     inet/networklayer/common/MulticastTag.msg \
     inet/networklayer/common/NextHopAddressTag.msg \
+    inet/networklayer/common/PitTag.msg \
     inet/networklayer/common/SidTag.msg \
     inet/networklayer/common/TosTag.msg \
     inet/networklayer/contract/L3SocketCommand.msg \

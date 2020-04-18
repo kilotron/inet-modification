@@ -14,6 +14,8 @@
 // 
 
 #include "PccpApp.h"
+#include "inet/linklayer/common/PccpDataQueueTag_m.h"
+#include "inet/networklayer/common/SidTag_m.h"
 #include <iostream>
 
 namespace inet {
@@ -125,6 +127,8 @@ void PccpApp::dataArrived(Packet *packet)
 {
     // TODO 在这里统计
     std::cout << "data arrived, time=" << simTime() << endl;
+    //auto ind = packet->getTag<PccpDataQueueInd>();
+//    std::cout << "QL=" << ind->getQueueLength() << ",QC=" << ind->getQueueCapacity() << endl;
     delete packet;
 }
 

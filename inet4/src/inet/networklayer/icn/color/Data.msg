@@ -58,6 +58,8 @@ class Data extends FieldsChunk
     NID lastHop;
     bool comeFromSource;
     
+    int congestionIndication = 0;
+    
     //测试
     path trace;
 

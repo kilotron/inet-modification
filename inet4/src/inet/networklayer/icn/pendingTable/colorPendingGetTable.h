@@ -87,6 +87,12 @@ class INET_API colorPendingGetTable: public cSimpleModule
         std::multimap<SID,PITentry>::iterator getTableEnd(){return table->end();}
 
         void SetServed(const SID &sid);
+
+        // PIT当前长度
+        int getLength() {return 66;}
+
+        // PIT容量
+        int getCapacity() {return 100;}
 };
 }
 

@@ -12,25 +12,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+import inet.common.INETDefs;
+import inet.common.TagBase;
 
-package inet.queueing.queue;
+namespace inet;
 
-import inet.queueing.contract.IPacketQueue;
-import inet.queueing.filter.PccpIndicator;
-import inet.linklayer.ieee80211.mac.queue.PendingQueue;
+enum PccpCiCode {
+    FREE = 0;
+    BUSY_1 = 1;
+    BUSY_2 = 2;
+    CONGESTED = 3;
+}
 
-// Combines a PendingQueue(IEEE80211) with PCCP support
-module PccpIndicatorQueue extends CompoundPacketQueue
+class CiInd extends TagBase
 {
-    submodules:
-        pccpIndicator: PccpIndicator {
-        	@display("p=100,100");
-        }
-        fifo: PendingQueue {
-        	@display("p=100,200");        
-        }
-    connections:
-        in --> { @display("m=n"); } --> pccpIndicator.in;
-        pccpIndicator.out --> fifo.in;
-        fifo.out --> { @display("m=s"); } --> out;
+    int congestionIndication; // congestion indication
 }
