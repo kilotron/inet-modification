@@ -62,6 +62,8 @@ public:
     //弹出延迟队列的队首元素
     Packet *popAtFront();
 
+    list<delayQueue::pendPkt>::iterator peekAtFront();
+
     //检查延迟队列中是否有此包，若有返回指向迭代器，若无返回end迭代器
     list<delayQueue::pendPkt>::iterator have(Packet *pkt);
 

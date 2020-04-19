@@ -31,6 +31,7 @@
 #include "inet/networklayer/icn/field/SID.h"
 #include "inet/networklayer/icn/delayQueue/delayQueue.h"
 #include "inet/networklayer/contract/INetfilter.h"
+#include "inet/networklayer/icn/color/Data_m.h"
 
 
 
@@ -111,8 +112,11 @@ namespace inet{
 
 
         private:
+            friend class SimRecorder;
             //节点索引
             int nodeIndex;
+
+            std::map<NID, simtime_t> RouteDetectedTable;
 
             std::map<GETidentifier, simtime_t, GETidentifierComparor> getTable;
 
@@ -154,17 +158,11 @@ namespace inet{
             //数据包重组buffer
             ColorFragBuf* ResemBuffer;
 
-            cMessage* testTimer;
-
-            cMessage* testGet;
-            simtime_t testget;
-
-            cMessage* testData;
-            simtime_t testdata;
+            simtime_t firstPacket;
 
             //测试变量
             simtime_t startTime;
-            int Cindex = 10000;
+            int Cindex = -1;
             int Pindex = -1;
 
             double sentInterval;
@@ -173,6 +171,8 @@ namespace inet{
 
             delayQueue delay_queue;
             cMessage* delayer;
+
+            std::map<NID, std::list<Packet* >> pendingRouteDetectTable;
 
 
             double getDelayTime;
@@ -298,7 +298,9 @@ namespace inet{
             //对下层来的包解封装
             void decapsulate(Packet *packet, const SID& sid);
 
-            void cacheData(const SID &sid, Packet *packet);
+            void cacheDataFromHL(const SID &sid, Packet *packet);
+
+            void cacheIncomingData(Packet *packet);
 
             //将数据包通过指定端口发送
             void sendDatagramToOutput(Packet *packet, int nic, const MacAddress& mac = MacAddress::BROADCAST_ADDRESS);

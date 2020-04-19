@@ -68,6 +68,11 @@ Packet *delayQueue::popAtFront()
     return packet;
 }
 
+list<delayQueue::pendPkt>::iterator delayQueue::peekAtFront()
+{
+    return priQueue.begin();
+}
+
 list<delayQueue::pendPkt>::iterator delayQueue::have(Packet *pkt)
 {
     int type;
