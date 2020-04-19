@@ -58,7 +58,9 @@ class Data extends FieldsChunk
     NID lastHop;
     bool comeFromSource;
     
-    int congestionIndication = 0;
+    // PCCP字段，用于拥塞控制，在链路层修改
+    // 值定义见CiTag.msg文件
+    int congestionLevel = 0;
     
     //测试
     path trace;

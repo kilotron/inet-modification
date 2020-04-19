@@ -22,8 +22,12 @@ import inet.queueing.base.PacketFilterBase;
 simple PccpIndicator extends PacketFilterBase
 {
     parameters:
-        // TODO 在配置文件里改变wq默认值
+//		 TODO 下面这些参数应该在实验完成后选出一个合适的值，设为默认值，
         double wq = default(0.002); // weight of the current queue length in the averaged queue length
-        @class(PccpIndicator);
-        @signal(PccpDataQueueSignal);        
+        double g = default(0.5);	// weight of data queue occupancy
+        double CI_FREE = default(0.6);
+        double CI_BUSY = default(0.8);
+        double CI_CONG = default(0.9);
+        double p0 = default(0.5);	// probability of CL=BUSY_1 when CI = CI_BUSY
+        @class(PccpIndicator);     
 }

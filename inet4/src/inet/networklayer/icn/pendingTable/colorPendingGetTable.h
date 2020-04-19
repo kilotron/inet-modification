@@ -88,6 +88,7 @@ class INET_API colorPendingGetTable: public cSimpleModule
 
         void SetServed(const SID &sid);
 
+        // TODO 修改下面的两个函数
         // PIT当前长度
         int getLength() {return 66;}
 

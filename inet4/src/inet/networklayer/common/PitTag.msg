@@ -17,6 +17,8 @@ import inet.common.TagBase;
 
 namespace inet;
 
+// 此Tag向链路层提供PIT的占用情况，添加到Data包中（color.cc: sendDatagramToOutput()），
+// queueLength是当前的PIT长度，不是平均值
 class PitInd extends TagBase
 {
     int pitLength;	// current number of packets in PIT

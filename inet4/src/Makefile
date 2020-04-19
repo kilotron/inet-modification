@@ -62,7 +62,6 @@ OBJS = \
     $O/inet/applications/packetdrill/parser.o \
     $O/inet/applications/pccpapp/PccpAlg.o \
     $O/inet/applications/pccpapp/PccpApp.o \
-    $O/inet/applications/pccpapp/PccpDataQueueNotification.o \
     $O/inet/applications/pccpapp/PccpProvider.o \
     $O/inet/applications/pccpapp/PccpSendQueue.o \
     $O/inet/applications/pccpapp/PccpStateVariables.o \
@@ -1228,7 +1227,6 @@ OBJS = \
     $O/inet/linklayer/common/InterfaceTag_m.o \
     $O/inet/linklayer/common/MacAddress_m.o \
     $O/inet/linklayer/common/MacAddressTag_m.o \
-    $O/inet/linklayer/common/PccpDataQueueTag_m.o \
     $O/inet/linklayer/common/UserPriorityTag_m.o \
     $O/inet/linklayer/common/VlanTag_m.o \
     $O/inet/linklayer/csmaca/CsmaCaMacHeader_m.o \
@@ -1254,7 +1252,7 @@ OBJS = \
     $O/inet/linklayer/tun/TunControlInfo_m.o \
     $O/inet/linklayer/xmac/XMacHeader_m.o \
     $O/inet/networklayer/arp/ipv4/ArpPacket_m.o \
-    $O/inet/networklayer/common/CiTag_m.o \
+    $O/inet/networklayer/common/ClTag_m.o \
     $O/inet/networklayer/common/DscpTag_m.o \
     $O/inet/networklayer/common/EchoPacket_m.o \
     $O/inet/networklayer/common/EcnTag_m.o \
@@ -1413,7 +1411,6 @@ MSGFILES = \
     inet/linklayer/common/InterfaceTag.msg \
     inet/linklayer/common/MacAddress.msg \
     inet/linklayer/common/MacAddressTag.msg \
-    inet/linklayer/common/PccpDataQueueTag.msg \
     inet/linklayer/common/UserPriorityTag.msg \
     inet/linklayer/common/VlanTag.msg \
     inet/linklayer/csmaca/CsmaCaMacHeader.msg \
@@ -1439,7 +1436,7 @@ MSGFILES = \
     inet/linklayer/tun/TunControlInfo.msg \
     inet/linklayer/xmac/XMacHeader.msg \
     inet/networklayer/arp/ipv4/ArpPacket.msg \
-    inet/networklayer/common/CiTag.msg \
+    inet/networklayer/common/ClTag.msg \
     inet/networklayer/common/DscpTag.msg \
     inet/networklayer/common/EchoPacket.msg \
     inet/networklayer/common/EcnTag.msg \

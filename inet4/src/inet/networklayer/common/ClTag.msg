@@ -12,19 +12,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+import inet.common.INETDefs;
+import inet.common.TagBase;
 
-#include "PccpDataQueueNotification.h"
+namespace inet;
 
-namespace inet {
+enum PccpClCode {
+    FREE = 0;
+    BUSY_1 = 1;
+    BUSY_2 = 2;
+    CONGESTED = 3;
+}
 
-PccpDataQueueNotification::PccpDataQueueNotification(int queueLength, int queueCapacity)
+// 网络层向上层提供拥塞信息
+class ClInd extends TagBase
 {
-   this->queueLength = queueLength;
-   this->queueCapacity = queueCapacity;
+    int congestionLevel; // congestion indication
 }
-
-PccpDataQueueNotification::~PccpDataQueueNotification() {
-
-}
-
-} /* namespace inet */

@@ -33,7 +33,7 @@ simple PccpApp like IApp
         @lifecycleSupport;
         double stopOperationExtraTime @unit(s) = default(-1s);    // extra time after lifecycle stop operation finished
         double stopOperationTimeout @unit(s) = default(2s);    // timeout value for lifecycle stop operation
-		
+        
 		// TODO 增加窗口调节算法后，需要在相应位置发射下面的信号
 		// 增加新的信号后，也需要在ini文件中修改
 		@signal[rto](type=simtime_t);
