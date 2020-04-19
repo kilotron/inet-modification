@@ -20,8 +20,8 @@ PccpStateVariables::PccpStateVariables()
 
     rexmit_timeout = 3;
 
-    // TODO 目前是固定窗口。需要改为随拥塞状态改变的窗口
-    window = 10000;
+    window = 10.0;
+    num_continuous_congested = 0;
 }
 
 } // namespace inet

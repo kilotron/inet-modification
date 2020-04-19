@@ -50,7 +50,8 @@ void PccpApp::initialize(int stage)
         sendInterval = par("sendInterval").doubleValue();
         startTime = par("startTime").doubleValue();
         stopTime = par("stopTime").doubleValue();
-
+        n0 = par("n0").intValue();
+        k0 = par("k0").doubleValue();
         timer = new cMessage("sendGET");
         start = new cMessage("start");
 

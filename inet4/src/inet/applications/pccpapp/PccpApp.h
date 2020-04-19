@@ -44,6 +44,10 @@ class INET_API PccpApp : public ApplicationBase
     simtime_t startTime;
     simtime_t stopTime;
 
+    // 调节拥塞窗口的参数
+    int n0;
+    double k0;
+
     NID nid;
     long long content = 0;
     ColorSocket *currentSocket = nullptr;
@@ -52,6 +56,7 @@ class INET_API PccpApp : public ApplicationBase
     cMessage *start = nullptr;
 
     PccpAlg *pccpAlg;
+
 
     // statistics, see PccpApp.ned for more details
     static simsignal_t rtoSignal;

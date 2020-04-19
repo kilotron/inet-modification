@@ -23,6 +23,7 @@
 #include "inet/networklayer/contract/color/ColorSocketCommand_m.h"
 #include "inet/networklayer/common/SidTag_m.h"
 #include "inet/networklayer/common/PitTag_m.h"
+#include "inet/networklayer/common/ClTag_m.h"
 
 namespace inet
 {
@@ -351,9 +352,10 @@ void colorCluster::handleDataPacket(Packet *packet)
                
             decapsulate(fullPacket, headSid);
 
-            // 该数据包对应的SID
+            // 该数据包对应的SID和congestion level
             auto sidInd = fullPacket->addTag<SidInd>();
             sidInd->setSid(headSid);
+            fullPacket->addTag<ClInd>()->setCongestionLevel(PccpClCode(head->getCongestionLevel()));
             std::cout << "in HandleData:CL=" << (head->getCongestionLevel()) << endl;
 
             auto sd = socketsByPortMap.find(localPort);

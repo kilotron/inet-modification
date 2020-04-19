@@ -132,20 +132,20 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
 PccpClCode PccpIndicator::calculateCongestionLevel()
 {
     if (ci <= CI_FREE) {
-        return FREE;
+        return PccpClCode::FREE;
     }
     else if (ci >= CI_CONG) {
-        return CONGESTED;
+        return PccpClCode::CONGESTED;
     }
     else if (CI_FREE < ci && ci <= CI_BUSY) {
         double r = dblrand();
         double p = 1 - (1 - p0) * (ci - CI_FREE) / (CI_BUSY - CI_FREE);
-        return (r <= p) ? BUSY_1 : BUSY_2;
+        return (r <= p) ? PccpClCode::BUSY_1 : PccpClCode::BUSY_2;
     }
     else { // CI_BUSY < ci < CI_CONG
         double r = dblrand();
         double p = p0 * (CI_CONG - ci) / (CI_CONG - CI_BUSY);
-        return (r <= p) ? BUSY_1 : BUSY_2;
+        return (r <= p) ? PccpClCode::BUSY_1 : PccpClCode::BUSY_2;
     }
 }
 

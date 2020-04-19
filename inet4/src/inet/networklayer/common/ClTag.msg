@@ -27,5 +27,5 @@ enum PccpClCode {
 // 网络层向上层提供拥塞信息
 class ClInd extends TagBase
 {
-    int congestionLevel; // congestion indication
+    PccpClCode congestionLevel; // congestion indication
 }

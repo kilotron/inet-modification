@@ -34,12 +34,16 @@ simple PccpApp like IApp
         double stopOperationExtraTime @unit(s) = default(-1s);    // extra time after lifecycle stop operation finished
         double stopOperationTimeout @unit(s) = default(2s);    // timeout value for lifecycle stop operation
         
+        // 调节拥塞窗口的参数
+        int n0 = default(5);
+        double k0 = default(0.5);
+        
 		// TODO 增加窗口调节算法后，需要在相应位置发射下面的信号
 		// 增加新的信号后，也需要在ini文件中修改
 		@signal[rto](type=simtime_t);
 		@signal[srtt](type=simtime_t);
 		@signal[rttvar](type=simtime_t);
-		@signal[window](type=long);
+		@signal[window](type=double);
 		@signal[effectiveWindow](type=long);
 		@signal[rexmit](type=long);		// type is indifferent, count # of retransmissions
 		@signal[dataRcvd](type=long);	// type is indifferent, count # of received Data

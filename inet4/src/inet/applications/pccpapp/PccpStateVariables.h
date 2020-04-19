@@ -31,7 +31,9 @@ public:
 
     simtime_t rexmit_timeout;   // current retransmission timeout
 
-    uint32 window;    // congestion window
+    double window;    // congestion window
+
+    int num_continuous_congested;
 };
 
 } // namespace inet

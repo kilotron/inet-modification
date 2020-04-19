@@ -7,6 +7,7 @@
 
 #include "inet/applications/pccpapp/PccpAlg.h"
 #include "inet/networklayer/common/SidTag_m.h"
+#include "inet/networklayer/common/ClTag_m.h"
 #include <iostream>
 #include <vector>
 
@@ -77,7 +78,7 @@ void PccpAlg::retransmitRequest(const SID& sid)
 
 void PccpAlg::sendRequestsToSocket()
 {
-    int effectiveWindow = state.window - sendQueue.getSentRequestCount();
+    int effectiveWindow = int(state.window) - sendQueue.getSentRequestCount();
     while (effectiveWindow-- > 0 && sendQueue.hasUnsentSID()) {
         SID sidToSend = sendQueue.popOneUnsentSID();
         pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
@@ -122,11 +123,39 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
     // remove the request from sendQueue
     sendQueue.discard(sid);
 
+    // 调整拥塞窗口，发送新请求（如果可以的话）
+    PccpClCode congestionLevel = packet->removeTag<ClInd>()->getCongestionLevel();
+
+    if (congestionLevel != PccpClCode::CONGESTED) {
+        state.num_continuous_congested = 0;
+    } else {
+        state.num_continuous_congested++;
+    }
+
+    if (congestionLevel == PccpClCode::FREE) {
+        state.window += 1;
+    } else if (congestionLevel == PccpClCode::BUSY_1) {
+        state.window += 1 / state.window;
+    } else if (congestionLevel == PccpClCode::BUSY_2) {
+        state.window -= 1 / state.window;
+    } else { // congestionLevel == PccpClCode::CONGESTED
+        /* k: decrease factor, n: number of continuous congested packets
+         * k = k0 if n >= n0
+         * k = 1 - (1 - k0) * n / n0 if n < n0
+         */
+        double k;
+        if (state.num_continuous_congested >= pccpApp->n0) {
+            k = pccpApp->k0;
+        } else {
+            k = 1 - (1 - pccpApp->k0) * state.num_continuous_congested / pccpApp->k0;
+        }
+        state.window *= k;
+    }
+    pccpApp->emit(PccpApp::windowSignal, state.window);
+    sendRequestsToSocket();
+    std::cout << "window=" << state.window << endl;
     // notify app
     pccpApp->dataArrived(packet);
-
-    // TODO 调整拥塞窗口，发送新请求（如果可以的话）
-    sendRequestsToSocket();
 }
 
 void PccpAlg::rttMeasurementComplete(simtime_t timeSent, simtime_t timeReceived)
