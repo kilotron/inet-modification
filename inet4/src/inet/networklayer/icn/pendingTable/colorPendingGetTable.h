@@ -35,6 +35,9 @@ class INET_API colorPendingGetTable: public cSimpleModule
 
         ColorRoutingTable *rt = nullptr;
 
+        // PIT的容量
+        int capacity = 100;
+
     protected:
         virtual int numInitStages() const override { return NUM_INIT_STAGES; }
         virtual void initialize(int stage) override;
@@ -90,10 +93,12 @@ class INET_API colorPendingGetTable: public cSimpleModule
 
         // TODO 修改下面的两个函数
         // PIT当前长度
-        int getLength() {return 66;}
+        int getLength() {return table->size();}
 
         // PIT容量
-        int getCapacity() {return 100;}
+        int getCapacity() {return capacity;}
+
+        bool isFull() {return table->size() >= capacity;}
 };
 }
 

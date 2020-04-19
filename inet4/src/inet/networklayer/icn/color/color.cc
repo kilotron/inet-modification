@@ -510,6 +510,12 @@ void colorCluster::handleDataPacket(Packet *packet)
 
 void colorCluster::handleGetPacket(Packet *packet)
 {
+    // PIT满则丢弃GET
+    if (pit->isFull()) {
+        delete packet;
+        return;
+    }
+
     //根据GET包头部内容进行相应操作
     packet->trim();
 
