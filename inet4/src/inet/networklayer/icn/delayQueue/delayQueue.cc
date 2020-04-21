@@ -98,6 +98,11 @@ list<delayQueue::pendPkt>::iterator delayQueue::have(Packet *pkt)
     for (auto iter = priQueue.begin(); iter != priQueue.end(); iter++)
     {
         auto packet = iter->pkt;
+        if(iter->pkt == nullptr)
+        {
+            priQueue.erase(iter);
+            break;
+        }
         if (iter->type == GET && type == 0)
         {
             const auto &packetHead = packet->peekAtFront<Get>();
@@ -124,7 +129,7 @@ bool delayQueue::check_and_delete(const SID &sid)
     for (auto iter = priQueue.begin(); iter != priQueue.end(); iter++)
     {
         auto packet = iter->pkt;
-        if (iter->type == GET)
+        if (iter->type == GET && iter->pkt!=nullptr)
         {
             const auto &packetHead = packet->peekAtFront<Get>();
             if (sid == packetHead->getSid())

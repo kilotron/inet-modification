@@ -240,22 +240,22 @@ void colorCluster::handleMessageWhenUp(cMessage *msg)
         {
             //if route detecting finish, forward packet according to route entry
             auto iter = delay_queue.peekAtFront();
-            if(iter->type == GET)
-            {
-                const auto& head = iter->pkt->removeAtFront<Get>();
+            // if(iter->type == GET && iter->pkt != nullptr)
+            // {
+            //     const auto& head = iter->pkt->removeAtFront<Get>();
 
-                auto route = findRoute(head->getSid().getNidHead());
-                if(route != nullptr)
-                {
-                    head->setNexthop(route->getNextHop());
-                }
-                iter->pkt->insertAtFront(head);
-            }
+            //     auto route = findRoute(head->getSid().getNidHead());
+            //     if(route != nullptr)
+            //     {
+            //         head->setNexthop(route->getNextHop());
+            //     }
+            //     iter->pkt->insertAtFront(head);
+            // }
             //表明延迟发送的报文计时器计时完成
             auto packet = delay_queue.popAtFront();
             if (packet != nullptr)
             {
-                // std::cout << nodeIndex << "  delay forward(intercluster) at  " << simTime() << "     " << endl;
+                
                 
                 sendDatagramToOutput(packet->dup(), 24);
                 delete packet;
@@ -299,21 +299,18 @@ void colorCluster::handleDataPacket(Packet *packet)
     const auto head = packet->peekAtFront<Data>();
     const SID &headSid = head->getSid();
     auto ie = getSourceInterface(packet);
+    auto localPort = head->getPortNumber2();
+    auto sd = socketsByPortMap.find(localPort);
 
-
-    delay_queue.check_and_delete(headSid);
     //mac信息
     auto macInfo = packet->getTag<MacAddressInd>();
-
-    // std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
-    //测试信息
-    // if (nodeIndex == Cindex)
-    // {
-    // }
+//    delay_queue.check_and_delete(headSid);
 
     auto newPacket = packet->dup();
     //检查是否是请求者
-    if (pit->isConsumer(headSid))
+    // pit->isConsumer(headSid)
+   
+    if (sd != socketsByPortMap.end() && SIDtoSockets.find(headSid) != SIDtoSockets.end())
     {
         //调试信息
         std::cout << "one packet received" << endl;
@@ -325,12 +322,10 @@ void colorCluster::handleDataPacket(Packet *packet)
         //如果本节点正是发出get包的源节点在进行数据包重组验证完整性后，解包给上层协议
         auto fullPacket = ResemBuffer->addFragment(packet->dup(), simTime());
         if (fullPacket != nullptr)
-        {
-            auto dataHead = fullPacket->peekAtFront<Data>();
-            auto localPort = dataHead->getPortNumber2();
-               
+        {      
             decapsulate(fullPacket, headSid);
-            auto sd = socketsByPortMap.find(localPort);
+            SIDtoSockets.erase(headSid);
+            
             if(sd == socketsByPortMap.end())
             {
                 throw cRuntimeError("No socket on that local port");
@@ -342,18 +337,6 @@ void colorCluster::handleDataPacket(Packet *packet)
             
         }
 
-        //首先移除PIT表中consumer的对应表项， PIT表项仅为consumer时不触发转发
-        auto range = findPITentry(headSid);
-        auto iter = range.first;
-        while (iter != range.second)
-        {
-            if (iter->second.isConsumer())
-            {
-                pit->RemoveEntry(iter++);
-            }
-            else
-                iter++;
-        }
     }
 
     createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
@@ -391,67 +374,67 @@ void colorCluster::handleDataPacket(Packet *packet)
             if(route != nullptr)
                 nexthop = route->getNextMac();
             
-        }
-        if (isForwarder() && !ct->hasThisPacket(packet, headSid))
-        {
-            //测试信息
-            //                        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
-            
-            //移除padding
-            if (head->getTotalLength() < newPacket->getDataLength())
+            if (isForwarder() && !ct->hasThisPacket(packet, headSid))
             {
-                newPacket->setBackOffset(newPacket->getFrontOffset() + head->getTotalLength());
+                //测试信息
+                //                        std::cout << "data received, index: " << getParentModule()->getParentModule()->getIndex() << endl;
+                
+                //移除padding
+                if (head->getTotalLength() < newPacket->getDataLength())
+                {
+                    newPacket->setBackOffset(newPacket->getFrontOffset() + head->getTotalLength());
+                }
+
+                //处理数据包
+                newPacket->trim();
+                const auto &newHead = newPacket->removeAtFront<Data>();
+
+                //用作缓存的数据包，清空trace,重置TTL
+                auto CacheHead = makeShared<Data>(*newHead->dup());
+                CacheHead->setTimeToLive(8);
+                CacheHead->getTraceForUpdate().clear();
+                CacheHead->getTraceForUpdate().push_back(nodeIndex);
+                CacheHead->setComeFromSource(false);
+                CacheHead->setRouteMetric(0);
+
+                newPacket->clearTags();
+                //            newPacket->trim();
+                //TTL-1， 测试trace加入本节点
+                newHead->setTimeToLive(newHead->getTimeToLive() - 1);
+                newHead->setLastHop(nid);
+                auto metric = newHead->getRouteMetric();
+                if(metric != 0)
+                    newHead->setRouteMetric(metric - 1);
+                auto trace = newHead->getTrace();
+                newHead.get()->getTraceForUpdate().push_back(nodeIndex);
+
+                //            std::for_each(newHead->getTrace().begin(), newHead->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+                //            std::cout << endl;
+                //重新插入头部
+                auto CachePacket = newPacket->dup();
+                CachePacket->insertAtFront(CacheHead);
+
+                newPacket->insertAtFront(newHead);
+
+                //将数据包存入缓存
+                auto block = findContentInCache(headSid);
+                if (block == nullptr)
+                {
+                    block = ct->CreateBlock(headSid);
+                }
+                block->InsterPacket(CachePacket);
+
+                //确定数据包的回传端口
+                
+                // if (delay_queue.check_and_decrease(packet) == false)
+                //     delay_queue.insert(newPacket->dup(), DATA, simTime() + uniform(0, dataDelayTime), TC);
+                sendDatagramToOutput(newPacket->dup(),24,nexthop);           
             }
-
-            //处理数据包
-            newPacket->trim();
-            const auto &newHead = newPacket->removeAtFront<Data>();
-
-            //用作缓存的数据包，清空trace,重置TTL
-            auto CacheHead = makeShared<Data>(*newHead->dup());
-            CacheHead->setTimeToLive(8);
-            CacheHead->getTraceForUpdate().clear();
-            CacheHead->getTraceForUpdate().push_back(nodeIndex);
-            CacheHead->setComeFromSource(false);
-            CacheHead->setRouteMetric(0);
-
-            newPacket->clearTags();
-            //            newPacket->trim();
-            //TTL-1， 测试trace加入本节点
-            newHead->setTimeToLive(newHead->getTimeToLive() - 1);
-            newHead->setLastHop(nid);
-            auto metric = newHead->getRouteMetric();
-            if(metric != 0)
-                newHead->setRouteMetric(metric - 1);
-            auto trace = newHead->getTrace();
-            newHead.get()->getTraceForUpdate().push_back(nodeIndex);
-
-            //            std::for_each(newHead->getTrace().begin(), newHead->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-            //            std::cout << endl;
-            //重新插入头部
-            auto CachePacket = newPacket->dup();
-            CachePacket->insertAtFront(CacheHead);
-
-            newPacket->insertAtFront(newHead);
-
-            //将数据包存入缓存
-            auto block = findContentInCache(headSid);
-            if (block == nullptr)
-            {
-                block = ct->CreateBlock(headSid);
-            }
-            block->InsterPacket(CachePacket);
-
-            //确定数据包的回传端口
             
-            // if (delay_queue.check_and_decrease(packet) == false)
-            //     delay_queue.insert(newPacket->dup(), DATA, simTime() + uniform(0, dataDelayTime), TC);
-            sendDatagramToOutput(newPacket->dup(),24,nexthop);
-
-            //在一个get包就对应一个data包的情况中，缓存转发后移除PIT条目
-            pit->RemoveEntry(headSid);
-            delay_queue.cancelDelayeForwarding(headSid);
         }
+        //在一个get包就对应一个data包的情况中，缓存转发后移除PIT条目 
+        pit->RemoveEntry(headSid);
+
     }
     else
     {
@@ -534,8 +517,8 @@ void colorCluster::handleGetPacket(Packet *packet)
                     head->setMAC(ie->getMacAddress());
                     packet->insertAtFront(head);
 
-                    // sendDatagramToOutput(packet->dup(),24,route->getNextMac());
-                    sendDatagramToOutput(packet->dup(),24);
+                    sendDatagramToOutput(packet->dup(),24,route->getNextMac());
+                    // sendDatagramToOutput(packet->dup(),24);
 
                     delete packet;
                     return;
@@ -552,20 +535,20 @@ void colorCluster::handleGetPacket(Packet *packet)
 
                 packet->insertAtFront(head);
 
-                 if(RouteDetectedTable.find(headSID.getNidHead()) != RouteDetectedTable.end() && RouteDetectedTable[headSID.getNidHead()] - simTime() < 0.1)
-                 {
-                     if (delay_queue.check_and_decrease(packet) == false)
-                         delay_queue.insert(packet->dup(), GET, simTime() + 0.1, 1);
-                 }
-                 else
-                 {
-                     if (delay_queue.check_and_decrease(packet) == false)
-                         delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
-                 }
-                 RouteDetectedTable[headSID.getNidHead()] = simTime();
+                //  if(RouteDetectedTable.find(headSID.getNidHead()) != RouteDetectedTable.end() && simTime() - RouteDetectedTable[headSID.getNidHead()] < 0.1)
+                //  {
+                //      if (delay_queue.check_and_decrease(packet) == false)
+                //          delay_queue.insert(packet->dup(), GET, simTime() + 0.1, 1);
+                //  }
+                //  else
+                //  {
+                //      if (delay_queue.check_and_decrease(packet) == false)
+                //          delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
+                //  }
+                //  RouteDetectedTable[headSID.getNidHead()] = simTime();
 
-//                if (delay_queue.check_and_decrease(packet) == false)
-//                    delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
+               if (delay_queue.check_and_decrease(packet) == false)
+                   delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
 
             }
         }
@@ -590,15 +573,14 @@ void colorCluster::handleGetPacket(Packet *packet)
         {
             if (P != nullptr)
             {
-                if (!pit->servedForThisGet(headSID, head->getNonce()))
-                    testModule.GetRecvNum++;
-                pit->SetServed(headSID);
-                pit->createEntry(headSID, head->getSource(), head->getMAC(), simtime_t(1), 24, head->getNonce());
-
                 testModule.DataSendNum++;
                 auto newP = P->dup();
 
                 GETidentifier identifer(headSID, head->getSource());
+                if(getTable.find(identifer) != getTable.end()){
+                    if(simTime() - getTable[identifer] < 0.1)
+                        break;
+                }
                 getTable[identifer] = simTime();
                 
                 auto forwardHead = newP->removeAtFront<Data>();
@@ -877,7 +859,7 @@ void colorCluster::sendGET(const SID &sid, int port)
 
     encapsulate(packet, 0, sid, port);
     auto mac = ie->getMacAddress();
-    pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
+    // pit->createEntry(sid, nid, mac, simtime_t(5), 24, 0, false, true);
     sendDatagramToOutput(packet, 24);
     testModule.Delays[sid] = simTime();
     testModule.GetSendNum++;
@@ -942,6 +924,7 @@ void  colorCluster::handleRequest(Request *request)
         Cindex = nodeIndex;
         sentInterval = command->getInter();
         sendGET(command->getSid(), command->getLocalPort());
+        SIDtoSockets[command->getSid()] = command->getLocalPort();
         delete request;
     }
     else if(ColorSocketCacheDataCommand *command = dynamic_cast<ColorSocketCacheDataCommand *>(ctrl))

@@ -124,6 +124,8 @@ namespace inet{
 
             std::map<int, SocketDescriptor *> socketsByPortMap;
 
+            std::map<SID, int> SIDtoSockets;
+
             //转发表
             IInterfaceTable *ift = nullptr;
 
