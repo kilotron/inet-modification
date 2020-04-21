@@ -19,6 +19,7 @@ PccpStateVariables::PccpStateVariables()
     rttvar = 3.0 / 4.0;
 
     rexmit_timeout = 3;
+    last_timeout_doubled_time = 0.0;
 
     window = 10.0;
     num_continuous_congested = 0;

@@ -14,7 +14,7 @@
 namespace inet {
 
 #define MAX_REXMIT_COUNT 12
-#define MAX_REXMIT_TIMEOUT 240
+#define MAX_REXMIT_TIMEOUT 60
 #define MIN_REXMIT_TIMEOUT 1.0
 
 PccpAlg::PccpAlg()
@@ -36,7 +36,7 @@ PccpAlg::~PccpAlg()
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
     pccpApp->emit(PccpApp::rexmitSignal, 1); // the second parameter can be any value
-    std::cout << "retrans...";
+    std::cout << "retransmit...";
     // Abort retransmission after max 12 retries.
     SID sid = sendQueue.findSID(timer);
     sendQueue.increaseRexmitCount(sid);
@@ -46,20 +46,23 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
         return;
     }
 
-    EV << "Performing retransmission #" << sendQueue.getRexmitCount(sid)
-            << "; increasing RTO from " << state.rexmit_timeout << "s ";
+    EV << "Performing retransmission #" << sendQueue.getRexmitCount(sid);
 
     // Karn's algorithm is implemented below:
     //  (1) don't measure RTT for retransmitted packets.
     //  (2) RTO should be doubled after retransmission ("exponential back-off")
-    state.rexmit_timeout += state.rexmit_timeout;
-    if (state.rexmit_timeout > MAX_REXMIT_TIMEOUT) {
-        state.rexmit_timeout = MAX_REXMIT_TIMEOUT;
+    // *(3) RTO is doubled only once in one RTO
+    if ( simTime() > state.last_timeout_doubled_time + state.rexmit_timeout ) {
+        EV << "; increasing RTO from " << state.rexmit_timeout << "s ";
+        state.rexmit_timeout += state.rexmit_timeout;
+        if (state.rexmit_timeout > MAX_REXMIT_TIMEOUT) {
+            state.rexmit_timeout = MAX_REXMIT_TIMEOUT;
+        }
+        state.last_timeout_doubled_time = simTime();
+        std::cout << "timeout=" << state.rexmit_timeout << endl;
+        pccpApp->emit(PccpApp::rtoSignal, state.rexmit_timeout);
+        EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
     }
-    std::cout << "timeout=" << state.rexmit_timeout << endl;
-    pccpApp->emit(PccpApp::rtoSignal, state.rexmit_timeout);
-
-    EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
 
     // cancel round-trip time measurement
     state.rtsid_sendtime = 0;

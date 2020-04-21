@@ -29,5 +29,17 @@ simple PccpIndicator extends PacketFilterBase
         double CI_BUSY = default(0.8);
         double CI_CONG = default(0.9);
         double p0 = default(0.5);	// probability of CL=BUSY_1 when CI = CI_BUSY
-        @class(PccpIndicator);     
+        @class(PccpIndicator); 
+        
+        @signal[dataQueueLength](type=long);
+        @signal[pitLength](type=long);
+        @signal[aveDataQueueLength](type=double);
+        @signal[avePitLength](type=double);
+        @signal[congestionIndex](type=double);
+        
+        @statistic[dataQueueLength](title="Data Queue Length"; record=max,vector);
+        @statistic[pitLength](title="PIT Length"; record=max,vector);
+        @statistic[aveDataQueueLength](title="Average Data Length"; record=max,vector);
+        @statistic[avePitLength](title="Average PIT Length"; record=max,vector);
+        @statistic[congestionIndex](title="Congestion Index"; record=max,vector);
 }

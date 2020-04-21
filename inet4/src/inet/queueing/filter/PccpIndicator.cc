@@ -25,6 +25,12 @@ namespace queueing {
 
 Define_Module(PccpIndicator);
 
+simsignal_t PccpIndicator::dataQueueLengthSignal = registerSignal("dataQueueLength");
+simsignal_t PccpIndicator::pitLengthSignal = registerSignal("pitLength");
+simsignal_t PccpIndicator::aveDataQueueLengthSignal = registerSignal("aveDataQueueLength");
+simsignal_t PccpIndicator::avePitLengthSignal = registerSignal("avePitLength");
+simsignal_t PccpIndicator::congestionIndexSignal = registerSignal("congestionIndex");
+
 void PccpIndicator::checkParameters(double parVal, const char* parName, double parMin, double parMax)
 {
     // 不需要精确比较
@@ -119,6 +125,11 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
             << ",avgDQ=" << avgDataQueueLength << ",pitL=" << pitLength
             << ",pitC=" << pitCapacity << ",avgPL=" << avgPitLength
             << ",CI=" << ci << endl;
+    emit(PccpIndicator::dataQueueLengthSignal, dataQLength);
+    emit(PccpIndicator::pitLengthSignal, pitLength);
+    emit(PccpIndicator::aveDataQueueLengthSignal, avgDataQueueLength);
+    emit(PccpIndicator::avePitLengthSignal, avgPitLength);
+    emit(PccpIndicator::congestionIndexSignal, ci);
 }
 
 /**

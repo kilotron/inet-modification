@@ -30,6 +30,7 @@ public:
     simtime_t rttvar;  // variance of round-trip time
 
     simtime_t rexmit_timeout;   // current retransmission timeout
+    simtime_t last_timeout_doubled_time;// last time when timeout occurs
 
     double window;    // congestion window
 

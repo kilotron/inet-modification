@@ -30,6 +30,13 @@ protected:
     double avgPitLength = 0.0;
     double ci = 0.0; // congestion index
     IPacketCollection *collection = nullptr; // linklayer queu
+
+    // statistics
+    static simsignal_t dataQueueLengthSignal;
+    static simsignal_t pitLengthSignal;
+    static simsignal_t aveDataQueueLengthSignal;
+    static simsignal_t avePitLengthSignal;
+    static simsignal_t congestionIndexSignal;
 protected:
     virtual void initialize(int stage) override;
 
