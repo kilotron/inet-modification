@@ -16,6 +16,15 @@
 
 namespace inet {
 
+class TimeoutRequest
+{
+public:
+    SID sid;
+    cMessage *timer;
+    int rexmit_count;
+    TimeoutRequest(const SID& sid, cMessage *timer, int rexmit_count);
+};
+
 /**
  * Send queue that manages app request.
  * request sid, retransmission timer and retransmission count are managed by this class.
@@ -27,6 +36,7 @@ private:
     std::map<cMessage*, SID> timerToSidMap;
     std::map<SID, int> sidRexmitCount;
     std::queue<SID> unsentSidQueue;
+    std::queue<TimeoutRequest> rexmitQueue;
 
 public:
     PccpSendQueue();
@@ -62,8 +72,8 @@ public:
     SID popOneUnsentSID();
 
     /**
-     * Tells the queue that the data of the request sid is received, so it can be
-     * removed from the queue.
+     * Tells the queue that the data of the request sid is received(or exceeds max retransmission count),
+     *  so it can be removed from the queue.
      */
     void discard(const SID& sid);
 
@@ -89,7 +99,23 @@ public:
     /**
      * Returns all the timers in this queue.
      */
-     void getAllTimers(std::vector<cMessage *>& v);
+    void getAllTimers(std::vector<cMessage *>& v);
+
+    /**
+     * Move the request from current window to retransmission queue.
+     */
+    void enqueueRexmit(const SID &sid);
+
+    /**
+     * Return true if there are unsent timeout request.
+     */
+    bool hasUnsentRexmit();
+
+    /**
+     * Pre-conditions: hasUnsentRexmit() = true
+     * Returns one timeout request sid.
+     */
+    SID popOneUnsentRexmit();
 };
 
 } // namespace inet

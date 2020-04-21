@@ -67,6 +67,9 @@ class INET_API PccpApp : public ApplicationBase
     static simsignal_t rexmitSignal;
     static simsignal_t dataRcvdSignal;
     static simsignal_t getSentSignal;
+    static simsignal_t congestionLevelSignal;
+    static simsignal_t timeoutSignal;
+    static simsignal_t maxRexmitSignal;
 
   public:
     PccpApp();

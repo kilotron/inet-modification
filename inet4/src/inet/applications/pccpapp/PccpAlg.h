@@ -38,7 +38,7 @@ private:
     /**
      * Schedules retransmission timer and starts round-trip time measurement.
      */
-    void requestSent(const SID& sid);
+    void requestSent(const SID& sid, bool isRexmit);
 
     /**
      * Retransmit GET, reset timer and increase rexmit count.

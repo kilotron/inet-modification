@@ -14,7 +14,7 @@
 namespace inet {
 
 #define MAX_REXMIT_COUNT 12
-#define MAX_REXMIT_TIMEOUT 60
+#define MAX_REXMIT_TIMEOUT 24
 #define MIN_REXMIT_TIMEOUT 1.0
 
 PccpAlg::PccpAlg()
@@ -35,7 +35,7 @@ PccpAlg::~PccpAlg()
 
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
-    pccpApp->emit(PccpApp::rexmitSignal, 1); // the second parameter can be any value
+    pccpApp->emit(PccpApp::timeoutSignal, 1);
     std::cout << "retransmit...";
     // Abort retransmission after max 12 retries.
     SID sid = sendQueue.findSID(timer);
@@ -60,7 +60,6 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
             state.rexmit_timeout = MAX_REXMIT_TIMEOUT;
         }
         state.last_timeout_doubled_time = simTime();
-        std::cout << "timeout=" << state.rexmit_timeout << endl;
         pccpApp->emit(PccpApp::rtoSignal, state.rexmit_timeout);
         EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
     }
@@ -73,34 +72,53 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
 
 void PccpAlg::retransmitRequest(const SID& sid)
 {
+    int effectiveWindow = int(state.window) - sendQueue.getSentRequestCount();
+    if (effectiveWindow < 0) { // 等于0时可重传，小于零说明窗口缩小，不能重传
+        sendQueue.enqueueRexmit(sid);
+        return;
+    }
     cMessage *timer = sendQueue.findRexmitTimer(sid);
     pccpApp->currentSocket->sendGET(sid, pccpApp->localPort, pccpApp->sendInterval);
     pccpApp->scheduleTimeout(timer, state.rexmit_timeout);
-    sendQueue.increaseRexmitCount(sid);
+    //sendQueue.increaseRexmitCount(sid);
     pccpApp->emit(PccpApp::getSentSignal, 1);
+    pccpApp->emit(PccpApp::rexmitSignal, 1); // the second parameter can be any value
 }
 
 void PccpAlg::sendRequestsToSocket()
 {
     int effectiveWindow = int(state.window) - sendQueue.getSentRequestCount();
 //    pccpApp->emit(PccpApp::effectiveWindowSignal, effectiveWindow);
-    while (effectiveWindow-- > 0 && sendQueue.hasUnsentSID()) {
+    // 先检查重传队列
+    while (effectiveWindow > 0 && sendQueue.hasUnsentRexmit()) {
+        SID sidToSend = sendQueue.popOneUnsentRexmit();
+        pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
+        requestSent(sidToSend, true);
+        effectiveWindow--;
+    }
+
+    while (effectiveWindow > 0 && sendQueue.hasUnsentSID()) {
         SID sidToSend = sendQueue.popOneUnsentSID();
         pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
-        requestSent(sidToSend);
+        requestSent(sidToSend, false);
+        effectiveWindow--;
     }
     pccpApp->emit(PccpApp::effectiveWindowSignal, effectiveWindow + 1);
 }
 
-void PccpAlg::requestSent(const SID& sid)
+void PccpAlg::requestSent(const SID& sid, bool isRexmit)
 {
     pccpApp->emit(PccpApp::getSentSignal, 1);
+    if (isRexmit) {
+        pccpApp->emit(PccpApp::rexmitSignal, 1);
+    }
+
     // if retransmission timer not running, schedule it
     cMessage *timer = sendQueue.findRexmitTimer(sid);
     pccpApp->scheduleTimeout(timer, state.rexmit_timeout);
 
     // start round-trip time measurement (if not already running)
-    if (state.rtsid_sendtime == 0) {
+    if (state.rtsid_sendtime == 0 && !isRexmit) {
         // remember this sid and when it was sent
         state.rtsid = sid;
         state.rtsid_sendtime = simTime();
@@ -130,6 +148,7 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 
     // 调整拥塞窗口，发送新请求（如果可以的话）
     PccpClCode congestionLevel = packet->removeTag<ClInd>()->getCongestionLevel();
+    pccpApp->emit(PccpApp::congestionLevelSignal, int(congestionLevel));
 
     if (congestionLevel != PccpClCode::CONGESTED) {
         state.num_continuous_congested = 0;
@@ -161,7 +180,7 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
     }
     pccpApp->emit(PccpApp::windowSignal, state.window);
     sendRequestsToSocket();
-    std::cout << "window=" << state.window << endl;
+
     // notify app
     pccpApp->dataArrived(packet);
 }

@@ -48,6 +48,9 @@ simple PccpApp like IApp
 		@signal[rexmit](type=long);		// type is indifferent, count # of retransmissions
 		@signal[dataRcvd](type=long);	// type is indifferent, count # of received Data
 		@signal[getSent](type=long);	// type is indifferent, count # of sent Get
+		@signal[congestionLevel](type=long);
+		@signal[timeout](type=long);
+		@signal[maxRexmit](type=long);
 		
 		@statistic[rto](title="retransmission timeout"; unit=s; record=vector);
 		@statistic[srtt](title="smoothed round-trip time"; unit=s; record=vector);
@@ -57,6 +60,9 @@ simple PccpApp like IApp
 		@statistic[rexmit](source=count(rexmit);title="retransmission"; record=last,vector);
 		@statistic[dataRcvd](source=count(dataRcvd);title="data received"; record=last,vector);
 		@statistic[getSent](source=count(getSent);title="get sent";record=last,vector);
+		@statistic[congestionLevel](title="Congestion Level"; record=vector);
+		@statistic[timeout](source=count(timeout); title="Timeout"; record=vector);
+		@statistic[maxRexmit](source=count(maxRexmit); title="Number of retransmission that exceeds maximum value"; record=last, vector);
 	gates:
 	    input in;
 	    input socketIn @labels(ITransportPacket/up);

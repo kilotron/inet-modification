@@ -29,6 +29,9 @@ simsignal_t PccpApp::effectiveWindowSignal = registerSignal("effectiveWindow");
 simsignal_t PccpApp::rexmitSignal = registerSignal("rexmit");
 simsignal_t PccpApp::dataRcvdSignal = registerSignal("dataRcvd");
 simsignal_t PccpApp::getSentSignal = registerSignal("getSent");
+simsignal_t PccpApp::congestionLevelSignal = registerSignal("congestionLevel");
+simsignal_t PccpApp::timeoutSignal = registerSignal("timeout");
+simsignal_t PccpApp::maxRexmitSignal = registerSignal("maxRexmit");
 
 PccpApp::PccpApp() {
     pccpAlg = new PccpAlg();
@@ -121,6 +124,7 @@ void PccpApp::sendRequest(const SID &sid)
 void PccpApp::maxRexmit(const SID& sid)
 {
     // TODO 定义最大超时次数行为
+    emit(PccpApp::maxRexmitSignal, 1);
 }
 
 void PccpApp::dataArrived(Packet *packet)

@@ -9,6 +9,13 @@
 #include <iostream>
 namespace inet {
 
+TimeoutRequest::TimeoutRequest(const SID& sid, cMessage *timer, int rexmit_count)
+{
+    this->sid = sid;
+    this->timer = timer;
+    this->rexmit_count = rexmit_count;
+}
+
 Register_Class(PccpSendQueue);
 
 PccpSendQueue::PccpSendQueue()
@@ -84,6 +91,30 @@ void PccpSendQueue::getAllTimers(std::vector<cMessage *>& v)
     for (auto it = sidToTimerMap.begin(); it != sidToTimerMap.end(); ++it) {
         v.push_back(it->second);
     }
+}
+
+void PccpSendQueue::enqueueRexmit(const SID& sid)
+{
+    cMessage *timer = findRexmitTimer(sid);
+    rexmitQueue.push(TimeoutRequest(sid, timer, getRexmitCount(sid)));
+    sidToTimerMap.erase(sid);
+    timerToSidMap.erase(timer);
+    sidRexmitCount.erase(sid);
+}
+
+bool PccpSendQueue::hasUnsentRexmit()
+{
+    return !rexmitQueue.empty();
+}
+
+SID PccpSendQueue::popOneUnsentRexmit()
+{
+    TimeoutRequest r = rexmitQueue.front();
+    rexmitQueue.pop();
+    sidToTimerMap.insert(std::pair<SID, cMessage*>(r.sid, r.timer));
+    timerToSidMap.insert(std::pair<cMessage*, SID>(r.timer, r.sid));
+    sidRexmitCount.insert(std::pair<SID, int>(r.sid, r.rexmit_count));
+    return r.sid;
 }
 
 } // namespace inet
