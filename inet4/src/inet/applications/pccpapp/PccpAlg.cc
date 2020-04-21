@@ -82,6 +82,7 @@ void PccpAlg::retransmitRequest(const SID& sid)
 void PccpAlg::sendRequestsToSocket()
 {
     int effectiveWindow = int(state.window) - sendQueue.getSentRequestCount();
+//    pccpApp->emit(PccpApp::effectiveWindowSignal, effectiveWindow);
     while (effectiveWindow-- > 0 && sendQueue.hasUnsentSID()) {
         SID sidToSend = sendQueue.popOneUnsentSID();
         pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
@@ -150,9 +151,12 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
         if (state.num_continuous_congested >= pccpApp->n0) {
             k = pccpApp->k0;
         } else {
-            k = 1 - (1 - pccpApp->k0) * state.num_continuous_congested / pccpApp->k0;
+            k = 1 - (1 - pccpApp->k0) * state.num_continuous_congested / pccpApp->n0;
         }
         state.window *= k;
+    }
+    if (state.window < 1.0) {
+        state.window = 1.0;
     }
     pccpApp->emit(PccpApp::windowSignal, state.window);
     sendRequestsToSocket();
