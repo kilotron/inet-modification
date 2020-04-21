@@ -896,13 +896,13 @@ void colorCluster::record()
         testModule.ConsumerPrint(outfile);
         outfile.close();
     }
-    if (nodeIndex == Pindex)
-    {
-        auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Provider.txt");
-        outfile.open("./simu/" + fileName, std::ofstream::app);
-        outfile << nodeIndex << ":  "<<getTable.size() << endl;
-        outfile.close();
-    }
+//    if (nodeIndex == Pindex)
+//    {
+//        auto fileName = cSimulation::getActiveEnvir()->getConfigEx()->getActiveConfigName() + string("_Provider.txt");
+//        outfile.open("./simu/" + fileName, std::ofstream::app);
+//        outfile << nodeIndex << ":  "<<getTable.size() << endl;
+//        outfile.close();
+//    }
 
 }
 
