@@ -41,6 +41,7 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
     SID sid = sendQueue.findSID(timer);
     sendQueue.increaseRexmitCount(sid);
     if (sendQueue.getRexmitCount(sid) > MAX_REXMIT_COUNT) {
+        sendQueue.discard(sid);
         EV << "Retransmission count exceeds " << MAX_REXMIT_COUNT << ", aborting.\n";
         pccpApp->maxRexmit(sid); // Tell app retransmission count exceeds MAX_REXMIT_COUNT.
         return;
