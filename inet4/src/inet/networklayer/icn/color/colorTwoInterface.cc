@@ -430,7 +430,7 @@ void colorTwoInterface::handleDataPacket(Packet *packet)
     }
 
     //查看PIT表是否有此SID记录
-    if (pit->hasThisSid(headSid))
+    if (pit->haveSID(headSid))
     {
         std::cout << "data received, PIT hit, index: " << nodeIndex << " at " << simTime() << endl;
 
@@ -589,7 +589,7 @@ void colorTwoInterface::handleGetPacket(Packet *packet)
         auto route = rt->findRoute(headSID.getNidHead());
         if (isHead())
         {
-            if (route != nullptr && flood == false && !pit->hasThisSid(headSID))
+            if (route != nullptr && flood == false && !pit->haveSID(headSID))
             {
 
                 if(head->getNexthop() == nid || head->getNexthop().isDefault())
@@ -628,7 +628,7 @@ void colorTwoInterface::handleGetPacket(Packet *packet)
                 newPacket->insertAtFront(head);
 
                 // std::cout<<nodeIndex<<endl;
-                if (!pit->hasThisSid(headSID))
+                if (!pit->haveSID(headSID))
                 {
                     if (delay_queue24.check_and_decrease(newPacket) == false)
                         delay_queue24.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);

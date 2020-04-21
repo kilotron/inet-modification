@@ -32,7 +32,7 @@ class PITentry extends cObject
     //24 for 2.4GHz, 5 for 5GHz
     int type;
 
-    unsigned long Nonce;
+    long Nonce;
 
     bool served;
 
@@ -43,5 +43,5 @@ class PITentry extends cObject
 
 cplusplus(PITentry) {{
   public:
-    PITentry(NID nid, simtime_t t, MacAddress mac, int type=5, unsigned long Nonce = 0, bool served = false, bool isconsumer=false): cObject(), nid(nid), TTL(t), mac(mac), type(type), Nonce(Nonce), served(served), isConsumer_(isconsumer){}    
+    PITentry(NID nid, simtime_t t, MacAddress mac, int type=5, long Nonce = 0, bool served = false, bool isconsumer=false): cObject(), nid(nid), TTL(t), mac(mac), type(type), Nonce(Nonce), served(served), isConsumer_(isconsumer){}    
 }}

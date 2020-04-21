@@ -35,7 +35,7 @@ simple colorCluster like icn
         double dataDelayTime  = default(0.001);
         int TC = default(2);
 
-        bool flood = default(true);
+        bool flood = default(false);
         bool unicast = default(false);
         double routeLifeTime @unit(s) = default(1.0s);
     gates:

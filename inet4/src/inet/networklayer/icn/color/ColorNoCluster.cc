@@ -383,7 +383,7 @@ void colorNoCluster::handleDataPacket(Packet *packet)
     }
 
     //查看PIT表是否有此SID记录
-    if (pit->hasThisSid(headSid))
+    if (pit->haveSID(headSid))
     {
         // std::cout << "data received, PIT hit, index: " << nodeIndex << " at " << simTime() << endl;
 
@@ -541,10 +541,10 @@ void colorNoCluster::handleGetPacket(Packet *packet)
         //只有簇头才进行转发，添加PIT等操作
 
 
- 
+
         auto route = rt->findRoute(headSID.getNidHead());
 
-        if (route != nullptr && flood == false && !pit->hasThisSid(headSID))
+        if (route != nullptr && flood == false && !pit->haveSID(headSID))
         {
             // std::cout << nodeIndex << "  " << simTime() << "     ";
             // std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
@@ -582,7 +582,7 @@ void colorNoCluster::handleGetPacket(Packet *packet)
             newPacket->insertAtFront(head);
 
             // std::cout<<nodeIndex<<endl;
-            if (!pit->hasThisSid(headSID))
+            if (!pit->haveSID(headSID))
             {
                 if (delay_queue24.check_and_decrease(newPacket) == false)
                     delay_queue24.insert(newPacket->dup(), GET, simTime() + uniform(0, getDelayTime), TC);

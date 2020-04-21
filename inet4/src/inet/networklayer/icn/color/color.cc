@@ -298,7 +298,6 @@ void colorCluster::handleDataPacket(Packet *packet)
     //取出头部
     const auto head = packet->peekAtFront<Data>();
     const SID &headSid = head->getSid();
-    auto ie = getSourceInterface(packet);
     auto localPort = head->getPortNumber2();
     auto sd = socketsByPortMap.find(localPort);
 
@@ -357,7 +356,7 @@ void colorCluster::handleDataPacket(Packet *packet)
    }
 
     //查看PIT表是否有此SID记录
-    if (pit->hasThisSid(headSid))
+    if (pit->haveSID(headSid))
     {
         // std::cout << "data received, PIT hit, index: " << nodeIndex << " at " << simTime() << endl;
 
@@ -479,79 +478,84 @@ void colorCluster::handleGetPacket(Packet *packet)
 
     auto route = rt->findRoute(headSID.getNidHead());
 
+    
     //首先在缓存中查找,节点成为潜在转发者的条件是缓存中没有该数据或者请求端指定了要从源端获取数据
     if (findContentInCache(headSID) == nullptr || (head->getMustBeFresh() && nid != headSID.getNidHead()))
     {
-        simtime_t ttl = 1;
         //先查看路由表中,是否有对应表项，若有设置下一跳后直接转发，pit增加相应表项
         //只有簇头才进行转发，添加PIT等操作
+        bool forward =  (isLastHopHead && isGateway()) || isHead();
 
-        bool forward =  isLastHopHead && isGateway() || isHead();
-        
-
-        if (!pit->hasThisSid(headSID) && (forward || route != nullptr))
+        if ((forward || route != nullptr))
         {
-            pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 24, head->getNonce());
-            head->setCluster(isHead());
-            if (route != nullptr && flood == false)
+            auto sourceNid = head->getSource();
+            auto nonce = head->getNonce();
+            auto mac = macInfo->getSrcAddress();
+            if(!pit->haveSID(headSID))
             {
-                std::cout << nodeIndex << "  " << simTime() << "     ";
-                std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-                std::cout << endl;
-
-                auto test = head->getNexthop();
-                if(nodeIndex == 61)
+                head->setCluster(isHead());
+                if (route != nullptr && flood == false)
                 {
-                    std::cout<< "head" <<endl;
+                    std::cout << nodeIndex << "  " << simTime() << "     ";
+                    std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+                    std::cout << endl;
 
+                    if(nodeIndex == 61)
+                    {
+                        std::cout<< "head" <<endl;
+
+                    }
+
+                    if(head->getNexthop() == nid || head->getNexthop().isDefault())
+                    {
+                        packet->clearTags();
+
+                        head->setTimeToLive(head->getTimeToLive() - 1);
+                        head.get()->getTraceForUpdate().push_back(nodeIndex);
+                        head->setLastHop(nid);
+                        head->setNexthop(route->getNextHop());
+                        head->setMAC(ie->getMacAddress());
+                        packet->insertAtFront(head);
+
+                        sendDatagramToOutput(packet->dup(),24,route->getNextMac());
+//                        sendDatagramToOutput(packet->dup(),24);
+
+                    }
+    
                 }
-
-                if(head->getNexthop() == nid || head->getNexthop().isDefault())
+                //没有路由表项，需要广播探测路径
+                else if ((head->getNexthop().isDefault() && route == nullptr) || flood == true)
                 {
-                    packet->clearTags();
-
                     head->setTimeToLive(head->getTimeToLive() - 1);
                     head.get()->getTraceForUpdate().push_back(nodeIndex);
                     head->setLastHop(nid);
-                    head->setNexthop(route->getNextHop());
-                    head->setMAC(ie->getMacAddress());
+                    packet->clearTags();
+
                     packet->insertAtFront(head);
 
-                    sendDatagramToOutput(packet->dup(),24,route->getNextMac());
-                    // sendDatagramToOutput(packet->dup(),24);
+                    //  if(RouteDetectedTable.find(headSID.getNidHead()) != RouteDetectedTable.end() && simTime() - RouteDetectedTable[headSID.getNidHead()] < 0.1)
+                    //  {
+                    //      if (delay_queue.check_and_decrease(packet) == false)
+                    //          delay_queue.insert(packet->dup(), GET, simTime() + 0.1, 1);
+                    //  }
+                    //  else
+                    //  {
+                    //      if (delay_queue.check_and_decrease(packet) == false)
+                    //          delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
+                    //  }
+                    //  RouteDetectedTable[headSID.getNidHead()] = simTime();
 
-                    delete packet;
-                    return;
+                if (delay_queue.check_and_decrease(packet) == false)
+                    delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
+
                 }
- 
             }
-            //没有路由表项，需要广播探测路径
-            else if ((head->getNexthop().isDefault() && route == nullptr) || flood == true)
-            {
-                head->setTimeToLive(head->getTimeToLive() - 1);
-                head.get()->getTraceForUpdate().push_back(nodeIndex);
-                head->setLastHop(nid);
-                packet->clearTags();
+            
+            if(!pit->haveEntry(headSID,head->getNonce()))
+                pit->createEntry(headSID, sourceNid, mac,simtime_t(1), 24, nonce);
 
-                packet->insertAtFront(head);
-
-                //  if(RouteDetectedTable.find(headSID.getNidHead()) != RouteDetectedTable.end() && simTime() - RouteDetectedTable[headSID.getNidHead()] < 0.1)
-                //  {
-                //      if (delay_queue.check_and_decrease(packet) == false)
-                //          delay_queue.insert(packet->dup(), GET, simTime() + 0.1, 1);
-                //  }
-                //  else
-                //  {
-                //      if (delay_queue.check_and_decrease(packet) == false)
-                //          delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
-                //  }
-                //  RouteDetectedTable[headSID.getNidHead()] = simTime();
-
-               if (delay_queue.check_and_decrease(packet) == false)
-                   delay_queue.insert(packet->dup(), GET, simTime() + uniform(0, getDelayTime), TC);
-
-            }
         }
+
     }
     //缓存中存在，根据数据包的入网卡不同进行不同的操作
     else
@@ -713,6 +717,7 @@ void colorCluster::encapsulate(Packet *packet, int type, const SID& sid, int por
         get->getTraceForUpdate()
             .push_back(nodeIndex);
         get->setPortNumber1(port);
+        get->setNonce(random());
 
         //添加报文头
         packet->insertAtFront(get);
