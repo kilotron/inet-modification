@@ -167,7 +167,7 @@ namespace inet{
             int Cindex = -1;
             int Pindex = -1;
 
-            double sentInterval;
+            double sendInterval;
    
             SimRecorder testModule;
 
