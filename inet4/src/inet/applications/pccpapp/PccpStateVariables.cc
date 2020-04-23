@@ -21,7 +21,7 @@ PccpStateVariables::PccpStateVariables()
     rexmit_timeout = 3;
     last_timeout_doubled_time = 0.0;
 
-    window = 10.0;
+    window = 1.0;
     num_continuous_congested = 0;
 }
 

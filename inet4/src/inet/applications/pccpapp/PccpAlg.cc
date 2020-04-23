@@ -14,7 +14,7 @@
 namespace inet {
 
 #define MAX_REXMIT_COUNT 12
-#define MAX_REXMIT_TIMEOUT 24
+#define MAX_REXMIT_TIMEOUT 3
 #define MIN_REXMIT_TIMEOUT 1.0
 
 PccpAlg::PccpAlg()
@@ -44,6 +44,7 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
         sendQueue.discard(sid);
         EV << "Retransmission count exceeds " << MAX_REXMIT_COUNT << ", aborting.\n";
         pccpApp->maxRexmit(sid); // Tell app retransmission count exceeds MAX_REXMIT_COUNT.
+        sendRequestsToSocket();
         return;
     }
 
@@ -85,6 +86,7 @@ void PccpAlg::retransmitRequest(const SID& sid)
     pccpApp->emit(PccpApp::rexmitSignal, 1); // the second parameter can be any value
 }
 
+// 窗口改变或有app数据到达时调用
 void PccpAlg::sendRequestsToSocket()
 {
     int effectiveWindow = int(state.window) - sendQueue.getSentRequestCount();

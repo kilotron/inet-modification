@@ -121,10 +121,10 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
     avgDataQueueLength = (1 - wq) * avgDataQueueLength + wq * dataQLength;
     avgPitLength = (1 - wq) * avgPitLength + wq * pitLength;
     ci = (1 - g) * avgPitLength / pitCapacity + g * avgDataQueueLength / dataQCapacity;
-    std::cout << "update CI: QL=" << dataQLength << ",QC=" << dataQCapacity
-            << ",avgDQ=" << avgDataQueueLength << ",pitL=" << pitLength
-            << ",pitC=" << pitCapacity << ",avgPL=" << avgPitLength
-            << ",CI=" << ci << endl;
+//    std::cout << "update CI: QL=" << dataQLength << ",QC=" << dataQCapacity
+//            << ",avgDQ=" << avgDataQueueLength << ",pitL=" << pitLength
+//            << ",pitC=" << pitCapacity << ",avgPL=" << avgPitLength
+//            << ",CI=" << ci << endl;
     emit(PccpIndicator::dataQueueLengthSignal, dataQLength);
     emit(PccpIndicator::pitLengthSignal, pitLength);
     emit(PccpIndicator::aveDataQueueLengthSignal, avgDataQueueLength);
