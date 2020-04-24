@@ -44,6 +44,10 @@ class INET_API PccpApp : public ApplicationBase
     simtime_t startTime;
     simtime_t stopTime;
 
+    bool congestionControlEnabled;  // 是否开启拥塞控制
+    int initialWindowSize;             // 拥塞控制初始窗口
+    int maxRexmitLimit;               // 最大重传次数，0则不重传
+
     // 调节拥塞窗口的参数
     int n0;
     double k0;

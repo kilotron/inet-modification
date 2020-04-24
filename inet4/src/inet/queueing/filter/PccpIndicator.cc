@@ -106,6 +106,7 @@ bool PccpIndicator::matchesPacket(Packet *packet)
     // 如果有PitTag,则这个packet是DATA，不是GET
     auto pitInd = packet->removeTagIfPresent<PitInd>();
     if (pitInd == nullptr) {
+        //emit(PccpIndicator::dataQueueLengthSignal, collection->getNumPackets());
         return true;
     }
     updateAverageQueueLengthAndCI(pitInd->getPitLength(), pitInd->getPitCapacity());

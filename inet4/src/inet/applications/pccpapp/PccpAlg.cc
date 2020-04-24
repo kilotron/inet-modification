@@ -13,9 +13,9 @@
 
 namespace inet {
 
-#define MAX_REXMIT_COUNT 12
 #define MAX_REXMIT_TIMEOUT 3
 #define MIN_REXMIT_TIMEOUT 1.0
+#define VERY_LARGE_WINDOW 2e+9
 
 PccpAlg::PccpAlg()
 {
@@ -33,18 +33,33 @@ PccpAlg::~PccpAlg()
     }
 }
 
+void PccpAlg::initializeState()
+{
+    state.window = pccpApp->initialWindowSize;
+    if (!pccpApp->congestionControlEnabled) {
+        state.window = VERY_LARGE_WINDOW;
+    }
+}
+
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
     pccpApp->emit(PccpApp::timeoutSignal, 1);
     std::cout << "retransmit...";
-    // Abort retransmission after max 12 retries.
     SID sid = sendQueue.findSID(timer);
+
+    // cancel round-trip time measurement if RTT measurement is running
+    // and RTT of this request sid is being measured.
+    if (state.rtsid_sendtime != 0 && state.rtsid == sid) {
+        state.rtsid_sendtime = 0;
+    }
+
+    // Abort retransmission after max 12 retries.
     sendQueue.increaseRexmitCount(sid);
-    if (sendQueue.getRexmitCount(sid) > MAX_REXMIT_COUNT) {
+    if (sendQueue.getRexmitCount(sid) > pccpApp->maxRexmitLimit) {
         sendQueue.discard(sid);
-        EV << "Retransmission count exceeds " << MAX_REXMIT_COUNT << ", aborting.\n";
+        EV << "Retransmission count exceeds " << pccpApp->maxRexmitLimit << ", aborting.\n";
         pccpApp->maxRexmit(sid); // Tell app retransmission count exceeds MAX_REXMIT_COUNT.
-        sendRequestsToSocket();
+        sendRequestsToSocket();  // if there are no newly arrived requests
         return;
     }
 
@@ -64,9 +79,6 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
         pccpApp->emit(PccpApp::rtoSignal, state.rexmit_timeout);
         EV << " to " << state.rexmit_timeout << "s, and canceling RTT measurement\n";
     }
-
-    // cancel round-trip time measurement
-    state.rtsid_sendtime = 0;
 
     retransmitRequest(sid);
 }
@@ -179,6 +191,10 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
     }
     if (state.window < 1.0) {
         state.window = 1.0;
+    }
+
+    if (!pccpApp->congestionControlEnabled) {
+        state.window = VERY_LARGE_WINDOW;
     }
     pccpApp->emit(PccpApp::windowSignal, state.window);
     sendRequestsToSocket();

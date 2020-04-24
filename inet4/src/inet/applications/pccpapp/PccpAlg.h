@@ -70,6 +70,12 @@ public:
      */
     void processRexmitTimer(cMessage *timer);
 
+    /**
+     * Initialize window size and congestionControlEnabled.
+     * This method should be called by pccpApp.
+     */
+    void initializeState();
+
     //INetworkSocket::ICallback:
     virtual void socketDataArrived(ColorSocket *socket, Packet *packet) override;
     virtual void socketClosed(ColorSocket *socket) override;

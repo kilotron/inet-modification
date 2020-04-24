@@ -34,6 +34,10 @@ simple PccpApp like IApp
         double stopOperationExtraTime @unit(s) = default(-1s);    // extra time after lifecycle stop operation finished
         double stopOperationTimeout @unit(s) = default(2s);    // timeout value for lifecycle stop operation
         
+        bool congestionControlEnabled = default(true);	// 是否开启拥塞控制
+        int initialWindowSize = default(10);				// 拥塞控制初始窗口
+        int maxRexmitLimit = default(12);				// 最大重传次数，0则不重传
+        
         // 调节拥塞窗口的参数
         int n0 = default(5);
         double k0 = default(0.5);

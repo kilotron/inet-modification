@@ -57,7 +57,10 @@ void PccpApp::initialize(int stage)
         k0 = par("k0").doubleValue();
         timer = new cMessage("sendGET");
         start = new cMessage("start");
-
+        congestionControlEnabled = par("congestionControlEnabled");
+        initialWindowSize = par("initialWindowSize");
+        maxRexmitLimit = par("maxRexmitLimit");
+        pccpAlg->initializeState();
         int nodeIndex = getParentModule()->getIndex();
         std::array<uint64_t, 2> hashValue;
         MurmurHash3_x64_128(&nodeIndex, sizeof(int), 0, hashValue.data());

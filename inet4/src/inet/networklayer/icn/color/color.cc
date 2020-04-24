@@ -510,15 +510,6 @@ void colorCluster::handleDataPacket(Packet *packet)
 
 void colorCluster::handleGetPacket(Packet *packet)
 {
-    // PIT满则丢弃GET // 尝试不丢弃get的情况&& false
-    if (pit->isFull()) {
-        PacketDropDetails details;
-        details.setReason(QUEUE_OVERFLOW);
-        emit(packetDroppedSignal, packet, &details);
-        delete packet;
-        return;
-    }
-
     //根据GET包头部内容进行相应操作
     packet->trim();
 
