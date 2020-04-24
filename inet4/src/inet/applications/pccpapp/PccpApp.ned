@@ -24,7 +24,11 @@ simple PccpApp like IApp
         int destAddr = default(0);
         int requestNum = default(100000);
         string RSTpath = default("");
-        volatile double sendInterval = default(1);
+        
+        // 指定发送请求的速率，useFreq = true时使用sendFreq参数，useFreq = false时使用sendInterval参数
+        bool useFreq;
+        volatile double sendInterval = default(1);    // 发送get的间隔，单位/s 	
+        volatile int sendFreq = default(1);		// 发送get的频率，单位packet/s
         
         double startTime @unit(s) = default(3s); // send first request
         double stopTime @unit(s) = default(-1s); // time to finish sending, negative values mean forever

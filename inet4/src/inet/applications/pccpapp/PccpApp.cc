@@ -50,7 +50,13 @@ void PccpApp::initialize(int stage)
         destIndex = par("destAddr").intValue();
         requestNum = par("requestNum").intValue();
         path=par("RSTpath").stdstringValue();
-        sendInterval = par("sendInterval").doubleValue();
+        bool useFreq = par("useFreq");
+        if (useFreq) {
+            int sendFreq = par("sendFreq");
+            sendInterval = double(1) / sendFreq;
+        } else {
+            sendInterval = par("sendInterval").doubleValue();
+        }
         startTime = par("startTime").doubleValue();
         stopTime = par("stopTime").doubleValue();
         n0 = par("n0").intValue();
