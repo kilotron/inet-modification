@@ -246,8 +246,10 @@ const InterfaceEntry *Ipv4::getSourceInterface(Packet *packet)
 
 const InterfaceEntry *Ipv4::getDestInterface(Packet *packet)
 {
+    //LJJ fix
     auto tag = packet->findTag<InterfaceReq>();
-    return tag != nullptr ? ift->getInterfaceById(tag->getInterfaceId()) : nullptr;
+    
+    return (tag != nullptr && tag->getInterfaceId() != -1) ? ift->getInterfaceById(tag->getInterfaceId()) : nullptr;
 }
 
 Ipv4Address Ipv4::getNextHop(Packet *packet)
@@ -480,8 +482,10 @@ void Ipv4::datagramLocalOut(Packet *packet)
             if (!destIE) {
                 destIE = ift->findFirstLoopbackInterface();
                 packet->addTagIfAbsent<InterfaceReq>()->setInterfaceId(destIE ? destIE->getInterfaceId() : -1);
+                delete packet;
+                return;
             }
-            ASSERT(destIE);
+            // ASSERT(destIE);
             packet->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(destAddr);
             routeUnicastPacket(packet);
         }

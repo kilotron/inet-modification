@@ -71,8 +71,17 @@ void colorPendingGetTable::PrintPIT(std::ostream &out)
     }
 }
 
+bool colorPendingGetTable::haveEntry(const SID& sid, long nonce)
+{
+    auto iter = table->find(sid);
+    if(iter != table->end() && iter->second.getNonce() == nonce)
+        return true;
+    else return false;
+    
+}
+
 const colorPendingGetTable::Entry &colorPendingGetTable::createEntry(const SID &sid, const NID &nid,
-                                                                     const MacAddress &mac, simtime_t t, int type, unsigned long Nonce, bool served, bool is_consumer)
+                                                                     const MacAddress &mac, simtime_t t, int type, long Nonce, bool served, bool is_consumer)
 {
     Enter_Method("createEntry()");
     //首先根据信息生成pit表项

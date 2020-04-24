@@ -62,11 +62,16 @@ public:
     //弹出延迟队列的队首元素
     Packet *popAtFront();
 
+    list<delayQueue::pendPkt>::iterator peekAtFront();
+
     //检查延迟队列中是否有此包，若有返回指向迭代器，若无返回end迭代器
     list<delayQueue::pendPkt>::iterator have(Packet *pkt);
 
     //检查延迟队列中是否有此包，并且计数器递减
     bool check_and_decrease(Packet *pkt);
+
+    //
+    bool check_and_delete(const SID& sid);
 
     void cancelDelayeForwarding(const SID& sid);
 };

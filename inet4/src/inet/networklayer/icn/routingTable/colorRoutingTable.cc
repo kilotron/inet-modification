@@ -57,7 +57,7 @@ void ColorRoutingTable::CreateEntry(const NID &dest, const NID &nextHop, const M
        }
        
         //对于链路质量差的不插入条目
-       if (iter->second->getLinkQlt() > linkQ)
+       if (iter->second->getLinkQlt() >= linkQ)
        {
            return;
        }

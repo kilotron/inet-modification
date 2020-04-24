@@ -82,7 +82,7 @@ class Get extends FieldsChunk
     bool MustBeFresh = false;
     simtime_t IntrestLifeTime;
     
-    unsigned long Nonce;
+    long Nonce;
     
     //测试
     path trace;

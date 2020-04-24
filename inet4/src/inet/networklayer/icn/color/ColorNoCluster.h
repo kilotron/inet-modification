@@ -83,8 +83,8 @@ namespace inet{
                 public:
                     SID sid;
                     NID requester;
-                    simtime_t servedTime;
-                    GETidentifier(const SID& sid, const NID& nid, simtime_t ST) : sid(sid), requester(nid), servedTime(ST){}
+
+                    GETidentifier(const SID& sid, const NID& nid) : sid(sid), requester(nid){}
                     bool operator == (const GETidentifier& other) const
                     {
                         return sid == other.sid && requester == other.requester;
@@ -93,12 +93,13 @@ namespace inet{
             
             class GETidentifierComparor
             {
-                bool operator ()(const GETidentifier& lhs, const GETidentifier& rhs)
-                {
-                    if (lhs.sid == rhs.sid)
-                        return lhs.requester < rhs.requester;
-                    else return lhs.sid < rhs.sid;
-                }
+                public:
+                    bool operator ()(const GETidentifier& lhs, const GETidentifier& rhs)
+                    {
+                        if (lhs.sid == rhs.sid)
+                            return lhs.requester < rhs.requester;
+                        else return lhs.sid < rhs.sid;
+                    }
             };
 
             enum class SendMode
@@ -110,14 +111,22 @@ namespace inet{
 
 
         private:
+            friend class SimRecorder;
+
+            simtime_t firstPacket;
+
             //节点索引
             int nodeIndex;
+
+            std::map<NID, simtime_t> RouteDetectedTable;
 
             std::map<GETidentifier, simtime_t, GETidentifierComparor> getTable;
 
             std::map<int, SocketDescriptor *> socketIdToSocketDescriptor;
 
             std::map<int, SocketDescriptor *> socketsByPortMap;
+
+            std::map<SID, int> SIDtoSockets;
 
             //转发表
             IInterfaceTable *ift = nullptr;
@@ -160,15 +169,16 @@ namespace inet{
 
             //测试变量
             simtime_t startTime;
-            int Cindex = 10000;
+            int Cindex = -1;
+            int Pindex = -1;
 
 
-            double sentInterval;
+            double sendInterval;
    
             SimRecorder testModule;
 
-            delayQueue delay_queue24;
-            cMessage* delayer24;
+            delayQueue delay_queue;
+            cMessage* delayer;
 
 
             double getDelayTime;
@@ -321,9 +331,6 @@ namespace inet{
 
             //节点作为provider创建内容包，测试中一个GET包对应一个DATA包
             void testProvide(const SID &sid, const B& dataSize);
-
-            //通过T控制发送get包的时间间隔， mode选择时间间隔的具体分布形式，0均匀分布，1指数分布
-            void scheduleGet(simtime_t t, SendMode mode);
 
             //测试记录
             void record();

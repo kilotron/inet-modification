@@ -65,7 +65,7 @@ class INET_API colorPendingGetTable: public cSimpleModule
         void PrintPIT(std::ostream & out);
         
         //根据SID，NID，生存时间创建一个PIT表项
-        const colorPendingGetTable::Entry& createEntry(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t, int type = 5, unsigned long Nonce = 0, bool served = false, bool is_consumer = false);
+        const colorPendingGetTable::Entry& createEntry(const SID& sid, const NID& nid, const MacAddress& mac,simtime_t t, int type = 5, long Nonce = 0, bool served = false, bool is_consumer = false);
         
         //将表项添加到表中
         void AddPITentry(const Entry& entry);
@@ -85,7 +85,9 @@ class INET_API colorPendingGetTable: public cSimpleModule
         bool servedForThisGet(const SID &sid, unsigned long Nonce);
 
         //查询PIT中是否有关于这个SID的条目
-        bool hasThisSid(const SID& sid){return !(table->find(sid)==table->end());}
+        bool haveSID(const SID& sid){return table->find(sid) != table->end();}
+
+        bool haveEntry(const SID& sid, long nonce);
 
         std::multimap<SID,PITentry>::iterator getTableEnd(){return table->end();}
 
