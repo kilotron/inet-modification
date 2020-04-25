@@ -155,10 +155,11 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 
     // cancel retransmission timer
     cMessage *timer = sendQueue.findRexmitTimer(sid);
-    pccpApp->cancelEvent(timer);
-
-    // remove the request from sendQueue
-    sendQueue.discard(sid);
+    if (timer != nullptr) {
+        pccpApp->cancelEvent(timer);
+        // remove the request from sendQueue
+        sendQueue.discard(sid);
+    }
 
     // 调整拥塞窗口，发送新请求（如果可以的话）
     PccpClCode congestionLevel = packet->removeTag<ClInd>()->getCongestionLevel();

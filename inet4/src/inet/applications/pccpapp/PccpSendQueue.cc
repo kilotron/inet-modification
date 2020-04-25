@@ -38,7 +38,12 @@ bool PccpSendQueue::enqueueRequest(const SID& sid)
 
 cMessage *PccpSendQueue::findRexmitTimer(const SID& sid)
 {
-    return sidToTimerMap.find(sid)->second;
+    auto it = sidToTimerMap.find(sid);
+    if (it == sidToTimerMap.end()) {
+        return nullptr; // 不在窗口内，或已达到最大重传次数被丢弃，返回null表示不需要取消计时器。
+    } else {
+        return it->second;
+    }
 }
 
 SID& PccpSendQueue::findSID(cMessage *rexmitTimer)

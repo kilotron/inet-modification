@@ -97,7 +97,7 @@ void PccpApp::handleSelfMessage(cMessage *msg)
     }
     else if(msg == timer)
     {
-        if(content < requestNum)
+        if(content < requestNum - 1)    // msg==start时已经发过1个
         {
             content++;
             sendRequest({destIndex,content});
@@ -139,7 +139,6 @@ void PccpApp::maxRexmit(const SID& sid)
 void PccpApp::dataArrived(Packet *packet)
 {
     // TODO 在这里统计
-    std::cout << "data arrived, time=" << simTime() << endl;
     delete packet;
 }
 
