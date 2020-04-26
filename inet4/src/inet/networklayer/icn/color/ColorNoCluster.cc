@@ -21,7 +21,9 @@
 #include "inet/networklayer/icn/color/AppData_m.h"
 #include "inet/networklayer/common/L3Tools.h"
 #include "inet/networklayer/contract/color/ColorSocketCommand_m.h"
-
+#include "inet/networklayer/common/SidTag_m.h"
+#include "inet/networklayer/common/PitTag_m.h"
+#include "inet/networklayer/common/ClTag_m.h"
 
 namespace inet
 {
@@ -355,6 +357,11 @@ void colorNoCluster::handleDataPacket(Packet *packet)
         {
             decapsulate(fullPacket, headSid);
             SIDtoSockets.erase(headSid);
+
+            // 该数据包对应的SID和congestion level
+            auto sidInd = fullPacket->addTag<SidInd>();
+            sidInd->setSid(headSid);
+            fullPacket->addTag<ClInd>()->setCongestionLevel(PccpClCode(head->getCongestionLevel()));
 
             if(sd == socketsByPortMap.end())
             {
@@ -782,6 +789,15 @@ void colorNoCluster::sendDatagramToOutput(Packet *packet, int nic, const MacAddr
         packet->removeTagIfPresent<DispatchProtocolInd>();
         packet->addTagIfAbsent<DispatchProtocolInd>()->setProtocol(&Protocol::color);
 
+        //通过动态类型转换判断数据包的类型
+        const auto &head = packet->peekAtFront<Chunk>(B(78), 0);
+        auto pointer = head.get();
+        Chunk *chunk = const_cast<Chunk *>(pointer);
+        if (dynamic_cast<Data *>(chunk)) {
+            auto pitInd = packet->addTag<PitInd>();
+            pitInd->setPitLength(pit->getLength());
+            pitInd->setPitCapacity(pit->getCapacity());
+        }
         send(packet, "queueOut");
     }
 }

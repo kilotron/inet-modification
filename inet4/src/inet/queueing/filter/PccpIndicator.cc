@@ -121,7 +121,8 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
     int dataQCapacity = collection->getMaxNumPackets();
     avgDataQueueLength = (1 - wq) * avgDataQueueLength + wq * dataQLength;
     avgPitLength = (1 - wq) * avgPitLength + wq * pitLength;
-    ci = (1 - g) * avgPitLength / pitCapacity + g * avgDataQueueLength / dataQCapacity;
+   // ci = (1 - g) * avgPitLength / pitCapacity + g * avgDataQueueLength / dataQCapacity;
+    ci = (avgDataQueueLength + g * avgPitLength) / dataQCapacity;
 //    std::cout << "update CI: QL=" << dataQLength << ",QC=" << dataQCapacity
 //            << ",avgDQ=" << avgDataQueueLength << ",pitL=" << pitLength
 //            << ",pitC=" << pitCapacity << ",avgPL=" << avgPitLength
@@ -150,14 +151,17 @@ PccpClCode PccpIndicator::calculateCongestionLevel()
         return PccpClCode::CONGESTED;
     }
     else if (CI_FREE < ci && ci <= CI_BUSY) {
-        double r = dblrand();
-        double p = 1 - (1 - p0) * (ci - CI_FREE) / (CI_BUSY - CI_FREE);
-        return (r <= p) ? PccpClCode::BUSY_1 : PccpClCode::BUSY_2;
+        // 先采用简化方式去掉概率计算
+        return PccpClCode::BUSY_1;
+//        double r = dblrand();
+//        double p = 1 - (1 - p0) * (ci - CI_FREE) / (CI_BUSY - CI_FREE);
+//        return (r <= p) ? PccpClCode::BUSY_1 : PccpClCode::BUSY_2;
     }
     else { // CI_BUSY < ci < CI_CONG
-        double r = dblrand();
-        double p = p0 * (CI_CONG - ci) / (CI_CONG - CI_BUSY);
-        return (r <= p) ? PccpClCode::BUSY_1 : PccpClCode::BUSY_2;
+        return PccpClCode::BUSY_2;
+//        double r = dblrand();
+//        double p = p0 * (CI_CONG - ci) / (CI_CONG - CI_BUSY);
+//        return (r <= p) ? PccpClCode::BUSY_1 : PccpClCode::BUSY_2;
     }
 }
 

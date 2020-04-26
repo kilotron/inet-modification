@@ -91,7 +91,7 @@ void PccpApp::handleSelfMessage(cMessage *msg)
     if(msg == start)
     {
         sendRequest({destIndex,content});
-        scheduleAt(simTime()+sendInterval, timer);
+        scheduleAt(simTime() + exponential(sendInterval), timer);
         delete start;
         start = nullptr;
     }
@@ -101,7 +101,7 @@ void PccpApp::handleSelfMessage(cMessage *msg)
         {
             content++;
             sendRequest({destIndex,content});
-            scheduleAt(simTime()+sendInterval, timer);
+            scheduleAt(simTime() + exponential(sendInterval), timer);
         }
         else cancelEvent(timer);
     }

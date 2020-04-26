@@ -13,8 +13,8 @@
 
 namespace inet {
 
-#define MAX_REXMIT_TIMEOUT 3
-#define MIN_REXMIT_TIMEOUT 1.0
+#define MAX_REXMIT_TIMEOUT 1.0
+#define MIN_REXMIT_TIMEOUT 0.5
 #define VERY_LARGE_WINDOW 2e+9
 
 PccpAlg::PccpAlg()
@@ -44,7 +44,7 @@ void PccpAlg::initializeState()
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
     pccpApp->emit(PccpApp::timeoutSignal, 1);
-    std::cout << "retransmit...";
+    std::cout << "timeout!";
     SID sid = sendQueue.findSID(timer);
 
     // cancel round-trip time measurement if RTT measurement is running
@@ -172,28 +172,20 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
     }
 
     if (congestionLevel == PccpClCode::FREE) {
-        state.window += 1;
-    } else if (congestionLevel == PccpClCode::BUSY_1) {
         state.window += 1 / state.window;
+    } else if (congestionLevel == PccpClCode::BUSY_1) {
+        //state.window += 1 / state.window; // 保持不变
     } else if (congestionLevel == PccpClCode::BUSY_2) {
         state.window -= 1 / state.window;
     } else { // congestionLevel == PccpClCode::CONGESTED
-        /* k: decrease factor, n: number of continuous congested packets
-         * k = k0 if n >= n0
-         * k = 1 - (1 - k0) * n / n0 if n < n0
-         */
-        double k;
-        if (state.num_continuous_congested >= pccpApp->n0) {
-            k = pccpApp->k0;
-        } else {
-            k = 1 - (1 - pccpApp->k0) * state.num_continuous_congested / pccpApp->n0;
+        if (simTime() > state.last_cong_rcvd + state.srtt) {
+            state.last_cong_rcvd = simTime();
+            state.window *= 0.5;
         }
-        state.window *= k;
     }
     if (state.window < 1.0) {
         state.window = 1.0;
     }
-
     if (!pccpApp->congestionControlEnabled) {
         state.window = VERY_LARGE_WINDOW;
     }

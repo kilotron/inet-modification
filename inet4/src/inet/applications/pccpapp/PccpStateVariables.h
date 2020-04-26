@@ -31,6 +31,7 @@ public:
 
     simtime_t rexmit_timeout;   // current retransmission timeout
     simtime_t last_timeout_doubled_time;// last time when timeout occurs
+    simtime_t last_cong_rcvd; // last time when a packet is marked congested
 
     double window;    // congestion window
 
