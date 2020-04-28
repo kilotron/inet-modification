@@ -29,6 +29,7 @@ simple PccpIndicator extends PacketFilterBase
         double CI_BUSY = default(0.3);
         double CI_CONG = default(0.6);
         double p0 = default(0.5);	// probability of CL=BUSY_1 when CI = CI_BUSY
+        bool dataQueueOnly = default(false);
         @class(PccpIndicator); 
         
         @signal[dataQueueLength](type=long);

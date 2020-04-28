@@ -29,6 +29,7 @@ protected:
     double avgDataQueueLength = 0.0;
     double avgPitLength = 0.0;
     double ci = 0.0; // congestion index
+    bool dataQueueOnly;
     IPacketCollection *collection = nullptr; // linklayer queu
 
     // statistics
