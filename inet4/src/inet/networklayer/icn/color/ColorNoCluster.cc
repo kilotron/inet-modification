@@ -325,6 +325,9 @@ void colorNoCluster::handleIncomingDatagram(Packet *packet)
 
 void colorNoCluster::handleDataPacket(Packet *packet)
 {
+    // 调试信息
+    static int count = 0;
+
     //取出头部
     const auto head = packet->peekAtFront<Data>();
     const SID &headSid = head->getSid();
@@ -345,11 +348,14 @@ void colorNoCluster::handleDataPacket(Packet *packet)
     if (sd != socketsByPortMap.end() && SIDtoSockets.find(headSid) != SIDtoSockets.end())
     {
         //调试信息
-        std::cout << "one packet received" << endl;
-        std::cout << "off set is " << head->getOffset() << endl;
+        count++;
+        if (count % 1000 == 0) {
+            std::cout << "one packet received" << endl;
+            std::cout << "off set is " << head->getOffset() << endl;
 
-        std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-        std::cout << nodeIndex << endl;
+            std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+            std::cout << nodeIndex << endl;
+        }
 
         //如果本节点正是发出get包的源节点在进行数据包重组验证完整性后，解包给上层协议
         auto fullPacket = ResemBuffer->addFragment(packet->dup(), simTime());
@@ -472,6 +478,7 @@ void colorNoCluster::handleDataPacket(Packet *packet)
 
 void colorNoCluster::handleGetPacket(Packet *packet)
 {
+    static int count = 0;
     //根据GET包头部内容进行相应操作
     packet->trim();
 
@@ -579,11 +586,14 @@ void colorNoCluster::handleGetPacket(Packet *packet)
         createRoute(head->getSource(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
         createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
 
-        //仅为了测试使用，处理逻辑是如果缓存中有就回传SID对应的所有数据包
-        std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-        std::cout << nodeIndex;
-        std::cout << "  content found!"
-                  << "at " << simTime() << endl;
+        count++;
+        if (count % 1000 == 0) {
+            //仅为了测试使用，处理逻辑是如果缓存中有就回传SID对应的所有数据包
+            std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+            std::cout << nodeIndex;
+            std::cout << "  content found!"
+                      << "at " << simTime() << endl;
+        }
 
         auto lists = findContentInCache(headSID)->GetList();
 

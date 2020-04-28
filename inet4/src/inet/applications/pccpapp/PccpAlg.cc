@@ -43,10 +43,6 @@ void PccpAlg::initializeState()
 
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
-//    if (pccpApp->getParentModule()->getIndex() == 1 && simTime() > 100) {
-//        int i;
-//        i = 1;
-//    }
     pccpApp->emit(PccpApp::timeoutSignal, 1);
     std::cout << "timeout!";
     SID sid = sendQueue.findSID(timer);
@@ -164,10 +160,6 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
         // remove the request from sendQueue
         sendQueue.discard(sid);
     }
-//    else {
-//        int i;
-//        i = 1;
-//    }
 
     // 调整拥塞窗口，发送新请求（如果可以的话）
     PccpClCode congestionLevel = packet->removeTag<ClInd>()->getCongestionLevel();
