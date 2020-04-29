@@ -64,7 +64,7 @@ void ColorRoutingTable::CreateEntry(const NID &dest, const NID &nextHop, const M
     }
 
     //创建并插入新的路由表项
-    auto route = std::make_shared<Croute>(nextHop, mac, ttl, interFace, linkQ);
+    auto route = std::make_shared<Croute>(nextHop, mac, ttl + simTime(), interFace, linkQ);
     routingTable.insert({dest, route});
 }
 

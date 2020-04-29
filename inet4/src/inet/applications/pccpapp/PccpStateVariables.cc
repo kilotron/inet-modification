@@ -18,7 +18,7 @@ PccpStateVariables::PccpStateVariables()
     srtt = 0;
     rttvar = 3.0 / 4.0;
 
-    rexmit_timeout = 3;
+    rexmit_timeout = 1;
     last_timeout_doubled_time = 0.0;
     last_cong_rcvd = 0.0;
 
