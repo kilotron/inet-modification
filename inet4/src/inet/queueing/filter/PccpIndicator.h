@@ -30,7 +30,8 @@ protected:
     double avgPitLength = 0.0;
     double ci = 0.0; // congestion index
     bool dataQueueOnly;
-    IPacketCollection *collection = nullptr; // linklayer queu
+    IPacketCollection *collection = nullptr; // linklayer queue
+    simtime_t q_time;
 
     // statistics
     static simsignal_t dataQueueLengthSignal;
@@ -45,6 +46,11 @@ protected:
      * 从packet中获得PIT的信息，并把当前的拥塞等级写到Packet中。
      */
     virtual bool matchesPacket(Packet *packet) override;
+
+    /**
+     * 队列空时设置q_time
+     */
+    virtual void pushOrSendPacket(Packet *packet, cGate *gate, IPassivePacketSink *consumer) override;
 
     /**
      * 如果此节点拥塞等级更高，则把packet中的拥塞等级字段设为cl。

@@ -120,7 +120,14 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
 {
     int dataQLength = collection->getNumPackets();
     int dataQCapacity = collection->getMaxNumPackets();
-    avgDataQueueLength = (1 - wq) * avgDataQueueLength + wq * dataQLength;
+    if (dataQLength > 0) {
+        avgDataQueueLength = (1 - wq) * avgDataQueueLength + wq * dataQLength;
+    } else {
+        // 假设链路带宽16Mpbs, 一个packet大小是1KB，则需要0.0005s传输时间
+        double m = SIMTIME_DBL(simTime() - q_time) / 0.0005;
+        avgDataQueueLength = pow(1 - wq, m) * avgDataQueueLength;
+    }
+
     avgPitLength = (1 - wq) * avgPitLength + wq * pitLength;
    // ci = (1 - g) * avgPitLength / pitCapacity + g * avgDataQueueLength / dataQCapacity;
     if (dataQueueOnly) {
@@ -168,6 +175,15 @@ PccpClCode PccpIndicator::calculateCongestionLevel()
 //        double p = p0 * (CI_CONG - ci) / (CI_CONG - CI_BUSY);
 //        return (r <= p) ? PccpClCode::BUSY_1 : PccpClCode::BUSY_2;
     }
+}
+
+void PccpIndicator::pushOrSendPacket(Packet *packet, cGate *gate, IPassivePacketSink *consumer)
+{
+    PacketFilterBase::pushOrSendPacket(packet, gate, consumer);
+    // Set the time stamp q_time when the queue gets empty.
+    const int queueLength = collection->getNumPackets();
+    if (queueLength == 0)
+        q_time = simTime();
 }
 
 } // namespace queueing
