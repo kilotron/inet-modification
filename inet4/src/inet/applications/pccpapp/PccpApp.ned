@@ -60,6 +60,7 @@ simple PccpApp like IApp
 		@signal[timeout](type=long);
 		@signal[maxRexmit](type=long);
 		@signal[dataRcvdTime](type=simtime_t);
+		@signal[delay](type=simtime_t); // round-trip time
 		
 		@statistic[rto](title="retransmission timeout"; unit=s; record=vector);
 		@statistic[srtt](title="smoothed round-trip time"; unit=s; record=vector);
@@ -73,6 +74,7 @@ simple PccpApp like IApp
 		@statistic[timeout](source=count(timeout); title="Timeout"; record=vector);
 		@statistic[maxRexmit](source=count(maxRexmit); title="Number of retransmission that exceeds maximum value"; record=last, vector);
 		@statistic[dataRcvdTime](source=dataRcvdTime; title="Last time received time"; record=last);
+		@statistic[delay](title="delay"; unit=s; record=vector);
 	gates:
 	    input in;
 	    input socketIn @labels(ITransportPacket/up);

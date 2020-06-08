@@ -155,7 +155,9 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 
     // cancel retransmission timer
     cMessage *timer = sendQueue.findRexmitTimer(sid);
-    if (timer != nullptr) {
+    if (timer != nullptr) { // timer为nullptr说明这个sid不在数据等待队列
+        simtime_t delay = simTime() - sendQueue.getFirstTransTime(sid); // 记录为实验结果数据
+        pccpApp->emit(PccpApp::delaySignal, delay);
         pccpApp->cancelEvent(timer);
         // remove the request from sendQueue
         // TODO: bug: 有时请求在重传等待队列中，这种情况下未从中移除请求，即使收到了数据以后仍会重传。

@@ -22,7 +22,8 @@ public:
     SID sid;
     cMessage *timer;
     int rexmit_count;
-    TimeoutRequest(const SID& sid, cMessage *timer, int rexmit_count);
+    simtime_t first_trans_time;
+    TimeoutRequest(const SID& sid, cMessage *timer, int rexmit_count, simtime_t firt_trans_time);
 };
 
 /**
@@ -35,6 +36,7 @@ private:
     std::map<SID, cMessage*> sidToTimerMap;
     std::map<cMessage*, SID> timerToSidMap;
     std::map<SID, int> sidRexmitCount;
+    std::map<SID, simtime_t> firstTransTime; // the time when the request is sent
     std::queue<SID> unsentSidQueue;
     std::queue<TimeoutRequest> rexmitQueue;
 
@@ -90,6 +92,13 @@ public:
      * Increase the number of retransmissions of the request sid by 1.
      */
     void increaseRexmitCount(const SID& sid);
+
+    /**
+     * Pre-condition: sid is in the queue and the corresponding request has been
+     * sent at least once.
+     * Returns the time when the request is sent.
+     */
+    simtime_t getFirstTransTime(const SID& sid);
 
     /**
      * Returns the number of the requests that has been sent at least once.

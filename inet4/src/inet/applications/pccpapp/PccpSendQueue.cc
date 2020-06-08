@@ -9,11 +9,12 @@
 #include <iostream>
 namespace inet {
 
-TimeoutRequest::TimeoutRequest(const SID& sid, cMessage *timer, int rexmit_count)
+TimeoutRequest::TimeoutRequest(const SID& sid, cMessage *timer, int rexmit_count, simtime_t first_trans_time)
 {
     this->sid = sid;
     this->timer = timer;
     this->rexmit_count = rexmit_count;
+    this->first_trans_time = first_trans_time;
 }
 
 Register_Class(PccpSendQueue);
@@ -64,6 +65,7 @@ SID PccpSendQueue::popOneUnsentSID()
     sidToTimerMap.insert(std::pair<SID, cMessage*>(sid, timer));
     timerToSidMap.insert(std::pair<cMessage*, SID>(timer, sid));
     sidRexmitCount.insert(std::pair<SID, int>(sid, 0));
+    firstTransTime.insert(std::pair<SID, simtime_t>(sid, simTime()));
     return sid;
 }
 
@@ -73,6 +75,7 @@ void PccpSendQueue::discard(const SID& sid)
     sidToTimerMap.erase(sid);
     timerToSidMap.erase(timer);
     sidRexmitCount.erase(sid);
+    firstTransTime.erase(sid);
     delete timer;
 }
 
@@ -84,6 +87,11 @@ int PccpSendQueue::getRexmitCount(const SID& sid)
 void PccpSendQueue::increaseRexmitCount(const SID& sid)
 {
     sidRexmitCount[sid] = sidRexmitCount[sid] + 1;
+}
+
+simtime_t PccpSendQueue::getFirstTransTime(const SID& sid)
+{
+    return firstTransTime[sid];
 }
 
 int PccpSendQueue::getSentRequestCount()
@@ -101,10 +109,11 @@ void PccpSendQueue::getAllTimers(std::vector<cMessage *>& v)
 void PccpSendQueue::enqueueRexmit(const SID& sid)
 {
     cMessage *timer = findRexmitTimer(sid);
-    rexmitQueue.push(TimeoutRequest(sid, timer, getRexmitCount(sid)));
+    rexmitQueue.push(TimeoutRequest(sid, timer, getRexmitCount(sid), getFirstTransTime(sid)));
     sidToTimerMap.erase(sid);
     timerToSidMap.erase(timer);
     sidRexmitCount.erase(sid);
+    firstTransTime.erase(sid);
 }
 
 bool PccpSendQueue::hasUnsentRexmit()
@@ -119,6 +128,7 @@ SID PccpSendQueue::popOneUnsentRexmit()
     sidToTimerMap.insert(std::pair<SID, cMessage*>(r.sid, r.timer));
     timerToSidMap.insert(std::pair<cMessage*, SID>(r.timer, r.sid));
     sidRexmitCount.insert(std::pair<SID, int>(r.sid, r.rexmit_count));
+    firstTransTime.insert(std::pair<SID, simtime_t>(r.sid, r.first_trans_time));
     return r.sid;
 }
 

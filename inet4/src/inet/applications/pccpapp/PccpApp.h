@@ -74,6 +74,7 @@ class INET_API PccpApp : public ApplicationBase
     static simsignal_t timeoutSignal;
     static simsignal_t maxRexmitSignal;
     static simsignal_t dataRcvdTime;
+    static simsignal_t delaySignal;
 
   public:
     PccpApp();

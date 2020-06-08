@@ -33,6 +33,7 @@ simsignal_t PccpApp::congestionLevelSignal = registerSignal("congestionLevel");
 simsignal_t PccpApp::timeoutSignal = registerSignal("timeout");
 simsignal_t PccpApp::maxRexmitSignal = registerSignal("maxRexmit");
 simsignal_t PccpApp::dataRcvdTime = registerSignal("dataRcvdTime");
+simsignal_t PccpApp::delaySignal = registerSignal("delay");
 
 PccpApp::PccpApp() {
     pccpAlg = new PccpAlg();
