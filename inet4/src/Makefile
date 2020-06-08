@@ -62,6 +62,7 @@ OBJS = \
     $O/inet/applications/packetdrill/parser.o \
     $O/inet/applications/pccpapp/PccpAlg.o \
     $O/inet/applications/pccpapp/PccpApp.o \
+    $O/inet/applications/pccpapp/PccpIoTApp.o \
     $O/inet/applications/pccpapp/PccpProvider.o \
     $O/inet/applications/pccpapp/PccpSendQueue.o \
     $O/inet/applications/pccpapp/PccpStateVariables.o \

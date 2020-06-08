@@ -158,6 +158,7 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
     if (timer != nullptr) {
         pccpApp->cancelEvent(timer);
         // remove the request from sendQueue
+        // TODO: bug: 有时请求在重传等待队列中，这种情况下未从中移除请求，即使收到了数据以后仍会重传。
         sendQueue.discard(sid);
     }
 

@@ -32,6 +32,7 @@ simsignal_t PccpApp::getSentSignal = registerSignal("getSent");
 simsignal_t PccpApp::congestionLevelSignal = registerSignal("congestionLevel");
 simsignal_t PccpApp::timeoutSignal = registerSignal("timeout");
 simsignal_t PccpApp::maxRexmitSignal = registerSignal("maxRexmit");
+simsignal_t PccpApp::dataRcvdTime = registerSignal("dataRcvdTime");
 
 PccpApp::PccpApp() {
     pccpAlg = new PccpAlg();
@@ -140,6 +141,7 @@ void PccpApp::dataArrived(Packet *packet)
 {
     // TODO 在这里统计
     delete packet;
+    emit(PccpApp::dataRcvdTime, simTime());
 }
 
 void PccpApp::scheduleTimeout(cMessage *timer, simtime_t timeout)

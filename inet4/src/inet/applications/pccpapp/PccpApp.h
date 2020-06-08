@@ -33,8 +33,7 @@ class INET_API PccpApp : public ApplicationBase
 {
     friend class PccpAlg;
 
-  private:
-
+  protected:
     // parameters
     int localPort;
     int destIndex;
@@ -74,6 +73,7 @@ class INET_API PccpApp : public ApplicationBase
     static simsignal_t congestionLevelSignal;
     static simsignal_t timeoutSignal;
     static simsignal_t maxRexmitSignal;
+    static simsignal_t dataRcvdTime;
 
   public:
     PccpApp();

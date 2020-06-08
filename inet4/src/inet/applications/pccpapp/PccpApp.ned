@@ -72,7 +72,7 @@ simple PccpApp like IApp
 		@statistic[congestionLevel](title="Congestion Level"; record=vector);
 		@statistic[timeout](source=count(timeout); title="Timeout"; record=vector);
 		@statistic[maxRexmit](source=count(maxRexmit); title="Number of retransmission that exceeds maximum value"; record=last, vector);
-		@statistic[dataRcvdEndTime](source=dataRcvdTime; title="Last time received time"; record=last);
+		@statistic[dataRcvdTime](source=dataRcvdTime; title="Last time received time"; record=last);
 	gates:
 	    input in;
 	    input socketIn @labels(ITransportPacket/up);
