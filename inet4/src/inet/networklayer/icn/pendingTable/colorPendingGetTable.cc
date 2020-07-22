@@ -54,6 +54,12 @@ void colorPendingGetTable::handleMessage(cMessage *msg)
     RemoveEntry(sid);
     //删除定时器消息本身a
     cancelEvent(msg);
+//    if (getParentModule()->getParentModule()->getIndex() == 1) {
+//        int i;
+//        i=0;
+//    }
+//    std::cout << "t=" << simTime() << ", node " << getParentModule()->getParentModule()->getIndex()
+//            <<  ", pit timer expires, length=" << getLength() << endl;
 }
 
 void colorPendingGetTable::PrintPIT(std::ostream &out)
@@ -83,6 +89,11 @@ bool colorPendingGetTable::haveEntry(const SID& sid, long nonce)
 const colorPendingGetTable::Entry &colorPendingGetTable::createEntry(const SID &sid, const NID &nid,
                                                                      const MacAddress &mac, simtime_t t, int type, long Nonce, bool served, bool is_consumer)
 {
+//    if (getParentModule()->getParentModule()->getIndex() == 1) {
+//            int i;
+//            i=0;
+//            std::cout << "timer=" << t << endl;
+//        }
     Enter_Method("createEntry()");
     //首先根据信息生成pit表项
     PITentry nt(nid, t, mac, type, Nonce, served, is_consumer);

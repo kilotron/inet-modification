@@ -44,7 +44,7 @@ void PccpAlg::initializeState()
 void PccpAlg::processRexmitTimer(cMessage *timer)
 {
     pccpApp->emit(PccpApp::timeoutSignal, 1);
-    std::cout << "timeout!";
+    //std::cout << "timeout!" << endl;
     SID sid = sendQueue.findSID(timer);
 
     // cancel round-trip time measurement if RTT measurement is running
@@ -90,6 +90,7 @@ void PccpAlg::retransmitRequest(const SID& sid)
         sendQueue.enqueueRexmit(sid);
         return;
     }
+//    std::cout << "Node " << pccpApp->getParentModule()->getIndex() << " retransmit" << endl;
     cMessage *timer = sendQueue.findRexmitTimer(sid);
     pccpApp->currentSocket->sendGET(sid, pccpApp->localPort, pccpApp->sendInterval);
     pccpApp->scheduleTimeout(timer, state.rexmit_timeout);
@@ -106,12 +107,14 @@ void PccpAlg::sendRequestsToSocket()
     // 先检查重传队列
     while (effectiveWindow > 0 && sendQueue.hasUnsentRexmit()) {
         SID sidToSend = sendQueue.popOneUnsentRexmit();
+//        std::cout << "Node " << pccpApp->getParentModule()->getIndex() << " retrans q" << endl;
         pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
         requestSent(sidToSend, true);
         effectiveWindow--;
     }
 
     while (effectiveWindow > 0 && sendQueue.hasUnsentSID()) {
+//        std::cout <<"t=" << simTime() <<", Node " << pccpApp->getParentModule()->getIndex() << " sending get" << endl;
         SID sidToSend = sendQueue.popOneUnsentSID();
         pccpApp->currentSocket->sendGET(sidToSend, pccpApp->localPort, pccpApp->sendInterval);
         requestSent(sidToSend, false);
@@ -176,10 +179,16 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 
     if (congestionLevel == PccpClCode::FREE) {
         state.window += 1 / state.window;
+        //state.window += 1;
     } else if (congestionLevel == PccpClCode::BUSY_1) {
         state.window += 0.5 / state.window; // 保持不变
     } else if (congestionLevel == PccpClCode::BUSY_2) {
         state.window -= 1 / state.window;
+        //state.window -= 1;
+//        if (simTime() > state.last_cong_rcvd + state.srtt) {
+//            state.last_cong_rcvd = simTime();
+//            state.window *= 0.5;
+//        }
     } else { // congestionLevel == PccpClCode::CONGESTED
         if (simTime() > state.last_cong_rcvd + state.srtt) {
             state.last_cong_rcvd = simTime();

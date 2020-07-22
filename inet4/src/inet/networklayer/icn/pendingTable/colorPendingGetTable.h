@@ -95,7 +95,8 @@ class INET_API colorPendingGetTable: public cSimpleModule
 
         // TODO 修改下面的两个函数
         // PIT当前长度
-        int getLength() {return table->size();}
+        //int getLength() {return table->size();}
+        int getLength() {return sids->size();}
 
         // PIT容量
         int getCapacity() {return capacity;}

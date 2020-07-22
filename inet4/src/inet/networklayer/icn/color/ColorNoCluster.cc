@@ -325,6 +325,7 @@ void colorNoCluster::handleIncomingDatagram(Packet *packet)
 
 void colorNoCluster::handleDataPacket(Packet *packet)
 {
+//    std::cout << "t=" << simTime() << ", in handleDataPacket(), Node " << nodeIndex << endl;
     // 调试信息
     static int count = 0;
 
@@ -348,14 +349,19 @@ void colorNoCluster::handleDataPacket(Packet *packet)
     if (sd != socketsByPortMap.end() && SIDtoSockets.find(headSid) != SIDtoSockets.end())
     {
         //调试信息
-        count++;
-        if (count % 1000 == 0) {
-            std::cout << "one packet received" << endl;
-            std::cout << "off set is " << head->getOffset() << endl;
-
-            std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-            std::cout << nodeIndex << endl;
-        }
+//        count++;
+//        if (count % 1000 == 0) {
+//            std::cout << "one packet received" << endl;
+//            std::cout << "off set is " << head->getOffset() << endl;
+//
+//            std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+//            std::cout << nodeIndex << endl;
+//        }
+//        std::cout << "one packet received" << endl;
+//        std::cout << "off set is " << head->getOffset() << endl;
+//
+//        std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+//        std::cout << nodeIndex << endl;
 
         //如果本节点正是发出get包的源节点在进行数据包重组验证完整性后，解包给上层协议
         auto fullPacket = ResemBuffer->addFragment(packet->dup(), simTime());
@@ -465,6 +471,7 @@ void colorNoCluster::handleDataPacket(Packet *packet)
         }
         //在一个get包就对应一个data包的情况中，缓存转发后移除PIT条目
         pit->RemoveEntry(headSid);
+//        printf("NODE%d, PIT length=%d\n", nodeIndex, pit->getLength());
     }
     else
     {
@@ -478,6 +485,7 @@ void colorNoCluster::handleDataPacket(Packet *packet)
 
 void colorNoCluster::handleGetPacket(Packet *packet)
 {
+//    std::cout << "t=" << simTime() << ", in handleGetPacket(), Node " << nodeIndex << endl;
     static int count = 0;
     //根据GET包头部内容进行相应操作
     packet->trim();
@@ -533,6 +541,11 @@ void colorNoCluster::handleGetPacket(Packet *packet)
                 {
 
                     pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 24, head->getNonce());
+//                    printf("NODE%d, %d\n", nodeIndex, pit->getLength());
+//                    if (nodeIndex == 1) {
+//                        std::cout << "                                                               timer=" << ttl << endl;
+//                    }
+
                     packet->clearTags();
 
                     head->setTimeToLive(head->getTimeToLive() - 1);
@@ -574,10 +587,19 @@ void colorNoCluster::handleGetPacket(Packet *packet)
 
 
                 pit->createEntry(head->getSid(), head->getSource(), macInfo->getSrcAddress(), ttl, 24, head->getNonce());
+//                printf("NODE%d, %d\n", nodeIndex, pit->getLength());
+//                if (nodeIndex == 1) {
+//                    std::cout << "                                                          timer=" << ttl << endl;
+//                }
             }
         }
-        if(!pit->haveEntry(headSID,head->getNonce()))
+        if(!pit->haveEntry(headSID,head->getNonce())) {
             pit->createEntry(headSID, sourceNid, mac,simtime_t(1), 24, nonce);
+//            printf("NODE%d, %d\n", nodeIndex, pit->getLength());
+//            if (nodeIndex == 1) {
+//                std::cout << "                                                                 timer=" << ttl << endl;
+//            }
+        }
 
     }
     //缓存中存在，根据数据包的入网卡不同进行不同的操作
@@ -586,14 +608,19 @@ void colorNoCluster::handleGetPacket(Packet *packet)
         createRoute(head->getSource(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
         createRoute(head->getLastHop(), head->getLastHop(), macInfo->getSrcAddress(), routeLifeTime, 24, head->getTimeToLive());
 
-        count++;
-        if (count % 1000 == 0) {
-            //仅为了测试使用，处理逻辑是如果缓存中有就回传SID对应的所有数据包
-            std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
-            std::cout << nodeIndex;
-            std::cout << "  content found!"
-                      << "at " << simTime() << endl;
-        }
+//        count++;
+//        if (count % 1000 == 0) {
+//            //仅为了测试使用，处理逻辑是如果缓存中有就回传SID对应的所有数据包
+//            std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+//            std::cout << nodeIndex;
+//            std::cout << "  content found!"
+//                      << "at " << simTime() << endl;
+//        }
+        //仅为了测试使用，处理逻辑是如果缓存中有就回传SID对应的所有数据包
+//        std::for_each(head->getTrace().begin(), head->getTrace().end(), [](const int &n) { std::cout << n << "->"; });
+//        std::cout << nodeIndex;
+//        std::cout << "  content found!"
+//                  << "at " << simTime() << endl;
 
         auto lists = findContentInCache(headSID)->GetList();
 
@@ -763,8 +790,8 @@ void colorNoCluster::decapsulate(Packet *packet,  const SID& sid)
     testModule.DataRecvNum++;
 
     testModule.delayArray.push_back((simTime().dbl() - testModule.Delays[sid].dbl()) * 1000);
-    std::cout << "receive the packet successfully!" << endl;
-    std::cout << "delay is " << (simTime().dbl() - testModule.Delays[sid].dbl()) * 1000 << " ms" << endl;
+//    std::cout << "receive the packet successfully!" << endl;
+//    std::cout << "delay is " << (simTime().dbl() - testModule.Delays[sid].dbl()) * 1000 << " ms" << endl;
 
     //移除Delays中的此sid对应的delay
     testModule.Delays.erase(sid);
