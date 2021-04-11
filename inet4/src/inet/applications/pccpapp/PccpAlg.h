@@ -12,10 +12,61 @@
 #include "inet/applications/pccpapp/PccpStateVariables.h"
 #include "inet/applications/pccpapp/PccpSendQueue.h"
 #include "inet/applications/pccpapp/PccpApp.h"
+#include <iostream>
+#include <fstream>
 
 namespace inet {
 
 class PccpApp;
+
+class PccpRecorder
+{
+private:
+    int numMaxRexmit;
+    int numRexmit;
+    int numDataRcvd;
+    bool started;
+    double startRcvTime; // in seconds
+    double lastRcvTime; // in seconds
+public:
+    PccpRecorder() {
+        numMaxRexmit = 0;
+        numRexmit = 0;
+        numDataRcvd = 0;
+        started = false;
+        startRcvTime = 0.0;
+        lastRcvTime = 0.0;
+    };
+    ~PccpRecorder() {
+        outputToFile();
+    };
+    void incNumMaxRexmit() {
+        numMaxRexmit++;
+    };
+    void incNumRexmit() {
+        numRexmit++;
+    };
+    void incNumDataRcvd(double time) {
+        if (!started) {
+            started = true;
+            startRcvTime = time;
+        }
+        numDataRcvd++;
+        lastRcvTime = time;
+    };
+    void outputToFile() {
+        double throughput = (numDataRcvd * 1000) / (lastRcvTime - startRcvTime); // KB/s
+        throughput = throughput / 1e6 * 8; // Mbps
+        std::ofstream outfile;
+        outfile.open("/home/zeusnet/pccp/pccpresult.txt", std::ios::out);
+        outfile << "numMaxRexmit " << numMaxRexmit << endl;
+        outfile << "numRexmit" << numRexmit << endl;
+        outfile << "numDataRcvd " << numDataRcvd << endl;
+        outfile << "throughput " << throughput << endl;
+        outfile.close();
+    };
+
+};
 
 /**
  * Includes basic algorithms: retransmission, congestion window adjustment.
@@ -28,6 +79,7 @@ protected:
     PccpStateVariables state;
     PccpSendQueue sendQueue;
     PccpApp *pccpApp;    // app module, set by the app
+    PccpRecorder recorder;
 
 private:
     /**

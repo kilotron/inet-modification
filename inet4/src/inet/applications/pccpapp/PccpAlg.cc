@@ -59,6 +59,7 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
         sendQueue.discard(sid);
         EV << "Retransmission count exceeds " << pccpApp->maxRexmitLimit << ", aborting.\n";
         pccpApp->maxRexmit(sid); // Tell app retransmission count exceeds MAX_REXMIT_COUNT.
+        recorder.incNumMaxRexmit();
         sendRequestsToSocket();  // if there are no newly arrived requests
         return;
     }
@@ -97,6 +98,7 @@ void PccpAlg::retransmitRequest(const SID& sid)
     //sendQueue.increaseRexmitCount(sid);
     pccpApp->emit(PccpApp::getSentSignal, 1);
     pccpApp->emit(PccpApp::rexmitSignal, 1); // the second parameter can be any value
+    recorder.incNumRexmit();
 }
 
 // 窗口改变或有app数据到达时调用
@@ -128,6 +130,7 @@ void PccpAlg::requestSent(const SID& sid, bool isRexmit)
     pccpApp->emit(PccpApp::getSentSignal, 1);
     if (isRexmit) {
         pccpApp->emit(PccpApp::rexmitSignal, 1);
+        recorder.incNumRexmit();
     }
 
     // if retransmission timer not running, schedule it
@@ -146,6 +149,7 @@ void PccpAlg::requestSent(const SID& sid, bool isRexmit)
 void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 {
     pccpApp->emit(PccpApp::dataRcvdSignal, 1);
+    recorder.incNumDataRcvd(simTime().dbl());
     if ( state.rtsid_sendtime != 0 && state.rtsid == sid ) {
         EV << "Round-trip time measured: "
            << floor((simTime() - state.rtsid_sendtime) * 1000 + 0.5) << "ms\n";

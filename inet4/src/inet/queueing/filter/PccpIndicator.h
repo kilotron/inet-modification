@@ -21,7 +21,7 @@ class INET_API PccpIndicator : public PacketFilterBase
 protected:
     // parameters
     double wq;  // weight of the current queue length in the averaged queue length
-    double g;    // weight of data queue occupancy
+    double g;    // weight of pit length
     double CI_FREE;
     double CI_BUSY;
     double CI_CONG;
@@ -30,6 +30,7 @@ protected:
     double avgPitLength = 0.0;
     double ci = 0.0; // congestion index
     bool dataQueueOnly;
+    bool useECP;
     IPacketCollection *collection = nullptr; // linklayer queue
     simtime_t q_time;
 

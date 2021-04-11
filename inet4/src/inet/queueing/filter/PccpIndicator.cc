@@ -50,6 +50,7 @@ void PccpIndicator::initialize(int stage)
         CI_CONG = par("CI_CONG");
         p0 = par("p0");
         dataQueueOnly = par("dataQueueOnly");
+        useECP = par("useECP");
         checkParameters(wq, TOSTRING(wq), 0.0, 1.0);
         checkParameters(g, TOSTRING(g), 0.0, 1.0);
         checkParameters(p0, TOSTRING(p0), 0.0, 1.0);
@@ -130,10 +131,14 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
 
     avgPitLength = (1 - wq) * avgPitLength + wq * pitLength;
    // ci = (1 - g) * avgPitLength / pitCapacity + g * avgDataQueueLength / dataQCapacity;
-    if (dataQueueOnly) {
-        ci = (avgDataQueueLength) / dataQCapacity;
+    if (useECP) {
+        ci = avgPitLength / pitCapacity;
     } else {
-        ci = (avgDataQueueLength + g * avgPitLength) / dataQCapacity;
+        if (dataQueueOnly) {
+            ci = (avgDataQueueLength) / dataQCapacity;
+        } else {
+            ci = (avgDataQueueLength + g * avgPitLength) / dataQCapacity;
+        }
     }
 //    std::cout << "update CI: QL=" << dataQLength << ",QC=" << dataQCapacity
 //            << ",avgDQ=" << avgDataQueueLength << ",pitL=" << pitLength
