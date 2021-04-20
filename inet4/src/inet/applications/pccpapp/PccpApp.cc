@@ -68,6 +68,9 @@ void PccpApp::initialize(int stage)
         congestionControlEnabled = par("congestionControlEnabled");
         initialWindowSize = par("initialWindowSize");
         maxRexmitLimit = par("maxRexmitLimit");
+        algoinfo = par("algoinfo").stdstringValue();
+        sizeinfo = par("sizeinfo");
+        this->pccpAlg->setInfo(algoinfo, sizeinfo);
         pccpAlg->initializeState();
         int nodeIndex = getParentModule()->getIndex();
         std::array<uint64_t, 2> hashValue;

@@ -46,6 +46,9 @@ simple PccpApp like IApp
         int n0 = default(5);
         double k0 = default(0.5);
         
+        string algoinfo = default("None");
+        int sizeinfo = default(-1);
+        
 		// TODO 增加窗口调节算法后，需要在相应位置发射下面的信号
 		// 增加新的信号后，也需要在ini文件中修改
 		@signal[rto](type=simtime_t);

@@ -29,8 +29,7 @@ protected:
     double avgDataQueueLength = 0.0;
     double avgPitLength = 0.0;
     double ci = 0.0; // congestion index
-    bool dataQueueOnly;
-    bool useECP;
+    int algorithm;
     IPacketCollection *collection = nullptr; // linklayer queue
     simtime_t q_time;
 

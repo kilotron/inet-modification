@@ -14,6 +14,8 @@
 #include "inet/applications/pccpapp/PccpApp.h"
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <sstream>
 
 namespace inet {
 
@@ -28,7 +30,22 @@ private:
     bool started;
     double startRcvTime; // in seconds
     double lastRcvTime; // in seconds
+
+    // delay < 5ms
+    int numDataRcvdLessDelayed;
+    bool startedLessDelayed;
+    double startRcvTimeLessDelayed; // in seconds
+    double lastRcvTimeLessDelayed; // in seconds
+
+    std::ostringstream bandwidth_result; // each line: time bandwidth
+    std::ostringstream data_rcvd;
+    std::ostringstream rexmit_result;
+    std::ostringstream packet_loss_result;
+    std::ostringstream delay_result;
+    std::ostringstream data_rcvd_less_delayed; // data received, delay of which is less than 100ms
+
 public:
+    std::string pccpinfo; // information will be written to file
     PccpRecorder() {
         numMaxRexmit = 0;
         numRexmit = 0;
@@ -36,33 +53,82 @@ public:
         started = false;
         startRcvTime = 0.0;
         lastRcvTime = 0.0;
+
+        numDataRcvdLessDelayed = 0;
+        startedLessDelayed = false;
+        startRcvTimeLessDelayed = 0.0;
+        lastRcvTimeLessDelayed = 0.0;
+
+        bandwidth_result << "Bandwidth Result" << std::endl;
+        data_rcvd << "DataRcvd Result" << std::endl;
+        rexmit_result << "Rexmit Result" << std::endl;
+        packet_loss_result << "Packet Loss Result" << std::endl;
+        delay_result << "Delay Result" << std::endl;
+        data_rcvd_less_delayed << "DataRcvdLessDelayed Result" << std::endl;
     };
     ~PccpRecorder() {
         outputToFile();
     };
-    void incNumMaxRexmit() {
-        numMaxRexmit++;
-    };
-    void incNumRexmit() {
-        numRexmit++;
-    };
-    void incNumDataRcvd(double time) {
-        if (!started) {
-            started = true;
-            startRcvTime = time;
+    void increase(std::string name) {
+        double time = simTime().dbl();
+        if (name == "numRexmit") {
+            numRexmit++;
+            rexmit_result << time - 3 << std::endl;
+        } else if (name == "numMaxRexmit") {
+            numMaxRexmit++;
+            packet_loss_result << time - 3 << std::endl;
+        } else if (name == "numDataRcvd") {
+            if (!started) {
+                started = true;
+                startRcvTime = time;
+            }
+            numDataRcvd++;
+            data_rcvd << time - 3 << std::endl;
+            lastRcvTime = time;
+        } else if (name == "numDataRcvdLessDelayed") {
+            if (!startedLessDelayed) {
+                startedLessDelayed = true;
+                startRcvTimeLessDelayed = time;
+            }
+            numDataRcvdLessDelayed++;
+            data_rcvd_less_delayed << time - 3 << std::endl;
+            lastRcvTimeLessDelayed = time;
+        } else {
+            std::cout << "PccpAlg.h: recorder increase error" << std::endl;
         }
-        numDataRcvd++;
-        lastRcvTime = time;
-    };
+    }
+    void addDelay(double d) {
+        delay_result << d << std::endl;
+    }
     void outputToFile() {
         double throughput = (numDataRcvd * 1000) / (lastRcvTime - startRcvTime); // KB/s
         throughput = throughput / 1e6 * 8; // Mbps
+        double throughput_less_delayed = (numDataRcvdLessDelayed * 1000) / (lastRcvTimeLessDelayed - startRcvTimeLessDelayed);
+        throughput_less_delayed = throughput_less_delayed / 1e6 * 8;
+        std::ostringstream oss;
+        oss << pccpinfo << endl;
+        oss << "numMaxRexmit " << numMaxRexmit << endl;
+        oss << "numRexmit " << numRexmit << endl;
+        oss << "numDataRcvd " << numDataRcvd << endl;
+        oss << "throughput " << throughput << endl;
+        oss << "throughput_less_delayed " << throughput_less_delayed << endl;
+
+        bandwidth_result << "END" << std::endl;
+        data_rcvd << "END" << std::endl;
+        rexmit_result << "END" << std::endl;
+        packet_loss_result << "END" << std::endl;
+        delay_result << "END" << std::endl;
+        data_rcvd_less_delayed << "END" << std::endl;
+        oss << data_rcvd.str();
+        oss << rexmit_result.str();
+        oss << packet_loss_result.str();
+        oss << delay_result.str();
+        oss << data_rcvd_less_delayed.str();
+
+        std::string s = oss.str();
         std::ofstream outfile;
-        outfile.open("/home/zeusnet/pccp/pccpresult.txt", std::ios::out);
-        outfile << "numMaxRexmit " << numMaxRexmit << endl;
-        outfile << "numRexmit" << numRexmit << endl;
-        outfile << "numDataRcvd " << numDataRcvd << endl;
-        outfile << "throughput " << throughput << endl;
+        outfile.open("/home/zeusnet/pccp/xtoponoburstresultfreq=.txt", std::ios::app);
+        outfile << s;
         outfile.close();
     };
 
@@ -131,6 +197,8 @@ public:
     //INetworkSocket::ICallback:
     virtual void socketDataArrived(ColorSocket *socket, Packet *packet) override;
     virtual void socketClosed(ColorSocket *socket) override;
+
+    void setInfo(std::string algoinfo, int sizeinfo);
 };
 
 } // namespace inet

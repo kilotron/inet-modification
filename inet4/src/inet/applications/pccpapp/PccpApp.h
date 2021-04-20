@@ -51,6 +51,9 @@ class INET_API PccpApp : public ApplicationBase
     int n0;
     double k0;
 
+    std::string algoinfo;
+    int sizeinfo;
+
     NID nid;
     long long content = 0;
     ColorSocket *currentSocket = nullptr;

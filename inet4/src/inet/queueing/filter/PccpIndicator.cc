@@ -49,8 +49,7 @@ void PccpIndicator::initialize(int stage)
         CI_BUSY = par("CI_BUSY");
         CI_CONG = par("CI_CONG");
         p0 = par("p0");
-        dataQueueOnly = par("dataQueueOnly");
-        useECP = par("useECP");
+        algorithm = par("algorithm");
         checkParameters(wq, TOSTRING(wq), 0.0, 1.0);
         checkParameters(g, TOSTRING(g), 0.0, 1.0);
         checkParameters(p0, TOSTRING(p0), 0.0, 1.0);
@@ -119,6 +118,7 @@ bool PccpIndicator::matchesPacket(Packet *packet)
 
 void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity)
 {
+    enum pccpalgo {PCCP = 0, CCS = 1, ECP = 2};
     int dataQLength = collection->getNumPackets();
     int dataQCapacity = collection->getMaxNumPackets();
     if (dataQLength > 0) {
@@ -130,15 +130,13 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
     }
 
     avgPitLength = (1 - wq) * avgPitLength + wq * pitLength;
-   // ci = (1 - g) * avgPitLength / pitCapacity + g * avgDataQueueLength / dataQCapacity;
-    if (useECP) {
+
+    if (algorithm == ECP) {
         ci = avgPitLength / pitCapacity;
-    } else {
-        if (dataQueueOnly) {
-            ci = (avgDataQueueLength) / dataQCapacity;
-        } else {
-            ci = (avgDataQueueLength + g * avgPitLength) / dataQCapacity;
-        }
+    } else if (algorithm == CCS) {
+        ci = (avgDataQueueLength) / dataQCapacity;
+    } else { // algorithm == PCCP
+        ci = (avgDataQueueLength + g * avgPitLength) / dataQCapacity;
     }
 //    std::cout << "update CI: QL=" << dataQLength << ",QC=" << dataQCapacity
 //            << ",avgDQ=" << avgDataQueueLength << ",pitL=" << pitLength

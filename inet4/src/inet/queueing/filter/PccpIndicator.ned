@@ -29,8 +29,7 @@ simple PccpIndicator extends PacketFilterBase
         double CI_BUSY = default(0.3);
         double CI_CONG = default(0.6);
         double p0 = default(0.5);	// probability of CL=BUSY_1 when CI = CI_BUSY
-        bool dataQueueOnly = default(false);
-        bool useECP = default(false); // if true, use ECP method, data queue will be ignored.
+        int algorithm = default(0); // 0: pccp, 1: ccs, 2: ecp
         @class(PccpIndicator); 
         
         @signal[dataQueueLength](type=long);

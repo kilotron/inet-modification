@@ -10,6 +10,7 @@
 #include "inet/networklayer/common/ClTag_m.h"
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 namespace inet {
 
@@ -59,7 +60,7 @@ void PccpAlg::processRexmitTimer(cMessage *timer)
         sendQueue.discard(sid);
         EV << "Retransmission count exceeds " << pccpApp->maxRexmitLimit << ", aborting.\n";
         pccpApp->maxRexmit(sid); // Tell app retransmission count exceeds MAX_REXMIT_COUNT.
-        recorder.incNumMaxRexmit();
+        recorder.increase("numMaxRexmit");
         sendRequestsToSocket();  // if there are no newly arrived requests
         return;
     }
@@ -98,7 +99,7 @@ void PccpAlg::retransmitRequest(const SID& sid)
     //sendQueue.increaseRexmitCount(sid);
     pccpApp->emit(PccpApp::getSentSignal, 1);
     pccpApp->emit(PccpApp::rexmitSignal, 1); // the second parameter can be any value
-    recorder.incNumRexmit();
+    recorder.increase("numRexmit");
 }
 
 // 窗口改变或有app数据到达时调用
@@ -130,7 +131,7 @@ void PccpAlg::requestSent(const SID& sid, bool isRexmit)
     pccpApp->emit(PccpApp::getSentSignal, 1);
     if (isRexmit) {
         pccpApp->emit(PccpApp::rexmitSignal, 1);
-        recorder.incNumRexmit();
+        recorder.increase("numRexmit");
     }
 
     // if retransmission timer not running, schedule it
@@ -149,7 +150,7 @@ void PccpAlg::requestSent(const SID& sid, bool isRexmit)
 void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 {
     pccpApp->emit(PccpApp::dataRcvdSignal, 1);
-    recorder.incNumDataRcvd(simTime().dbl());
+    recorder.increase("numDataRcvd");
     if ( state.rtsid_sendtime != 0 && state.rtsid == sid ) {
         EV << "Round-trip time measured: "
            << floor((simTime() - state.rtsid_sendtime) * 1000 + 0.5) << "ms\n";
@@ -165,6 +166,10 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
     if (timer != nullptr) { // timer为nullptr说明这个sid不在数据等待队列
         simtime_t delay = simTime() - sendQueue.getFirstTransTime(sid); // 记录为实验结果数据
         pccpApp->emit(PccpApp::delaySignal, delay);
+        recorder.addDelay(delay.dbl());
+        if (delay.dbl() < 0.005) { // less than 5ms
+            recorder.increase("numDataRcvdLessDelayed");
+        }
         pccpApp->cancelEvent(timer);
         // remove the request from sendQueue
         // TODO: bug: 有时请求在重传等待队列中，这种情况下未从中移除请求，即使收到了数据以后仍会重传。
@@ -183,9 +188,10 @@ void PccpAlg::dataReceived(const SID& sid, Packet *packet)
 
     if (congestionLevel == PccpClCode::FREE) {
         state.window += 1 / state.window;
-        //state.window += 1;
+//        state.window += 1;
     } else if (congestionLevel == PccpClCode::BUSY_1) {
         state.window += 0.5 / state.window; // 保持不变
+//        state.window += 1 / state.window;
     } else if (congestionLevel == PccpClCode::BUSY_2) {
         state.window -= 1 / state.window;
         //state.window -= 1;
@@ -260,6 +266,16 @@ void PccpAlg::sendRequest(const SID &sid, int localPort, double sendInterval)
     //pccpApp->currentSocket->sendGET(sid, localPort, sendInterval);
     sendQueue.enqueueRequest(sid);
     sendRequestsToSocket();
+}
+
+void PccpAlg::setInfo(std::string algoinfo, int sizeinfo)
+{
+    std::ostringstream oss;
+    oss << algoinfo;
+    if (sizeinfo != -1) {
+        oss << " " << sizeinfo;
+    }
+    this->recorder.pccpinfo = oss.str();
 }
 
 } // namespace inet
