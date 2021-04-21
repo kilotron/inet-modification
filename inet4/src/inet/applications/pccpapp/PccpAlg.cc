@@ -268,7 +268,7 @@ void PccpAlg::sendRequest(const SID &sid, int localPort, double sendInterval)
     sendRequestsToSocket();
 }
 
-void PccpAlg::setInfo(std::string algoinfo, int sizeinfo)
+void PccpAlg::setInfo(std::string algoinfo, int sizeinfo, std::string gammainfo)
 {
     std::ostringstream oss;
     oss << algoinfo;
@@ -276,6 +276,7 @@ void PccpAlg::setInfo(std::string algoinfo, int sizeinfo)
         oss << " " << sizeinfo;
     }
     this->recorder.pccpinfo = oss.str();
+    this->recorder.parainfo = gammainfo;
 }
 
 } // namespace inet

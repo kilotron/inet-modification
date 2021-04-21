@@ -47,18 +47,18 @@ double PccpBurstApp::getSendInterval()
     double frequency;
     double interval;
 //    burst
-//    if ((time >= 30 && time < 32) || (time >= 62 && time < 64) || (time >= 94 && time < 96)) {
-//        frequency = FREQ_HIGH;
-//    } else {
-//        frequency = FREQ_LOW;
-//    }
+    if ((time >= 30 && time < 32) || (time >= 62 && time < 64) || (time >= 94 && time < 96)) {
+        frequency = FREQ_HIGH;
+    } else {
+        frequency = FREQ_LOW;
+    }
 //    high to low
 //    if ((time < 30 )) {
 //        frequency = FREQ_HIGH;
 //    } else {
 //        frequency = FREQ_LOW;
 //    }
-    frequency = 2000;
+//    frequency = 2000;
     interval = 1.0 / frequency;
     return exponential(interval);
 }

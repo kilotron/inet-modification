@@ -12,6 +12,7 @@
 #include "inet/queueing/base/PacketFilterBase.h"
 #include "inet/queueing/contract/IPacketCollection.h"
 #include "inet/networklayer/common/ClTag_m.h"
+#include <string>
 
 namespace inet {
 namespace queueing {
@@ -29,7 +30,7 @@ protected:
     double avgDataQueueLength = 0.0;
     double avgPitLength = 0.0;
     double ci = 0.0; // congestion index
-    int algorithm;
+    std::string algorithm;
     IPacketCollection *collection = nullptr; // linklayer queue
     simtime_t q_time;
 
@@ -72,6 +73,10 @@ protected:
      * 根据CI（congestion index）计算得出CL(congestion level)
      */
     PccpClCode calculateCongestionLevel();
+
+    double min(double a, double b) {
+        return a > b ? b : a;
+    }
 };
 
 } // namespace queueing

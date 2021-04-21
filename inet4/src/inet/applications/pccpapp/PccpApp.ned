@@ -47,6 +47,7 @@ simple PccpApp like IApp
         double k0 = default(0.5);
         
         string algoinfo = default("None");
+        string parainfo = default("None");
         int sizeinfo = default(-1);
         
 		// TODO 增加窗口调节算法后，需要在相应位置发射下面的信号

@@ -49,7 +49,7 @@ void PccpIndicator::initialize(int stage)
         CI_BUSY = par("CI_BUSY");
         CI_CONG = par("CI_CONG");
         p0 = par("p0");
-        algorithm = par("algorithm");
+        algorithm = par("algorithm").stdstringValue();
         checkParameters(wq, TOSTRING(wq), 0.0, 1.0);
         checkParameters(g, TOSTRING(g), 0.0, 1.0);
         checkParameters(p0, TOSTRING(p0), 0.0, 1.0);
@@ -118,7 +118,6 @@ bool PccpIndicator::matchesPacket(Packet *packet)
 
 void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity)
 {
-    enum pccpalgo {PCCP = 0, CCS = 1, ECP = 2};
     int dataQLength = collection->getNumPackets();
     int dataQCapacity = collection->getMaxNumPackets();
     if (dataQLength > 0) {
@@ -131,12 +130,14 @@ void PccpIndicator::updateAverageQueueLengthAndCI(int pitLength, int pitCapacity
 
     avgPitLength = (1 - wq) * avgPitLength + wq * pitLength;
 
-    if (algorithm == ECP) {
+    if (algorithm == "ECP") {
         ci = avgPitLength / pitCapacity;
-    } else if (algorithm == CCS) {
+    } else if (algorithm == "CCS") {
         ci = (avgDataQueueLength) / dataQCapacity;
-    } else { // algorithm == PCCP
-        ci = (avgDataQueueLength + g * avgPitLength) / dataQCapacity;
+    } else if (algorithm == "PCCP"){
+        ci = (1 - g) * avgDataQueueLength / dataQCapacity + g * min(avgPitLength / dataQCapacity, 1);
+    } else {
+        std::cout << "Undefined congestion control algorithm" << std::endl;
     }
 //    std::cout << "update CI: QL=" << dataQLength << ",QC=" << dataQCapacity
 //            << ",avgDQ=" << avgDataQueueLength << ",pitL=" << pitLength

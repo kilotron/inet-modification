@@ -46,6 +46,7 @@ private:
 
 public:
     std::string pccpinfo; // information will be written to file
+    std::string parainfo; // parameter information will be written to file name
     PccpRecorder() {
         numMaxRexmit = 0;
         numRexmit = 0;
@@ -127,7 +128,9 @@ public:
 
         std::string s = oss.str();
         std::ofstream outfile;
-        outfile.open("/home/zeusnet/pccp/xtoponoburstresultfreq=.txt", std::ios::app);
+        std::string filename("/home/zeusnet/pccp/xtopoburst");
+        filename += parainfo + ".txt";
+        outfile.open(filename, std::ios::app);
         outfile << s;
         outfile.close();
     };
@@ -198,7 +201,7 @@ public:
     virtual void socketDataArrived(ColorSocket *socket, Packet *packet) override;
     virtual void socketClosed(ColorSocket *socket) override;
 
-    void setInfo(std::string algoinfo, int sizeinfo);
+    void setInfo(std::string algoinfo, int sizeinfo, std::string parainfo);
 };
 
 } // namespace inet

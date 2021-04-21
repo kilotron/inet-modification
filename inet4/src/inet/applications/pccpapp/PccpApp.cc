@@ -70,7 +70,7 @@ void PccpApp::initialize(int stage)
         maxRexmitLimit = par("maxRexmitLimit");
         algoinfo = par("algoinfo").stdstringValue();
         sizeinfo = par("sizeinfo");
-        this->pccpAlg->setInfo(algoinfo, sizeinfo);
+        this->pccpAlg->setInfo(algoinfo, sizeinfo, par("parainfo").stdstringValue());
         pccpAlg->initializeState();
         int nodeIndex = getParentModule()->getIndex();
         std::array<uint64_t, 2> hashValue;
